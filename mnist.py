@@ -2,8 +2,10 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import DataLoader
-# from torchvision import transforms
 import matplotlib.pyplot as plt
+
+from lbae import LBAE
+from pipeline import Pipeline
 
 # Load the digits dataset
 
@@ -21,21 +23,25 @@ def plot_digits(nrows, ncols, images, targets, preds=None):
 
 digits = datasets.load_digits()
 
-nrows = 2
-ncols = 5
-plot_digits(nrows, ncols, digits.images, digits.target)
+# nrows = 2
+# ncols = 5
+# plot_digits(nrows, ncols, digits.images, digits.target)
 
 # Split into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(digits.data, digits.target, test_size=0.2)
 
-print(X_train.shape)
-print(X_test.shape)
-print(y_train.shape)
-print(y_test.shape)
+X_train = torch.Tensor(X_train)
+X_test = torch.Tensor(X_test)
+y_train = torch.Tensor(y_train)
+y_test = torch.Tensor(y_test)
 
-train_dataloader = DataLoader(list(zip(X_train, y_train)), batch_size=64, shuffle=True)
-test_dataloader = DataLoader(list(zip(X_test, y_test)), batch_size=64, shuffle=False)
+train_dataloader = DataLoader(list(zip(X_train,y_train)), batch_size=1, shuffle=True)
+test_dataloader = DataLoader(list(zip(X_test,y_test)), batch_size=1, shuffle=False)
 
-img, label = next(iter(train_dataloader))
-print(img)
-print(label)
+NUM_VISIBLE = 60
+MAX_EPOCHS = 35
+
+autoencoder = LBAE(input_size=(1, 8, 8), out_channels=8, zsize=NUM_VISIBLE, num_layers=2, quantize=list(range(MAX_EPOCHS)))
+pipeline = Pipeline(auto_encoder=autoencoder, rbm=True, classifier=True)
+
+pipeline.fit(train_dataloader)
