@@ -50,7 +50,8 @@ class Pipeline:
         skip_classifier = skip_classifier or self.classifier is None
 
         trainer = pl.Trainer(
-            gpus=gpus,
+            # gpus=gpus,
+            accelerator="cuda",
             precision=precision,
             max_epochs=max_epochs,
             enable_checkpointing=enable_checkpointing
