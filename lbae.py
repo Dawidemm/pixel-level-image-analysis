@@ -31,8 +31,9 @@ class LBAE(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
+        x = torch.reshape(x, (1, 1, 8, 8))
         if self.epoch == 0 and batch_idx == 0:
-            self.reference_image = x[0:1, :, :, :]
+            self.reference_image = x
         xr = self.forward(x)
         l = loss(xr.view(x.size()), x)
         self.log("loss", l, logger=True)
@@ -50,14 +51,14 @@ class LBAE(pl.LightningModule):
     def configure_optimizers(self):
         return {"optimizer": optim.Adam(self.parameters(), lr=1e-3)}
 
-    def training_epoch_end(self, outputs):
-        with torch.no_grad():
-            xr = self.forward(self.reference_image)
-        if self.reference_image.size(1) > 1:
-            dataformats = "CHW"
-        else:
-            dataformats = "HW"
-        self.logger.experiment.add_image("input", self.reference_image.squeeze(), self.epoch, dataformats=dataformats)
-        self.logger.experiment.add_image("recovery", xr.squeeze(), self.epoch, dataformats=dataformats)
-        self.logger.experiment.flush()
-        self.epoch += 1
+    # def on_training_epoch_end(self):
+    #     with torch.no_grad():
+    #         xr = self.forward(self.reference_image)
+    #     if self.reference_image.size(1) > 1:
+    #         dataformats = "CHW"
+    #     else:
+    #         dataformats = "HW"
+    #     self.logger.experiment.add_image("input", self.reference_image.squeeze(), self.epoch, dataformats=dataformats)
+    #     self.logger.experiment.add_image("recovery", xr.squeeze(), self.epoch, dataformats=dataformats)
+    #     self.logger.experiment.flush()
+    #     self.epoch += 1
