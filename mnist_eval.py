@@ -25,8 +25,8 @@ X_test = torch.reshape(X_test, (len(X_test), 1, 8, 8))
 
 preds = model(X_test)
 
-test_first_image = X_test[0].clone().detach()
-preds_first_image = preds[0].clone().detach()
+# test_first_image = X_test[0].clone().detach()
+# preds_first_image = preds[0].clone().detach()
 
 # plt.imshow(test_first_image.permute(1, 2, 0), cmap='gray')
 # plt.show()
@@ -34,11 +34,11 @@ preds_first_image = preds[0].clone().detach()
 # plt.imshow(preds_first_image.permute(1, 2, 0), cmap='gray')
 # plt.show()
 
-test_first_image = test_first_image.reshape(64,)
-preds_first_image = preds_first_image.reshape(64,)
+# test_first_image = test_first_image.reshape(64,)
+# preds_first_image = preds_first_image.reshape(64,)
 
-rand_index = rand_score(test_first_image, preds_first_image)
-print(f'Rand score dla pierwszego elementu z zbioru testowwego: {round(rand_index, 2)}')
+# rand_index = rand_score(test_first_image, preds_first_image)
+# print(f'Rand score dla pierwszego elementu z zbioru testowwego: {round(rand_index, 2)}')
 
 X_test = X_test.clone().detach().reshape(360*64,)
 preds = preds.clone().detach().reshape(360*64,)
