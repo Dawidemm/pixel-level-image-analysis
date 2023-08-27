@@ -51,9 +51,11 @@ class Pipeline:
 
         trainer = pl.Trainer(
             # gpus=gpus,
-            accelerator="cuda",
+            # accelerator="cuda",
+            accelerator='mps',
             precision=precision,
-            max_epochs=max_epochs,
+            # max_epochs=max_epochs,
+            max_epochs = 20,
             enable_checkpointing=enable_checkpointing
         )
 
