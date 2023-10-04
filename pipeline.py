@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 # from qbm4eo.cim import CIMSampler, ramp
 # from qbm4eo.classifier import Classifier
 # from qbm4eo.lbae import LBAE
-# from qbm4eo.rbm import CD1Trainer, RBM
+from rbm import CD1Trainer, RBM
 
 
 def encoded_dataloader(data_loader, encoder):
@@ -35,7 +35,7 @@ class Pipeline:
         data_loader: DataLoader,
         gpus=1,
         precision=32,
-        max_epochs=100,
+        # max_epochs=10,
         enable_checkpointing=True,
         rbm_learning_rate=0.01,
         rbm_steps=100,
@@ -55,7 +55,7 @@ class Pipeline:
             accelerator='mps',
             precision=precision,
             # max_epochs=max_epochs,
-            max_epochs = 20,
+            max_epochs = 5,
             enable_checkpointing=enable_checkpointing
         )
 
@@ -71,29 +71,29 @@ class Pipeline:
 
         torch.save(encoder.state_dict(), "encoder.pt")
 
-    #     if skip_rbm:
-    #         print("Skipping RBM training as requested.")
-    #     else:
-    #         rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
-    #         rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
+        if skip_rbm:
+            print("Skipping RBM training as requested.")
+        else:
+            rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
+            rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
 
-    #     self.rbm.save("rbm.npz")
+        self.rbm.save("rbm.npz")
 
-    #     if skip_classifier:
-    #         print("Skipping classifier training.")
-    #     else:
-    #         trainer.fit(self.classifier, data_loader)
-    #         self.classifier.freeze()
-    #         torch.save(self.classifier.state_dict(), "classifier.pt")
-    #         trainer.save_checkpoint("classifier.ckpt")
+        if skip_classifier:
+            print("Skipping classifier training.")
+        else:
+            trainer.fit(self.classifier, data_loader)
+            self.classifier.freeze()
+            torch.save(self.classifier.state_dict(), "classifier.pt")
+            trainer.save_checkpoint("classifier.ckpt")
 
-    # def predict(self, data_loader):
-    #     return self.classifier(
-    #         torch.from_numpy(
-    #         self.rbm.h_probs_given_v(
-    #             self.auto_encoder.encoder(data_loader)[0].detach().numpy()
-    #         )
-    #         ).float())
+    def predict(self, data_loader):
+        return self.classifier(
+            torch.from_numpy(
+            self.rbm.h_probs_given_v(
+                self.auto_encoder.encoder(data_loader)[0].detach().numpy()
+            )
+            ).float())
 
     # @classmethod
     # def load(cls, path):
