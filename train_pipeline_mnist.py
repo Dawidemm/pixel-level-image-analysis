@@ -17,6 +17,9 @@ y_train, y_test = digits.target[:dataset_split], digits.target[dataset_split:]
 X_train, X_test = torch.Tensor(X_train), torch.Tensor(X_test)
 y_train, y_test = torch.Tensor(y_train), torch.Tensor(y_test)
 
+X_train = X_train.clone().detach().reshape(len(X_train), 1, 8, 8)
+X_test = X_test.clone().detach().reshape(len(X_test), 1, 8, 8)
+
 train_dataloader = DataLoader(list(zip(X_train,y_train)), batch_size=1, shuffle=False)
 
 NUM_VISIBLE = 60
