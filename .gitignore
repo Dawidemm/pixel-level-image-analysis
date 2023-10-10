@@ -1,2 +1,3 @@
 /__pycache__
-encoder.pt
+/encoder.pt
+/lightning_logs/
