@@ -15,7 +15,7 @@ model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-
 digits = datasets.load_digits()
 dataset_split = int(len(digits.data) * 0.8)
 
-X_train, X_test = digits.data[:dataset_split], digits.data[dataset_split:]
+X_train, X_test = digits.data[:dataset_split]/16, digits.data[dataset_split:]/16
 y_train, y_test = digits.target[:dataset_split], digits.target[dataset_split:]
 
 X_train, X_test = torch.Tensor(X_train), torch.Tensor(X_test)
