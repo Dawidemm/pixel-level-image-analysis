@@ -55,7 +55,7 @@ class Pipeline:
             accelerator='mps',
             precision=precision,
             # max_epochs=max_epochs,
-            max_epochs = 5,
+            max_epochs = 2,
             enable_checkpointing=enable_checkpointing
         )
 
