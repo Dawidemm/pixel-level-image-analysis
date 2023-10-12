@@ -8,12 +8,12 @@ from pylab import subplots
 from scipy import stats
 from torch import nn
 from torch.utils.data import DataLoader
-# from torchgeo.datasets import BigEarthNet
-# from torchvision import transforms
+
+from torchvision import transforms
 
 # from qbm4eo.cim import CIMSampler, ramp
-# from qbm4eo.classifier import Classifier
-# from qbm4eo.lbae import LBAE
+from classifier import Classifier
+from lbae import LBAE
 from rbm import CD1Trainer, RBM
 
 
@@ -35,7 +35,7 @@ class Pipeline:
         data_loader: DataLoader,
         gpus=1,
         precision=32,
-        # max_epochs=10,
+        max_epochs=100,
         enable_checkpointing=True,
         rbm_learning_rate=0.01,
         rbm_steps=100,
@@ -50,12 +50,9 @@ class Pipeline:
         skip_classifier = skip_classifier or self.classifier is None
 
         trainer = pl.Trainer(
-            # gpus=gpus,
-            # accelerator="cuda",
-            accelerator='mps',
+            gpus=gpus,
             precision=precision,
-            # max_epochs=max_epochs,
-            max_epochs = 2,
+            max_epochs=max_epochs,
             enable_checkpointing=enable_checkpointing
         )
 
@@ -95,14 +92,14 @@ class Pipeline:
             )
             ).float())
 
-    # @classmethod
-    # def load(cls, path):
-    #     path = Path(path)
-    #     auto_encoder = LBAE.load_from_checkpoint(str(path / "lbae.ckpt"))
-    #     rbm = RBM.load(path / "rbm.npz")
-    #     classifier = Classifier.load_from_checkpoint(
-    #         str(path / "classifier.ckpt"),
-    #         encoder=auto_encoder.encoder,
-    #         rbm=rbm
-    #     )
-    #     return cls(auto_encoder, rbm, classifier)
+    @classmethod
+    def load(cls, path):
+        path = Path(path)
+        auto_encoder = LBAE.load_from_checkpoint(str(path / "lbae.ckpt"))
+        rbm = RBM.load(path / "rbm.npz")
+        classifier = Classifier.load_from_checkpoint(
+            str(path / "classifier.ckpt"),
+            encoder=auto_encoder.encoder,
+            rbm=rbm
+        )
+        return cls(auto_encoder, rbm, classifier)
