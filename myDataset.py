@@ -31,7 +31,7 @@ class myDataset(Dataset):
     def __getitem__(self, index) -> tuple:
 
         digit = torch.Tensor(self.dataset_data[index])
-        digit = digit/torch.max(digit)
+        digit = digit/torch.max(torch.Tensor(self.dataset_data))
         digit = torch.reshape(digit, (1, 8, 8))
 
         label = list(map(onehot, list(self.dataset_labels)))
@@ -45,13 +45,13 @@ class myDataset(Dataset):
 def main():
     train_dataset = myDataset(dataset_part='train')
 
-    train_dataloader = DataLoader(dataset=train_dataset, batch_size=8, shuffle=True, num_workers=4)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=1, shuffle=True, num_workers=4)
 
     num_ep = 1
 
     for epoch in range(num_ep):
         for batch_index, (x, y) in enumerate(train_dataloader):
-            if batch_index >= 8:
+            if batch_index >= 3:
                 break
 
             print(f'Batch index: {batch_index}')
