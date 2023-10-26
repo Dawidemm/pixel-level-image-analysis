@@ -1,47 +1,31 @@
 import torch
 import lightning as pl
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from myDataset import myDataset
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-from sklearn.metrics import rand_score
+from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 
 from lbae import LBAE
+# if torch.cuda.is_available():
+model = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_12/checkpoints/epoch=99-step=18000.ckpt', 
+                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_12/hparams.yaml',
+                                    map_location=torch.device('cpu'))
+    
+# else:
+#     model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_3/checkpoints/epoch=19-step=28740.ckpt', 
+#                                     hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_3/hparams.yaml',
+#                                     map_location=torch.device('cpu'))
 
-model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_3/checkpoints/epoch=19-step=28740.ckpt', 
-                                  hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_3/hparams.yaml',
-                                  map_location=torch.device('cpu'))
 
-digits = datasets.load_digits()
-dataset_split = int(len(digits.data) * 0.8)
+test_dataset = myDataset(dataset_part='test')
+test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
-X_train, X_test = digits.data[:dataset_split]/16, digits.data[dataset_split:]/16
-y_train, y_test = digits.target[:dataset_split], digits.target[dataset_split:]
+X = torch.Tensor(test_dataset.dataset_data/16).reshape(len(test_dataset.dataset_data), 1, 8, 8)
+preds = model(X)
 
-X_train, X_test = torch.Tensor(X_train), torch.Tensor(X_test)
-y_train, y_test = torch.Tensor(y_train), torch.Tensor(y_test)
+X_test = X.clone().detach().reshape(360, 64)
+preds = preds.clone().detach().reshape(360, 64)
 
-X_test = torch.reshape(X_test, (len(X_test), 1, 8, 8))
+print(torch.mean(pairwise_euclidean_distance(X_test, preds)))
 
-preds = model(X_test)
-
-# test_first_image = X_test[0].clone().detach()
-# preds_first_image = preds[0].clone().detach()
-
-# plt.imshow(test_first_image.permute(1, 2, 0), cmap='gray')
-# plt.show()
-
-# plt.imshow(preds_first_image.permute(1, 2, 0), cmap='gray')
-# plt.show()
-
-# test_first_image = test_first_image.reshape(64,)
-# preds_first_image = preds_first_image.reshape(64,)
-
-# rand_index = rand_score(test_first_image, preds_first_image)
-# print(f'Rand score dla pierwszego elementu z zbioru testowwego: {round(rand_index, 2)}')
-
-X_test = X_test.clone().detach().reshape(360*64,)
-preds = preds.clone().detach().reshape(360*64,)
-
-rand_index_test = rand_score(X_test, preds)
-print(f'Rand score dla zbioru testowwego: {round(rand_index_test, 2)}')
+print(X[0])
+print(preds[0])
