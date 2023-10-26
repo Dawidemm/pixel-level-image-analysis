@@ -50,7 +50,7 @@ class Pipeline:
         skip_classifier = skip_classifier or self.classifier is None
 
         trainer = pl.Trainer(
-            gpus=gpus,
+            accelerator="cuda" if torch.cuda.is_available() else "mps",
             precision=precision,
             max_epochs=max_epochs,
             enable_checkpointing=enable_checkpointing
@@ -76,30 +76,30 @@ class Pipeline:
 
         self.rbm.save("rbm.npz")
 
-        if skip_classifier:
-            print("Skipping classifier training.")
-        else:
-            trainer.fit(self.classifier, data_loader)
-            self.classifier.freeze()
-            torch.save(self.classifier.state_dict(), "classifier.pt")
-            trainer.save_checkpoint("classifier.ckpt")
+    #     if skip_classifier:
+    #         print("Skipping classifier training.")
+    #     else:
+    #         trainer.fit(self.classifier, data_loader)
+    #         self.classifier.freeze()
+    #         torch.save(self.classifier.state_dict(), "classifier.pt")
+    #         trainer.save_checkpoint("classifier.ckpt")
 
-    def predict(self, data_loader):
-        return self.classifier(
-            torch.from_numpy(
-            self.rbm.h_probs_given_v(
-                self.auto_encoder.encoder(data_loader)[0].detach().numpy()
-            )
-            ).float())
+    # def predict(self, data_loader):
+    #     return self.classifier(
+    #         torch.from_numpy(
+    #         self.rbm.h_probs_given_v(
+    #             self.auto_encoder.encoder(data_loader)[0].detach().numpy()
+    #         )
+    #         ).float())
 
-    @classmethod
-    def load(cls, path):
-        path = Path(path)
-        auto_encoder = LBAE.load_from_checkpoint(str(path / "lbae.ckpt"))
-        rbm = RBM.load(path / "rbm.npz")
-        classifier = Classifier.load_from_checkpoint(
-            str(path / "classifier.ckpt"),
-            encoder=auto_encoder.encoder,
-            rbm=rbm
-        )
-        return cls(auto_encoder, rbm, classifier)
+    # @classmethod
+    # def load(cls, path):
+    #     path = Path(path)
+    #     auto_encoder = LBAE.load_from_checkpoint(str(path / "lbae.ckpt"))
+    #     rbm = RBM.load(path / "rbm.npz")
+    #     classifier = Classifier.load_from_checkpoint(
+    #         str(path / "classifier.ckpt"),
+    #         encoder=auto_encoder.encoder,
+    #         rbm=rbm
+    #     )
+    #     return cls(auto_encoder, rbm, classifier)
