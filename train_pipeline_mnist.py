@@ -12,6 +12,7 @@ NUM_HIDDEN = 60
 RBM_STEPS = 1000
 BATCH_SIZE = 8
 
+
 train_dataset = myDataset(dataset_part='train')
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
