@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 from lbae import LBAE
 if torch.cuda.is_available():
-    model = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_12/checkpoints/epoch=99-step=18000.ckpt', 
-                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_12/hparams.yaml',
+    model = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
+                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
                                     map_location=torch.device('cpu'))
     
 else:
-    model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_8/checkpoints/epoch=14-step=2700.ckpt', 
-                                    hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_8/hparams.yaml',
+    model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=2700.ckpt', 
+                                    hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
                                     map_location=torch.device('cpu'))
 
 
@@ -26,7 +26,7 @@ preds = model(X)
 X_test = X.clone().detach().reshape(360, 64)
 preds = preds.clone().detach().reshape(360, 64)
 
-print(torch.mean(pairwise_euclidean_distance(X_test, preds)))
+print(f'Mean pairwise euclidean distance: {torch.mean(pairwise_euclidean_distance(X_test, preds))}')
 
 def plot_images_from_tensors(tensor1, tensor2):
     # Sprawdź, czy dane są w tensorach PyTorch
