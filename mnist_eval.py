@@ -6,13 +6,15 @@ from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 import matplotlib.pyplot as plt
 
 from lbae import LBAE
+from rbm import RBM
+
 if torch.cuda.is_available():
-    model = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
+    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
                                     hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
                                     map_location=torch.device('cpu'))
     
 else:
-    model = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=2700.ckpt', 
+    lbae = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
                                     hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
                                     map_location=torch.device('cpu'))
 
@@ -21,12 +23,15 @@ test_dataset = myDataset(dataset_part='test')
 test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
 X = torch.Tensor(test_dataset.dataset_data/16).reshape(len(test_dataset.dataset_data), 1, 8, 8)
-preds = model(X)
+preds = lbae(X)
+
+X_test = X.clone().detach().reshape(360 * 64, 1)
+preds = preds.clone().detach().reshape(360 * 64, 1)
+
+print(f'Mean pairwise euclidean distance: {torch.mean(pairwise_euclidean_distance(X_test, preds))}')
 
 X_test = X.clone().detach().reshape(360, 64)
 preds = preds.clone().detach().reshape(360, 64)
-
-print(f'Mean pairwise euclidean distance: {torch.mean(pairwise_euclidean_distance(X_test, preds))}')
 
 def plot_images_from_tensors(tensor1, tensor2):
     # Sprawdź, czy dane są w tensorach PyTorch
@@ -59,4 +64,24 @@ def plot_images_from_tensors(tensor1, tensor2):
     plt.tight_layout()
     plt.show()
 
-plot_images_from_tensors(X, preds)
+# plot_images_from_tensors(X, preds)
+
+NUM_HIDDEN = 60
+NUM_VISIBLE = 60
+MAX_EPOCHS = 100
+
+print(f'input shape (X.shape): {X.shape}')
+
+first_element = X[0].reshape(1, 1, 8, 8)
+
+print(f'first element input shape (X[0].shape): {first_element.shape}')
+
+encoder, err = lbae.encoder.forward(first_element, epoch=1)
+
+print(f'encoder: \n {encoder} \n encoder shape: {encoder.shape}')
+
+rbm_model = RBM(NUM_VISIBLE, NUM_HIDDEN)
+rbm_model.load(file='rbm.npz')
+
+rbm_input = encoder.detach().numpy()
+reconstructed = rbm_model.reconstruct(rbm_input.reshape(1, 8, 8))
