@@ -40,7 +40,7 @@ class Pipeline:
         rbm_learning_rate=0.01,
         rbm_steps=100,
         skip_autoencoder=False,
-        skip_rbm=True,
+        skip_rbm=False,
         skip_classifier=False
     ):
         # Adjust flags for skipping training components. If given component
