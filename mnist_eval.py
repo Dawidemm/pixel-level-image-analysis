@@ -9,8 +9,8 @@ from lbae import LBAE
 from rbm import RBM
 
 if torch.cuda.is_available():
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
-                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
+    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_15/checkpoints/epoch=24-step=4500.ckpt', 
+                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_15/hparams.yaml',
                                     map_location=torch.device('cpu'))
     
 else:
@@ -66,8 +66,9 @@ def plot_images_from_tensors(tensor1, tensor2):
 
 # plot_images_from_tensors(X, preds)
 
-NUM_HIDDEN = 60
-NUM_VISIBLE = 60
+NUM_VISIBLE = 8
+NUM_HIDDEN = 64
+
 MAX_EPOCHS = 100
 
 print(f'input shape (X.shape): {X.shape}')
@@ -83,5 +84,15 @@ print(f'encoder: \n {encoder} \n encoder shape: {encoder.shape}')
 rbm_model = RBM(NUM_VISIBLE, NUM_HIDDEN)
 rbm_model.load(file='rbm.npz')
 
-rbm_input = encoder.detach().numpy()
-reconstructed = rbm_model.reconstruct(rbm_input.reshape(1, 8, 8))
+rbm_input = encoder.detach().numpy().reshape(1, 1, 8, 8)
+reconstructed = rbm_model.reconstruct(rbm_input)
+
+print(reconstructed.shape)
+
+reconstructed = torch.Tensor(reconstructed).reshape(1, 8, 8)
+reconstructed = torch.permute(reconstructed, (1, 2, 0))
+
+fig, axes = plt.subplots(2, 1, figsize=(12, 5))
+axes[0].imshow(reconstructed, cmap='gray')
+axes[1].imshow(X[0].permute(1, 2, 0), cmap='gray')
+plt.show()
