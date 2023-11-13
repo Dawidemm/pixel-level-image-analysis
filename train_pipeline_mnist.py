@@ -6,10 +6,10 @@ from pipeline import Pipeline
 from rbm import RBM
 
 
-NUM_VISIBLE = 8
-NUM_HIDDEN = 64
+NUM_VISIBLE = 64
+NUM_HIDDEN = 40
 
-MAX_EPOCHS = 25
+MAX_EPOCHS = 50
 RBM_STEPS = 1000
 BATCH_SIZE = 8
 
