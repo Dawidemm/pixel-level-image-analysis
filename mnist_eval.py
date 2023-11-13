@@ -15,8 +15,8 @@ if torch.cuda.is_available():
                                     map_location=torch.device('cpu'))
     
 else:
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=99-step=18000.ckpt', 
-                                    hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml',
+    lbae = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_21/checkpoints/epoch=49-step=9000.ckpt', 
+                                    hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_21/hparams.yaml',
                                     map_location=torch.device('cpu'))
 
 
@@ -67,8 +67,15 @@ def plot_images_from_tensors(tensor1, tensor2):
 
 # plot_images_from_tensors(X, preds)
 
+def bin_rbm_out(h_probs_given_v: np.array, threshold: float) -> np.array:
+    print
+    h_probs_given_v[h_probs_given_v <= threshold] = 0
+    h_probs_given_v[h_probs_given_v < threshold] = 1
+
+    return h_probs_given_v
+
 NUM_VISIBLE = 64
-NUM_HIDDEN = 64
+NUM_HIDDEN = 40
 MAX_EPOCHS = 100
 
 
@@ -85,20 +92,49 @@ for i in range(len(test_dataset.dataset_data)):
     encoders.append(enc)
 
     rbm_input = encoder.detach().numpy()
-    sample_h = rbm_model.sample_v_given_h(rbm_input)
-    sample_h[sample_h == 0] = -1
+    sample_h = rbm_model.h_probs_given_v(rbm_input)
+    #sample_h = bin_rbm_out(sample_h, 0.51)
     sample.append(sample_h)
 
-encoders = torch.Tensor(np.array(encoders))
 sample = torch.Tensor(np.array(sample))
-print(sample.shape)
-print(sample[0].shape)
+print(sample[0])
 
 from sklearn.metrics import rand_score
 
-rs = rand_score(encoders.reshape(360*64,), sample.reshape(360*64,))
-print(encoders.reshape(360*64,))
-print(sample.reshape(360*64,))
-print(rs)
+rs = rand_score(X.reshape(360*64,), sample.reshape(360*40,))
+print(round(rs, 3))
 
-print(torch.mean(pairwise_euclidean_distance(encoders.reshape(360*64, 1), sample.reshape(360*64, 1))))
+thresholds = [i/1000 for i in range(1000)]
+rand_scores = []
+
+
+def test_threshold(num_of_thresholds=1000, data=X):
+    
+    thresholds = [i/num_of_thresholds for i in range(num_of_thresholds)]
+    print(thresholds)
+
+    for th in thresholds:
+
+        lista = []
+
+        for i in range(len(test_dataset.dataset_data)):
+
+            Xi = data[i].reshape(1, 1, 8, 8)
+            encoder, err = lbae.encoder.forward(Xi, epoch=1)
+            rbm_input = encoder.detach().numpy()
+            sample_h = rbm_model.h_probs_given_v(rbm_input)
+            # print(sample_h)
+            sample_h = bin_rbm_out(sample_h, th)
+            # print(sample_h)
+            lista.append(sample_h)
+
+        lista = torch.Tensor(lista)
+        print(lista[0])
+        rs = rand_score(data.reshape(360*64,), lista.reshape(360*40,))
+        rand_scores.append(rs)
+        print(f'iteration: {round(th*num_of_thresholds, 0)}')
+
+test_threshold(num_of_thresholds=10)
+
+rand_scores = np.array(rand_scores)
+print(f'index: {np.argmax(rand_scores)}, value: {np.max(rand_scores)}')
