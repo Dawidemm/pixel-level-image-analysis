@@ -1,5 +1,6 @@
 import torch
 import lightning as pl
+import numpy as np
 from myDataset import myDataset
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
@@ -66,33 +67,38 @@ def plot_images_from_tensors(tensor1, tensor2):
 
 # plot_images_from_tensors(X, preds)
 
-NUM_VISIBLE = 8
+NUM_VISIBLE = 64
 NUM_HIDDEN = 64
-
 MAX_EPOCHS = 100
 
-print(f'input shape (X.shape): {X.shape}')
-
-first_element = X[0].reshape(1, 1, 8, 8)
-
-print(f'first element input shape (X[0].shape): {first_element.shape}')
-
-encoder, err = lbae.encoder.forward(first_element, epoch=1)
-
-print(f'encoder: \n {encoder} \n encoder shape: {encoder.shape}')
 
 rbm_model = RBM(NUM_VISIBLE, NUM_HIDDEN)
 rbm_model.load(file='rbm.npz')
 
-rbm_input = encoder.detach().numpy().reshape(1, 1, 8, 8)
-reconstructed = rbm_model.reconstruct(rbm_input)
+sample = []
+encoders = []
 
-print(reconstructed.shape)
+for i in range(len(test_dataset.dataset_data)):
+    Xi = X[i].reshape(1, 1, 8, 8)
+    encoder, err = lbae.encoder.forward(Xi, epoch=1)
+    enc = encoder.detach().numpy()
+    encoders.append(enc)
 
-reconstructed = torch.Tensor(reconstructed).reshape(1, 8, 8)
-reconstructed = torch.permute(reconstructed, (1, 2, 0))
+    rbm_input = encoder.detach().numpy()
+    sample_h = rbm_model.sample_v_given_h(rbm_input)
+    sample_h[sample_h == 0] = -1
+    sample.append(sample_h)
 
-fig, axes = plt.subplots(2, 1, figsize=(12, 5))
-axes[0].imshow(reconstructed, cmap='gray')
-axes[1].imshow(X[0].permute(1, 2, 0), cmap='gray')
-plt.show()
+encoders = torch.Tensor(np.array(encoders))
+sample = torch.Tensor(np.array(sample))
+print(sample.shape)
+print(sample[0].shape)
+
+from sklearn.metrics import rand_score
+
+rs = rand_score(encoders.reshape(360*64,), sample.reshape(360*64,))
+print(encoders.reshape(360*64,))
+print(sample.reshape(360*64,))
+print(rs)
+
+print(torch.mean(pairwise_euclidean_distance(encoders.reshape(360*64, 1), sample.reshape(360*64, 1))))
