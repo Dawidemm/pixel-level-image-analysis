@@ -6,10 +6,10 @@ from pipeline import Pipeline
 from rbm import RBM
 
 
-NUM_VISIBLE = 64
+NUM_VISIBLE = 60
 NUM_HIDDEN = 40
 
-MAX_EPOCHS = 50
+MAX_EPOCHS = 10
 RBM_STEPS = 1000
 BATCH_SIZE = 8
 
@@ -17,7 +17,7 @@ BATCH_SIZE = 8
 train_dataset = myDataset(dataset_part='train')
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-autoencoder = LBAE(input_size=(1, 8, 8), out_channels=16, zsize=NUM_VISIBLE, num_layers=2, quantize=list(range(MAX_EPOCHS)))
+autoencoder = LBAE(input_size=(1, 8, 8), out_channels=8, zsize=NUM_VISIBLE, num_layers=2, quantize=list(range(MAX_EPOCHS)))
 rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
 
 pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm, classifier=True)
