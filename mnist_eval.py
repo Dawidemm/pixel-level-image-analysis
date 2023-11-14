@@ -5,13 +5,14 @@ from myDataset import myDataset
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 import matplotlib.pyplot as plt
+from sklearn.metrics import rand_score
 
 from lbae import LBAE
 from rbm import RBM
 
 if torch.cuda.is_available():
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_15/checkpoints/epoch=24-step=4500.ckpt', 
-                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_15/hparams.yaml',
+    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_24/checkpoints/epoch=9-step=1800.ckpt', 
+                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_24/hparams.yaml',
                                     map_location=torch.device('cpu'))
     
 else:
@@ -68,73 +69,56 @@ def plot_images_from_tensors(tensor1, tensor2):
 # plot_images_from_tensors(X, preds)
 
 def bin_rbm_out(h_probs_given_v: np.array, threshold: float) -> np.array:
-    print
-    h_probs_given_v[h_probs_given_v <= threshold] = 0
-    h_probs_given_v[h_probs_given_v < threshold] = 1
+
+    h_probs_given_v[h_probs_given_v <= threshold] = -1
+    h_probs_given_v[h_probs_given_v > threshold] = 1
 
     return h_probs_given_v
 
-NUM_VISIBLE = 64
+NUM_VISIBLE = 60
 NUM_HIDDEN = 40
 MAX_EPOCHS = 100
-
 
 rbm_model = RBM(NUM_VISIBLE, NUM_HIDDEN)
 rbm_model.load(file='rbm.npz')
 
-sample = []
-encoders = []
+def try_thresholds(thresholds: int, data: torch.Tensor):
 
-for i in range(len(test_dataset.dataset_data)):
-    Xi = X[i].reshape(1, 1, 8, 8)
-    encoder, err = lbae.encoder.forward(Xi, epoch=1)
-    enc = encoder.detach().numpy()
-    encoders.append(enc)
+    thresholds = np.linspace(1/thresholds, thresholds/thresholds, thresholds)
 
-    rbm_input = encoder.detach().numpy()
-    sample_h = rbm_model.h_probs_given_v(rbm_input)
-    #sample_h = bin_rbm_out(sample_h, 0.51)
-    sample.append(sample_h)
+    rand_scores = []
 
-sample = torch.Tensor(np.array(sample))
-print(sample[0])
+    for threshold in thresholds:
 
-from sklearn.metrics import rand_score
+        encoders = []
+        sample = []
 
-rs = rand_score(X.reshape(360*64,), sample.reshape(360*40,))
-print(round(rs, 3))
-
-thresholds = [i/1000 for i in range(1000)]
-rand_scores = []
-
-
-def test_threshold(num_of_thresholds=1000, data=X):
-    
-    thresholds = [i/num_of_thresholds for i in range(num_of_thresholds)]
-    print(thresholds)
-
-    for th in thresholds:
-
-        lista = []
-
-        for i in range(len(test_dataset.dataset_data)):
-
+        for i in range(360):
+            
             Xi = data[i].reshape(1, 1, 8, 8)
             encoder, err = lbae.encoder.forward(Xi, epoch=1)
+            print(encoder.shape)
+            enc = encoder.detach().numpy()
+            encoders.append(enc)
+
             rbm_input = encoder.detach().numpy()
             sample_h = rbm_model.h_probs_given_v(rbm_input)
-            # print(sample_h)
-            sample_h = bin_rbm_out(sample_h, th)
-            # print(sample_h)
-            lista.append(sample_h)
+            sample_h = bin_rbm_out(sample_h, threshold)
+            sample.append(sample_h)
 
-        lista = torch.Tensor(lista)
-        print(lista[0])
-        rs = rand_score(data.reshape(360*64,), lista.reshape(360*40,))
+        encoders = torch.Tensor(np.array(encoders))
+        sample = torch.Tensor(np.array(sample))
+
+        rs = rand_score(encoders.reshape(360*60,), sample.reshape(360*40,))
         rand_scores.append(rs)
-        print(f'iteration: {round(th*num_of_thresholds, 0)}')
 
-test_threshold(num_of_thresholds=10)
+    rand_scores = np.array(rand_scores)
+    rand_score_max_index = np.argmax(rand_scores)
+    best_threshold = thresholds[rand_score_max_index]
+    best_rand_score = np.max(rand_scores)
 
-rand_scores = np.array(rand_scores)
-print(f'index: {np.argmax(rand_scores)}, value: {np.max(rand_scores)}')
+    return best_threshold, best_rand_score
+        
+th, rs = try_thresholds(thresholds=5, data=X)
+
+print(f'\nBest threshold: {th} \nBest rand_score: {rs}')
