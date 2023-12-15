@@ -1,15 +1,17 @@
 from torch.utils.data import DataLoader
 from myDataset import myDataset
+import torch
 
 from lbae import LBAE
 from pipeline import Pipeline
 from rbm import RBM
 
+torch.set_float32_matmul_precision('medium')
 
 NUM_VISIBLE = 60
 NUM_HIDDEN = 40
 
-MAX_EPOCHS = 10
+MAX_EPOCHS = 50
 RBM_STEPS = 1000
 BATCH_SIZE = 8
 
