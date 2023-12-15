@@ -4,6 +4,7 @@ import numpy as np
 from myDataset import myDataset
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
+from torchmetrics.clustering import RandScore
 import matplotlib.pyplot as plt
 from sklearn.metrics import rand_score
 
@@ -25,6 +26,7 @@ test_dataset = myDataset(dataset_part='test')
 test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
 X = torch.Tensor(test_dataset.dataset_data/16).reshape(len(test_dataset.dataset_data), 1, 8, 8)
+
 preds = lbae(X)
 
 X_test = X.clone().detach().reshape(360 * 64, 1)
@@ -70,10 +72,15 @@ def plot_images_from_tensors(tensor1, tensor2):
 
 def bin_rbm_out(h_probs_given_v: np.array, threshold: float) -> np.array:
 
-    h_probs_given_v[h_probs_given_v <= threshold] = -1
+    h_probs_given_v[h_probs_given_v <= threshold] = 0
     h_probs_given_v[h_probs_given_v > threshold] = 1
 
     return h_probs_given_v
+
+def map_to_indices(values, lst):
+    indices = [lst.index(value) for value in values]
+    return indices
+
 
 NUM_VISIBLE = 60
 NUM_HIDDEN = 40
@@ -82,35 +89,48 @@ MAX_EPOCHS = 100
 rbm_model = RBM(NUM_VISIBLE, NUM_HIDDEN)
 rbm_model.load(file='rbm.npz')
 
-def try_thresholds(thresholds: int, data: torch.Tensor):
+def try_thresholds(thresholds: int, data: torch.Tensor, y_true: torch.Tensor, with_best=False):
 
-    thresholds = np.linspace(1/thresholds, thresholds/thresholds, thresholds)
+    if with_best == False:
+        thresholds = np.linspace(1/thresholds, thresholds/thresholds, thresholds)
+    else:
+        thresholds = [0.73]
 
     rand_scores = []
+    mapped_probs_l = []
 
     for threshold in thresholds:
 
-        encoders = []
-        sample = []
+        unique_probs = set()
+        probs = []
 
         for i in range(360):
             
             Xi = data[i].reshape(1, 1, 8, 8)
             encoder, err = lbae.encoder.forward(Xi, epoch=1)
-            print(encoder.shape)
-            enc = encoder.detach().numpy()
-            encoders.append(enc)
 
             rbm_input = encoder.detach().numpy()
-            sample_h = rbm_model.h_probs_given_v(rbm_input)
-            sample_h = bin_rbm_out(sample_h, threshold)
-            sample.append(sample_h)
+            prob = rbm_model.h_probs_given_v(rbm_input)
+            prob = bin_rbm_out(prob, threshold)
+            unique_prob = tuple(map(tuple, prob))
+            unique_probs.add(unique_prob)
 
-        encoders = torch.Tensor(np.array(encoders))
-        sample = torch.Tensor(np.array(sample))
+            prob = tuple(map(tuple, prob))
+            probs.append(prob)
 
-        rs = rand_score(encoders.reshape(360*60,), sample.reshape(360*40,))
+        unique_probs = list(unique_probs)
+
+        mapped_probs = map_to_indices(probs, unique_probs)
+
+        mapped_probs = np.array(mapped_probs)
+        mapped_probs_l.append(mapped_probs)
+
+        y_true = np.array(y_true)
+
+        rs = rand_score(y_true, mapped_probs)
         rand_scores.append(rs)
+
+        print(f'\nth: {round(threshold, 3)}, rand score: {rs}')
 
     rand_scores = np.array(rand_scores)
     rand_score_max_index = np.argmax(rand_scores)
@@ -118,7 +138,9 @@ def try_thresholds(thresholds: int, data: torch.Tensor):
     best_rand_score = np.max(rand_scores)
 
     return best_threshold, best_rand_score
-        
-th, rs = try_thresholds(thresholds=5, data=X)
 
-print(f'\nBest threshold: {th} \nBest rand_score: {rs}')
+y_true = torch.Tensor(test_dataset.dataset_labels)
+
+th, rs = try_thresholds(thresholds=100, data=X, y_true=y_true, with_best=True)
+
+print(f'\nBest threshold: {th}\nBest Rand score: {rs}\n')
