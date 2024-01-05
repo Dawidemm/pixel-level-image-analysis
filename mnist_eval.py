@@ -11,16 +11,9 @@ from sklearn.metrics import rand_score
 from lbae import LBAE
 from rbm import RBM
 
-if torch.cuda.is_available():
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='E:/projects/pixel-level-image-analysis/lightning_logs/version_24/checkpoints/epoch=9-step=1800.ckpt', 
-                                    hparams_file='E:/projects/pixel-level-image-analysis/lightning_logs/version_24/hparams.yaml',
-                                    map_location=torch.device('cpu'))
-    
-else:
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_21/checkpoints/epoch=49-step=9000.ckpt', 
-                                    hparams_file='/Users/dawidmazur/Code/pixel-level-image-analysis/lightning_logs/version_21/hparams.yaml',
-                                    map_location=torch.device('cpu'))
-
+lbae = LBAE.load_from_checkpoint(checkpoint_path='lightning_logs/version_24/checkpoints/epoch=9-step=1800.ckpt', 
+                                hparams_file='lightning_logs/version_24/hparams.yaml',
+                                map_location=torch.device('cpu'))
 
 test_dataset = myDataset(dataset_part='test')
 test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False)
