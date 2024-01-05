@@ -1,9 +1,0 @@
-input_size: !!python/tuple
-- 1
-- 8
-- 8
-num_layers: 2
-out_channels: 8
-quantize:
-- 0
-zsize: 60
