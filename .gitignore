@@ -1,1 +1,4 @@
 /__pycache__
+rbm.npz
+encoder.pt
+/lightning_logs
