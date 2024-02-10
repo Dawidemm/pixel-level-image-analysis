@@ -6,8 +6,8 @@ from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 from hyperspectral_dataset import HyperspectralDataset
 from sklearn.metrics import rand_score
 
-from lbae import LBAE
-from rbm import RBM
+from qbm4eo.lbae import LBAE
+from qbm4eo.rbm import RBM
 
 np.random.seed(10)
 torch.manual_seed(0)

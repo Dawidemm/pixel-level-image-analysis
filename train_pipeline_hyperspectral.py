@@ -3,9 +3,9 @@ from hyperspectral_dataset import HyperspectralDataset
 import torch
 import numpy as np
 
-from lbae import LBAE
-from pipeline import Pipeline
-from rbm import RBM
+from qbm4eo.lbae import LBAE
+from qbm4eo.pipeline import Pipeline
+from qbm4eo.rbm import RBM
 
 torch.set_float32_matmul_precision('medium')
 
