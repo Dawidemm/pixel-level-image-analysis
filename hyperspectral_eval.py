@@ -17,7 +17,7 @@ NUM_HIDDEN = 17
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
 
-def bin_rbm_out(h_probs_given_v: np.array, threshold: float) -> np.array:
+def binarize_rbm_output(h_probs_given_v: np.array, threshold: float) -> np.array:
 
     h_probs_given_v[h_probs_given_v <= threshold] = 0
     h_probs_given_v[h_probs_given_v > threshold] = 1
@@ -31,12 +31,12 @@ def map_to_indices(values, lst):
 def find_threshold(thresholds, test_dataloader, lbae, rbm):
 
     rand_scores = []
-    mapped_probs_list = []
+    mapped_labels_list = []
 
     for threshold in thresholds:
 
-        unique_probs = set()
-        probs = []
+        unique_labels = set()
+        labels = []
 
         y_true = []
 
@@ -46,29 +46,29 @@ def find_threshold(thresholds, test_dataloader, lbae, rbm):
 
             rbm_input = encoder.detach().numpy()
 
-            prob = rbm.h_probs_given_v(rbm_input)
-            prob = bin_rbm_out(prob, threshold)
+            probabilities = rbm.h_probs_given_v(rbm_input)
+            label = binarize_rbm_output(probabilities, threshold)
 
-            unique_prob = tuple(map(tuple, prob))
-            unique_probs.add(unique_prob)
+            unique_label = tuple(map(tuple, label))
+            unique_labels.add(unique_label)
 
-            prob = tuple(map(tuple, prob))
-            probs.append(prob)
+            label = tuple(map(tuple, label))
+            labels.append(label)
 
             y_true.append(y)
         
         y_true = torch.cat(y_true, dim=0)
         y_true = np.array(y_true)
 
-        unique_probs = list(unique_probs)
+        unique_labels = list(unique_labels)
 
-        mapped_probs = map_to_indices(probs, unique_probs)
+        mapped_labels = map_to_indices(labels, unique_labels)
 
-        mapped_probs = np.array(mapped_probs)
-        mapped_probs_list.append(mapped_probs)
+        mapped_labels = np.array(mapped_labels)
+        mapped_labels_list.append(mapped_labels)
 
-        rs = rand_score(y_true, mapped_probs)
-        rand_scores.append(rs)
+        rand_score_value = rand_score(y_true, mapped_labels)
+        rand_scores.append(rand_score_value)
 
     rand_scores = np.array(rand_scores)
     rand_score_max_index = np.argmax(rand_scores)
