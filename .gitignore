@@ -2,3 +2,5 @@
 rbm.npz
 encoder.pt
 /lightning_logs
+.DS_Store
+dataset/
