@@ -1,7 +1,7 @@
 import abc
 from itertools import islice
 
-# import dimod
+import dimod
 import numpy as np
 from scipy.special import expit
 from torch.utils.data import DataLoader
@@ -17,37 +17,37 @@ def infinite_dataloader_generator(data_loader):
             yield batch_idx, (data, target)
 
 
-# def qubo_from_rbm_coefficients(
-#     weights: np.ndarray, v_bias: np.ndarray, h_bias: np.ndarray
-# ):
-#     """Create a QUBO problem representing RBM with given coefficients.
+def qubo_from_rbm_coefficients(
+    weights: np.ndarray, v_bias: np.ndarray, h_bias: np.ndarray
+):
+    """Create a QUBO problem representing RBM with given coefficients.
 
-#     :param weights: a NxM interaction matrix.
-#     :param v_bias: a N-element visible layer bias vector.
-#     :param h_bias: a M-element hidden layer bias vector.
-#     :return: A QUBO, represented as dimod.BQM with N+M variables, such that:
-#      - variables 0,...,N-1 correspond to hidden layer
-#      - variables 0,...,M-1 correspond to visible layer
-#      - visible layer biases correspond to linear coefficients of first N variables
-#      - hidden layer biases correspond to linear coefficients of second M variables
-#      - weights correspond to interaction terms between first N and second M variables.
+    :param weights: a NxM interaction matrix.
+    :param v_bias: a N-element visible layer bias vector.
+    :param h_bias: a M-element hidden layer bias vector.
+    :return: A QUBO, represented as dimod.BQM with N+M variables, such that:
+     - variables 0,...,N-1 correspond to hidden layer
+     - variables 0,...,M-1 correspond to visible layer
+     - visible layer biases correspond to linear coefficients of first N variables
+     - hidden layer biases correspond to linear coefficients of second M variables
+     - weights correspond to interaction terms between first N and second M variables.
 
-#      .. note::
-#         This function does not allow for manipulating how RBM variables are mapped to
-#         the QUBO variables. This is not a problem if QUBO is to be used with a unstructured
-#         sampler. For sampler, the intended usage is to wrap it in the EmbeddingComposite.
-#     """
-#     linear = {
-#         **{i: float(bias) for i, bias in enumerate(v_bias)},
-#         **{i: float(bias) for i, bias in enumerate(h_bias, start=len(v_bias))},
-#     }
-#     quadratic = {
-#         (i, j + len(v_bias)): float(weights[i, j])
-#         for i in range(len(v_bias))
-#         for j in range(len(h_bias))
-#     }
+     .. note::
+        This function does not allow for manipulating how RBM variables are mapped to
+        the QUBO variables. This is not a problem if QUBO is to be used with a unstructured
+        sampler. For sampler, the intended usage is to wrap it in the EmbeddingComposite.
+    """
+    linear = {
+        **{i: float(bias) for i, bias in enumerate(v_bias)},
+        **{i: float(bias) for i, bias in enumerate(h_bias, start=len(v_bias))},
+    }
+    quadratic = {
+        (i, j + len(v_bias)): float(weights[i, j])
+        for i in range(len(v_bias))
+        for j in range(len(h_bias))
+    }
 
-#     return dimod.BQM(linear, quadratic, offset=0, vartype="BINARY")
+    return dimod.BQM(linear, quadratic, offset=0, vartype="BINARY")
 
 
 class RBM:
@@ -67,22 +67,22 @@ class RBM:
         self.v_bias = self.rng.normal(size=self.num_visible) * INITIAL_COEF_SCALE
         self.h_bias = self.rng.normal(size=self.num_hidden) * INITIAL_COEF_SCALE
 
-    def h_probs_given_v(self, v_batch):
+    def h_probabilities_given_v(self, v_batch):
         return expit(self.h_bias + v_batch @ self.weights)
 
     def sample_h_given_v(self, v_batch):
-        probs = self.h_probs_given_v(v_batch)
-        return (self.rng.random(probs.shape) < probs).astype(float)
+        probabilities = self.h_probabilities_given_v(v_batch)
+        return (self.rng.random(probabilities.shape) < probabilities).astype(float)
 
-    def v_probs_given_h(self, h_batch):
+    def v_probabilities_given_h(self, h_batch):
         return expit(self.v_bias + h_batch @ self.weights.T)
 
     def sample_v_given_h(self, h_batch):
-        probs = self.v_probs_given_h(h_batch)
-        return (self.rng.random(probs.shape) < probs).astype(float)
+        probabilities = self.v_probabilities_given_h(h_batch)
+        return (self.rng.random(probabilities.shape) < probabilities).astype(float)
 
     def reconstruct(self, v_batch):
-        return self.v_probs_given_h(self.h_probs_given_v(v_batch))
+        return self.v_probabilities_given_h(self.h_probabilities_given_v(v_batch))
 
     def save(self, file):
         np.savez(file, v_bias=self.v_bias, h_bias=self.h_bias, weights=self.weights)
@@ -120,49 +120,49 @@ class RBMTrainer:
         pass
 
 
-# class AnnealingRBMTrainer(RBMTrainer):
+class AnnealingRBMTrainer(RBMTrainer):
 
-#     def __init__(
-#         self,
-#         num_steps: int,
-#         sampler: dimod.Sampler,
-#         qubo_scale: float = 1.0,
-#         learning_rate: float = 0.01,
-#         **sampler_kwargs
-#     ):
-#         super().__init__(num_steps)
-#         self.sampler = sampler
-#         self.sampler_kwargs = sampler_kwargs
-#         self.qubo_scale = qubo_scale
-#         self.learning_rate = learning_rate
+    def __init__(
+        self,
+        num_steps: int,
+        sampler: dimod.Sampler,
+        qubo_scale: float = 1.0,
+        learning_rate: float = 0.01,
+        **sampler_kwargs
+    ):
+        super().__init__(num_steps)
+        self.sampler = sampler
+        self.sampler_kwargs = sampler_kwargs
+        self.qubo_scale = qubo_scale
+        self.learning_rate = learning_rate
 
-#     def training_step(self, rbm, batch):
-#         # Conditional probabilities given visible batch input
-#         hidden = rbm.h_probs_given_v(batch)
-#         # Construct QUBO from this RBM
-#         bqm = qubo_from_rbm_coefficients(rbm.weights, rbm.v_bias, rbm.h_bias)
-#         # Scaling to compensate the temperature difference. Strangely, it seems
-#         # that in dimod this operation has to be done in place.
-#         bqm.scale(self.qubo_scale)
-#         # Take a sample of the same size as batch, extract only visible and hidden variables
-#         if "num_reads" in self.sampler.parameters:
-#             sample = self.sampler.sample(
-#                 bqm, num_reads=len(batch), **self.sampler_kwargs
-#             ).record["sample"]
-#         else:
-#             sample = dimod.concatenate(
-#                 [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
-#             ).record["sample"]
-#         # Split, remembering that first variables correspond to hidden layer
-#         sample_v = sample[:, :rbm.num_visible]
-#         sample_h = sample[:, rbm.num_visible:]
-#         # Update weights
-#         rbm.weights += (
-#             self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
-#         )
-#         # And biases
-#         rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
-#         rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
+    def training_step(self, rbm, batch):
+        # Conditional probabilities given visible batch input
+        hidden = rbm.h_probabilities_given_v(batch)
+        # Construct QUBO from this RBM
+        bqm = qubo_from_rbm_coefficients(rbm.weights, rbm.v_bias, rbm.h_bias)
+        # Scaling to compensate the temperature difference. Strangely, it seems
+        # that in dimod this operation has to be done in place.
+        bqm.scale(self.qubo_scale)
+        # Take a sample of the same size as batch, extract only visible and hidden variables
+        if "num_reads" in self.sampler.parameters:
+            sample = self.sampler.sample(
+                bqm, num_reads=len(batch), **self.sampler_kwargs
+            ).record["sample"]
+        else:
+            sample = dimod.concatenate(
+                [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+            ).record["sample"]
+        # Split, remembering that first variables correspond to hidden layer
+        sample_v = sample[:, :rbm.num_visible]
+        sample_h = sample[:, rbm.num_visible:]
+        # Update weights
+        rbm.weights += (
+            self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
+        )
+        # And biases
+        rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
+        rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
 
 
 class CD1Trainer(RBMTrainer):
@@ -173,11 +173,11 @@ class CD1Trainer(RBMTrainer):
 
     def training_step(self, rbm: RBM, batch):
         # Conditional probabilities given visible batch input
-        hidden_1 = rbm.h_probs_given_v(batch)
+        hidden_1 = rbm.h_probabilities_given_v(batch)
 
         # Propagate hidden -> visible -> hidden again
-        visible_2 = rbm.v_probs_given_h(hidden_1)
-        hidden_2 = rbm.h_probs_given_v(visible_2)
+        visible_2 = rbm.v_probabilities_given_h(hidden_1)
+        hidden_2 = rbm.h_probabilities_given_v(visible_2)
 
         # Update weights
         rbm.weights += (
@@ -186,4 +186,3 @@ class CD1Trainer(RBMTrainer):
         # And biases
         rbm.v_bias += self.learning_rate * (batch - visible_2).sum(axis=0)
         rbm.h_bias += self.learning_rate * (hidden_1 - hidden_2).sum(axis=0)
-        
