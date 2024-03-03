@@ -6,6 +6,21 @@ np.random.seed(10)
 
 
 def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array, split=0.2):
+    '''
+    Splits the hyperspectral and ground truth images into training and testing datasets.
+
+    Args:
+    - hyperspectral_image (np.array): An array representing the hyperspectral image.
+    - ground_truth_image (np.array): An array representing the ground truth image.
+    - split (float): The fraction of samples to be reserved for testing. Defaults to 0.2.
+
+    Returns:
+    Tuple: A tuple containing four elements:
+    - hyperspectral_remaining_samples (np.array): Array of remaining hyperspectral samples for training.
+    - hyperspectral_removed_samples (np.array): Array of removed hyperspectral samples for testing.
+    - ground_truth_remaining_samples (np.array): Array of remaining ground truth samples for training.
+    - ground_truth_removed_samples (np.array): Array of removed ground truth samples for testing.
+    '''
 
     if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
         raise ValueError('Dimension mismatch between ground truth image and hyperspectral image.')  
@@ -91,18 +106,52 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     return dataset
 
 def binarize_rbm_output(h_probs_given_v: np.array, threshold: float) -> np.array:
+    '''
+    Binarizes the given probabilities based on the provided threshold value.
+
+    Args:
+    - probabilities (np.array): An array containing probabilities from RBM output.
+    - threshold_value (float): The threshold value for binarization.
+
+    Returns:
+    np.array: An array containing binarized values based on the threshold.
+    '''
 
     h_probs_given_v[h_probs_given_v <= threshold] = 0
     h_probs_given_v[h_probs_given_v > threshold] = 1
 
     return h_probs_given_v
 
-def map_to_indices(values, lst):
-    indices = [lst.index(value) for value in values]
+def map_to_indices(values_to_map: list, target_list: list):
+    '''
+    Maps a list of values to their corresponding indices in another list.
+
+    Args:
+    - values_to_map (list): A list of values to be mapped to indices.
+    - target_list (list): The list containing the elements to be mapped to.
+
+    Returns:
+    List of indices: A list containing the indices of the values in the provided list.
+    '''
+
+    indices = [target_list.index(value) for value in values_to_map]
 
     return indices
 
 def find_threshold(thresholds, test_dataloader, lbae, rbm):
+    '''
+    Finds the best threshold value for binarizing RBM output based on Rand Score.
+
+    Args:
+    - thresholds (list): A list of threshold values to be evaluated.
+    - test_dataloader (DataLoader): DataLoader containing the testing dataset.
+    - lbae (LBAE): The trained LBAE model.
+    - rbm (RBM): The trained RBM model.
+
+    Returns:
+    Tuple (best_threshold, best_rand_score): A tuple containing the best threshold
+    value and its corresponding Rand Score achieved.
+    '''
 
     rand_scores = []
     mapped_labels_list = []
