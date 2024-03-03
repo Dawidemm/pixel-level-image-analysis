@@ -1,16 +1,9 @@
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 import numpy as np
 import tifffile
 from src.utils.utils import train_test_split
 
-HYPERSPECTRAL_IMAGE_PATH = 'dataset/hyperspectral_image.tif'
-GROUND_TRUTH_IMAGE_PATH = 'dataset/ground_truth_image.tif'
-
-def onehot(n):
-    t = torch.zeros(17)
-    t[n] = 1.0
-    return t
 
 class HyperspectralDataset(Dataset):
     def __init__(
@@ -41,7 +34,7 @@ class HyperspectralDataset(Dataset):
             ground_truth_image= output[3]
 
         else:
-            raise ValueError(f'Stage should be set as ["train", "test"].')
+            raise ValueError(f'Stage should be set as one from ["train", "test"] values.')
         
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
@@ -66,6 +59,5 @@ class HyperspectralDataset(Dataset):
 
         label = self.ground_truth_image.clone().detach()
         label = int(label[:, x, y].item())
-        #label = onehot(label)
         
         return combined_pixel_values, label
