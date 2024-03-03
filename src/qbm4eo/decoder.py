@@ -1,7 +1,6 @@
 from math import prod
-
 import torch
-import torch.nn.functional as F
+from torch.nn.functional import leaky_relu
 from torch import nn
 
 
@@ -50,7 +49,7 @@ class ResBlockDeConv(nn.Module):
         x = self.initial_block(x)
         y = x
         x = self.middle_block(x)
-        return F.leaky_relu(x + y, self.negative_slope)
+        return leaky_relu(x + y, self.negative_slope)
 
 
 class LBAEDecoder(nn.Module):

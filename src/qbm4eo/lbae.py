@@ -1,15 +1,11 @@
 from typing import Any
 import torch
 import lightning as pl
-import torch.nn.functional as F
+from torch.nn.functional import mse_loss
 from torch import optim
 
 from src.qbm4eo.decoder import LBAEDecoder
 from src.qbm4eo.encoder import LBAEEncoder
-
-
-def loss(xr, x):
-    return F.mse_loss(xr, x, reduction="sum")
 
 
 class LBAE(pl.LightningModule):
@@ -34,7 +30,7 @@ class LBAE(pl.LightningModule):
         if self.epoch == 0 and batch_idx == 0:
             self.reference_image = x[0:1, :, :, :]
         xr = self.forward(x)
-        l = loss(xr.view(x.size()), x)
+        l = mse_loss(xr.view(x.size()), x, reduction="sum")
         self.log("loss", l, logger=True)
         return l
 
@@ -45,19 +41,7 @@ class LBAE(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, _ = batch
         xr = self.forward(x)
-        return loss(xr.view(x.size()), x)
+        return mse_loss(xr.view(x.size()), x, reduction="sum")
 
     def configure_optimizers(self):
         return {"optimizer": optim.Adam(self.parameters(), lr=1e-3)}
-
-    def on_training_epoch_end(self, outputs):
-        with torch.no_grad():
-            xr = self.forward(self.reference_image)
-        if self.reference_image.size(1) > 1:
-            dataformats = "CHW"
-        else:
-            dataformats = "HW"
-        self.logger.experiment.add_image("input", self.reference_image.squeeze(), self.epoch, dataformats=dataformats)
-        self.logger.experiment.add_image("recovery", xr.squeeze(), self.epoch, dataformats=dataformats)
-        self.logger.experiment.flush()
-        self.epoch += 1

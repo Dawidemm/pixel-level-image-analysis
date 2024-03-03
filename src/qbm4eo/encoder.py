@@ -1,5 +1,5 @@
 import torch
-import torch.nn.functional as F
+from torch.nn.functional import leaky_relu
 from torch import nn
 
 
@@ -52,7 +52,7 @@ class ResBlockConv(nn.Module):
         x = self.initial_block(x)
         y = x
         x = self.middle_block(x)
-        return F.leaky_relu(x + y, self.negative_slope)
+        return leaky_relu(x + y, self.negative_slope)
 
 
 class LBAEEncoder(nn.Module):
@@ -60,9 +60,9 @@ class LBAEEncoder(nn.Module):
         self,
         input_size,
         out_channels,
-        zsize,
+        latent_size,
         num_layers,
-        quantize,
+        should_quantize,
         negative_slope=0.02,
         bias=False,
         *args,
@@ -108,9 +108,9 @@ class LBAEEncoder(nn.Module):
         final_channels = 2**num_layers * out_channels
         self.final_conv_size = (final_channels, *final_res)
         lin_in_size = final_channels * final_res[0] * final_res[1]
-        self.linear = nn.Linear(lin_in_size, zsize)
+        self.linear = nn.Linear(lin_in_size, latent_size)
 
-        self.quantize = quantize
+        self.quantize = should_quantize
         self.quant = QuantizerFunc.apply
 
     def forward(self, x, epoch=None):
