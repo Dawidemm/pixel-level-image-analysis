@@ -5,8 +5,8 @@ np.random.seed(10)
 
 def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array, split=0.2):
 
-    if ground_truth_image.shape[1] != hyperspectral_image.shape[1]or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
-        raise ValueError('Dimension mismatch between ground truth image and hhyperspectral image.')  
+    if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
+        raise ValueError('Dimension mismatch between ground truth image and hyperspectral image.')  
 
     total_samples = ground_truth_image.shape[1] * ground_truth_image.shape[2]
     samples_to_remove = int(split * total_samples)
