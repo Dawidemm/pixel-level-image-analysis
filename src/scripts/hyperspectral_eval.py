@@ -3,7 +3,8 @@ import lightning as pl
 import numpy as np
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
-from hyperspectral_dataset import HyperspectralDataset
+from src.utils.hyperspectral_dataset import HyperspectralDataset
+from src.utils.utils import find_threshold
 from sklearn.metrics import rand_score
 
 from qbm4eo.lbae import LBAE
@@ -16,66 +17,6 @@ NUM_VISIBLE = 16
 NUM_HIDDEN = 17
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
-
-def binarize_rbm_output(h_probs_given_v: np.array, threshold: float) -> np.array:
-
-    h_probs_given_v[h_probs_given_v <= threshold] = 0
-    h_probs_given_v[h_probs_given_v > threshold] = 1
-
-    return h_probs_given_v
-
-def map_to_indices(values, lst):
-    indices = [lst.index(value) for value in values]
-    return indices
-
-def find_threshold(thresholds, test_dataloader, lbae, rbm):
-
-    rand_scores = []
-    mapped_labels_list = []
-
-    for threshold in thresholds:
-
-        unique_labels = set()
-        labels = []
-
-        y_true = []
-
-        for batch, (X, y) in enumerate(test_dataloader):
-
-            encoder, _ = lbae.encoder.forward(X)
-
-            rbm_input = encoder.detach().numpy()
-
-            probabilities = rbm.h_probs_given_v(rbm_input)
-            label = binarize_rbm_output(probabilities, threshold)
-
-            unique_label = tuple(map(tuple, label))
-            unique_labels.add(unique_label)
-
-            label = tuple(map(tuple, label))
-            labels.append(label)
-
-            y_true.append(y)
-        
-        y_true = torch.cat(y_true, dim=0)
-        y_true = np.array(y_true)
-
-        unique_labels = list(unique_labels)
-
-        mapped_labels = map_to_indices(labels, unique_labels)
-
-        mapped_labels = np.array(mapped_labels)
-        mapped_labels_list.append(mapped_labels)
-
-        rand_score_value = rand_score(y_true, mapped_labels)
-        rand_scores.append(rand_score_value)
-
-    rand_scores = np.array(rand_scores)
-    rand_score_max_index = np.argmax(rand_scores)
-    best_threshold = thresholds[rand_score_max_index]
-    best_rand_score = np.max(rand_scores)
-
-    return best_threshold, best_rand_score
 
 def main():
     test_dataset = HyperspectralDataset(

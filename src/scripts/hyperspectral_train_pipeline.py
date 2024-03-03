@@ -1,11 +1,11 @@
 from torch.utils.data import DataLoader
-from hyperspectral_dataset import HyperspectralDataset
+from src.utils.hyperspectral_dataset import HyperspectralDataset
 import torch
 import numpy as np
 
-from qbm4eo.lbae import LBAE
-from qbm4eo.pipeline import Pipeline
-from qbm4eo.rbm import RBM
+from src.qbm4eo.lbae import LBAE
+from src.qbm4eo.pipeline import Pipeline
+from src.qbm4eo.rbm import RBM
 
 torch.set_float32_matmul_precision('medium')
 

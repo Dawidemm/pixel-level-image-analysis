@@ -4,8 +4,8 @@ import lightning as pl
 import torch.nn.functional as F
 from torch import optim
 
-from decoder import LBAEDecoder
-from encoder import LBAEEncoder
+from src.qbm4eo.decoder import LBAEDecoder
+from src.qbm4eo.encoder import LBAEEncoder
 
 
 def loss(xr, x):

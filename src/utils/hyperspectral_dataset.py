@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import tifffile
-from train_test_split import train_test_split
+from src.utils.utils import train_test_split
 
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/ground_truth_image.tif'

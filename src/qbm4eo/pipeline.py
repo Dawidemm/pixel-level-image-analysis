@@ -4,17 +4,17 @@ from pathlib import Path
 import numpy as np
 import torch
 import lightning as pl
-from pylab import subplots
+# from pylab import subplots
 from scipy import stats
 from torch import nn
 from torch.utils.data import DataLoader
 
-from torchvision import transforms
+# from torchvision import transforms
 
 # from qbm4eo.cim import CIMSampler, ramp
-from classifier import Classifier
-from lbae import LBAE
-from rbm import CD1Trainer, RBM
+from src.qbm4eo.classifier import Classifier
+from src.qbm4eo.lbae import LBAE
+from src.qbm4eo.rbm import CD1Trainer, RBM
 
 
 def encoded_dataloader(data_loader, encoder):
