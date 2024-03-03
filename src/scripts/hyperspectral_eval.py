@@ -7,8 +7,8 @@ from src.utils.hyperspectral_dataset import HyperspectralDataset
 from src.utils.utils import find_threshold
 from sklearn.metrics import rand_score
 
-from qbm4eo.lbae import LBAE
-from qbm4eo.rbm import RBM
+from src.qbm4eo.lbae import LBAE
+from src.qbm4eo.rbm import RBM
 
 np.random.seed(10)
 torch.manual_seed(0)
