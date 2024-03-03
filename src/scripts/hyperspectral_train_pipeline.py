@@ -19,22 +19,36 @@ MAX_EPOCHS = 100
 RBM_STEPS = 1000
 BATCH_SIZE = 8
 
+HYPERSPECTRAL_IMAGE_PATH = 'dataset/hyperspectral_image.tif'
+GROUND_TRUTH_IMAGE_PATH = 'dataset/ground_truth_image.tif'
+
 def main():
 
     train_dataset = HyperspectralDataset(
-    hyperspectral_image_path='dataset/hyperspectral_image.tif',
-    ground_truth_image_path='dataset/ground_truth_image.tif',
-    stage='train'
+        hyperspectral_image_path=HYPERSPECTRAL_IMAGE_PATH,
+        ground_truth_image_path=GROUND_TRUTH_IMAGE_PATH,
+        stage='train'
     )
 
-    train_dataloader = DataLoader(dataset=train_dataset, batch_size=8, shuffle=True, num_workers=4)
+    train_dataloader = DataLoader(
+        dataset=train_dataset,
+        batch_size=8, 
+        shuffle=True, 
+        num_workers=4
+    )
 
-    autoencoder = LBAE(input_size=(1, 16, 16), out_channels=8, zsize=NUM_VISIBLE, num_layers=2, quantize=list(range(MAX_EPOCHS)))
+    autoencoder = LBAE(
+        input_size=(1, 16, 16),
+        out_channels=8, latent_size=NUM_VISIBLE,
+        num_layers=2,
+        quantize=list(range(MAX_EPOCHS))
+    )
+    
     rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
 
-    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm, classifier=True)
+    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm)
 
-    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS)
+    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1')
 
 if __name__ == '__main__':
     main()
