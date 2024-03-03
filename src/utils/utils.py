@@ -169,7 +169,7 @@ def find_threshold(thresholds, test_dataloader, lbae, rbm):
 
             rbm_input = encoder.detach().numpy()
 
-            probabilities = rbm.h_probs_given_v(rbm_input)
+            probabilities = rbm.h_probabilities_given_v(rbm_input)
             label = binarize_rbm_output(probabilities, threshold)
 
             unique_label = tuple(map(tuple, label))
