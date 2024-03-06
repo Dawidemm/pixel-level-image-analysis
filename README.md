@@ -8,7 +8,7 @@ This project focuses on segmenting hyperspectral images using restricted Boltzma
 
     ```bash
     git clone https://github.com/Dawidemm/pixel-level-image-analysis
-    cd iss-position-prediction
+    cd pixel-level-image-analysis
     ```
 
 2. Python Version:
