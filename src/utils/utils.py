@@ -105,97 +105,77 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
 
     return dataset
 
-def binarize_rbm_output(h_probs_given_v: np.array, threshold: float) -> np.array:
-    '''
-    Binarizes the given probabilities based on the provided threshold value.
+class ThresholdFinder:
+    def __init__(self, test_dataloader, encoder, rbm):
+        self.test_dataloader = test_dataloader
+        self.encoder = encoder
+        self.rbm = rbm
 
-    Args:
-    - probabilities (np.array): An array containing probabilities from RBM output.
-    - threshold_value (float): The threshold value for binarization.
+    def find_threshold(self, thresholds):
+        '''
+        Finds the best threshold value for binarizing RBM output based on Rand Score.
 
-    Returns:
-    np.array: An array containing binarized values based on the threshold.
-    '''
+        Args:
+        - thresholds (list): A list of threshold values to be evaluated.
 
-    h_probs_given_v[h_probs_given_v <= threshold] = 0
-    h_probs_given_v[h_probs_given_v > threshold] = 1
+        Returns:
+        Tuple (best_threshold, best_rand_score): A tuple containing the best threshold
+        value and its corresponding Rand Score achieved.
+        '''
 
-    return h_probs_given_v
+        self.best_threshold = None
+        self.best_rand_score = float('-inf')
 
-def map_to_indices(values_to_map: list, target_list: list):
-    '''
-    Maps a list of values to their corresponding indices in another list.
+        for threshold in thresholds:
 
-    Args:
-    - values_to_map (list): A list of values to be mapped to indices.
-    - target_list (list): The list containing the elements to be mapped to.
+            unique_labels = set()
+            labels = []
+            y_true = []
 
-    Returns:
-    List of indices: A list containing the indices of the values in the provided list.
-    '''
+            for _, (X, y) in enumerate(self.test_dataloader):
 
-    indices = [target_list.index(value) for value in values_to_map]
+                encoder_output, _ = self.encoder.forward(X)
 
-    return indices
+                rbm_input = encoder_output.detach().numpy()
 
-def find_threshold(thresholds, test_dataloader, lbae, rbm):
-    '''
-    Finds the best threshold value for binarizing RBM output based on Rand Score.
+                label = self.rbm.binarize_rbm_output(rbm_input, threshold)
 
-    Args:
-    - thresholds (list): A list of threshold values to be evaluated.
-    - test_dataloader (DataLoader): DataLoader containing the testing dataset.
-    - lbae (LBAE): The trained LBAE model.
-    - rbm (RBM): The trained RBM model.
+                unique_label = tuple(map(tuple, label))
+                unique_labels.add(unique_label)
 
-    Returns:
-    Tuple (best_threshold, best_rand_score): A tuple containing the best threshold
-    value and its corresponding Rand Score achieved.
-    '''
+                label = tuple(map(tuple, label))
+                labels.append(label)
 
-    rand_scores = []
-    mapped_labels_list = []
+                y_true.append(y)
+            
+            y_true = torch.cat(y_true, dim=0)
+            y_true = np.array(y_true)
 
-    for threshold in thresholds:
+            unique_labels = list(unique_labels)
+            mapped_labels = self.map_to_indices(labels, unique_labels)
+            mapped_labels = np.array(mapped_labels)
 
-        unique_labels = set()
-        labels = []
+            rand_score_value = rand_score(y_true, mapped_labels)
 
-        y_true = []
+            if rand_score_value > self.best_rand_score:
+                self.best_threshold = threshold
+                self.best_rand_score = rand_score_value
 
-        for batch, (X, y) in enumerate(test_dataloader):
+        return self.best_threshold, self.best_rand_score
 
-            encoder, _ = lbae.encoder.forward(X)
+    @staticmethod
+    def map_to_indices(values_to_map: list, target_list: list):
+        '''
+        Maps a list of values to their corresponding indices in another list.
 
-            rbm_input = encoder.detach().numpy()
+        Args:
+        - values_to_map (list): A list of values to be mapped to indices.
+        - target_list (list): The list containing the elements to be mapped to.
 
-            probabilities = rbm.h_probabilities_given_v(rbm_input)
-            label = binarize_rbm_output(probabilities, threshold)
+        Returns:
+        List of indices: A list containing the indices of the values in the provided list.
+        '''
 
-            unique_label = tuple(map(tuple, label))
-            unique_labels.add(unique_label)
+        indices = [target_list.index(value) for value in values_to_map]
 
-            label = tuple(map(tuple, label))
-            labels.append(label)
-
-            y_true.append(y)
-        
-        y_true = torch.cat(y_true, dim=0)
-        y_true = np.array(y_true)
-
-        unique_labels = list(unique_labels)
-
-        mapped_labels = map_to_indices(labels, unique_labels)
-
-        mapped_labels = np.array(mapped_labels)
-        mapped_labels_list.append(mapped_labels)
-
-        rand_score_value = rand_score(y_true, mapped_labels)
-        rand_scores.append(rand_score_value)
-
-    rand_scores = np.array(rand_scores)
-    rand_score_max_index = np.argmax(rand_scores)
-    best_threshold = thresholds[rand_score_max_index]
-    best_rand_score = np.max(rand_scores)
-
-    return best_threshold, best_rand_score
+        return indices
