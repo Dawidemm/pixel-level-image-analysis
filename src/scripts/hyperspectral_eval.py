@@ -4,8 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 from src.utils.hyperspectral_dataset import HyperspectralDataset
-from src.utils.utils import find_threshold
-from sklearn.metrics import rand_score
+from src.utils.utils import ThresholdFinder
 
 from src.qbm4eo.lbae import LBAE
 from src.qbm4eo.rbm import RBM
@@ -40,9 +39,7 @@ def main():
         for X, _ in test_dataloader:
 
             X_true.append(X)
-
-            outputs = lbae(X)
-            predictions.append(outputs)
+            predictions.append(lbae(X))
 
     predictions= torch.cat(predictions, dim=0)
     predictions = predictions.reshape(predictions.shape[0],
@@ -58,7 +55,13 @@ def main():
     rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
     rbm.load(file='rbm.npz')
 
-    best_threshold, best_rand_score = find_threshold(THRESHOLDS, test_dataloader, lbae, rbm)
+    threshold_finder = ThresholdFinder(
+        test_dataloader=test_dataloader,
+        encoder=lbae.encoder,
+        rbm=rbm
+    )
+
+    best_threshold, best_rand_score = threshold_finder.find_threshold(THRESHOLDS)
 
     print(f'\n---------------------------------------------')
     print(f'Autoencoder')
