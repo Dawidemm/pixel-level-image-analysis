@@ -18,17 +18,22 @@ NUM_HIDDEN = 17
 THRESHOLDS = np.linspace(1/10, 1, 10)
 
 def main():
-    test_dataset = HyperspectralDataset(
-        hyperspectral_image_path='dataset/hyperspectral_image.tif',
-        ground_truth_image_path='dataset/ground_truth_image.tif',
-        stage='test'
-    )
+    try:
+        test_dataset = HyperspectralDataset(
+            hyperspectral_image_path='dataset/hyperspectral_image.tif',
+            ground_truth_image_path='dataset/ground_truth_image.tif',
+            stage='test'
+        )
 
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-    lbae = LBAE.load_from_checkpoint(checkpoint_path='lightning_logs/version_0/checkpoints/epoch=99-step=211300.ckpt', 
-                                    hparams_file='lightning_logs/version_0/hparams.yaml',
-                                    map_location=torch.device('cpu'))
+        lbae = LBAE.load_from_checkpoint(checkpoint_path='lightning_logs/version_0/checkpoints/epoch=99-step=211300.ckpt', 
+                                        hparams_file='lightning_logs/version_0/hparams.yaml',
+                                        map_location=torch.device('cpu'))
+        
+    except FileNotFoundError as e:
+        print(f"FileNotFoundError: {e}")
+        return
 
     lbae.eval()
 
