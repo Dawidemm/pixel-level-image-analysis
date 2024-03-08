@@ -2,14 +2,18 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 import tifffile
-from enum import Enum
+from enum import IntEnum, Enum
 from src.utils.utils import train_test_split
 
-class TrainTestImagesOrder(Enum):
-    TRAIN_HYPERSPECTRAL_IMAGE = 0
-    TEST_HYPERSPECTRAL_IMAGE = 1
-    TRAIN_GROUND_TRUTH_IMAGE = 2
-    TEST_GROUND_TRUTH_IMAGE = 3
+class ImagePartitions(IntEnum):
+    TRAIN_IMAGE = 0
+    TEST_IMAGE = 1
+    TRAIN_LABEL = 2
+    TEST_LABEL = 3
+
+class Stage(Enum):
+    TRAIN = 'train'
+    TEST = 'test'
 
 class HyperspectralDataset(Dataset):
     def __init__(
@@ -29,15 +33,15 @@ class HyperspectralDataset(Dataset):
 
         dataset = train_test_split(hyperspectral_image, ground_truth_image, split=0.2)
 
-        if stage == 'train':
+        if stage == Stage.TRAIN.value:
 
-            hyperspectral_image = dataset[TrainTestImagesOrder.TRAIN_HYPERSPECTRAL_IMAGE.value]
-            ground_truth_image = dataset[TrainTestImagesOrder.TRAIN_GROUND_TRUTH_IMAGE.value]
+            hyperspectral_image = dataset[ImagePartitions.TRAIN_IMAGE]
+            ground_truth_image = dataset[ImagePartitions.TRAIN_LABEL]
 
-        elif stage == 'test':
+        elif stage == Stage.TEST.value:
 
-            hyperspectral_image = dataset[TrainTestImagesOrder.TEST_HYPERSPECTRAL_IMAGE.value]
-            ground_truth_image= dataset[TrainTestImagesOrder.TEST_GROUND_TRUTH_IMAGE.value]
+            hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
+            ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
 
         else:
             raise ValueError(f'Stage should be set as one from ["train", "test"] values.')
