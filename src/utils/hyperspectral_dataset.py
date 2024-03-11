@@ -20,7 +20,7 @@ class HyperspectralDataset(Dataset):
             self, 
             hyperspectral_image_path: str, 
             ground_truth_image_path: str,
-            stage: str
+            stage: Stage
     ):
         hyperspectral_image = tifffile.imread(hyperspectral_image_path)
         ground_truth_image = tifffile.imread(ground_truth_image_path)
@@ -33,12 +33,12 @@ class HyperspectralDataset(Dataset):
 
         dataset = train_test_split(hyperspectral_image, ground_truth_image, split=0.2)
 
-        if stage == Stage.TRAIN.value:
+        if stage == Stage.TRAIN:
 
             hyperspectral_image = dataset[ImagePartitions.TRAIN_IMAGE]
             ground_truth_image = dataset[ImagePartitions.TRAIN_LABEL]
 
-        elif stage == Stage.TEST.value:
+        elif stage == Stage.TEST:
 
             hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
             ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
