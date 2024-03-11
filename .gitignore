@@ -1,0 +1,10 @@
+__pycache__
+rbm.npz
+encoder.pt
+/lightning_logs
+.DS_Store
+dataset/
+*.egg-info
+.pytest_cache
+classifier.py
+mnist/
