@@ -39,7 +39,8 @@ def main():
 
     autoencoder = LBAE(
         input_size=(1, 16, 16),
-        out_channels=8, latent_size=NUM_VISIBLE,
+        out_channels=8, 
+        latent_size=NUM_VISIBLE,
         num_layers=2,
         quantize=list(range(MAX_EPOCHS))
     )
