@@ -17,22 +17,40 @@ NUM_HIDDEN = 17
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
 
+HYPERSPECTRAL_IMAGE_PATH = 'dataset/hyperspectral_image.tif'
+GROUND_TRUTH_IMAGE_PATH = 'dataset/ground_truth_image.tif'
+
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=99-step=211300.ckpt'
+AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
+
+RBM_WEIGHTS_PATH = 'rbm.npz'
+
 def main():
     try:
         test_dataset = HyperspectralDataset(
-            hyperspectral_image_path='dataset/hyperspectral_image.tif',
-            ground_truth_image_path='dataset/ground_truth_image.tif',
+            hyperspectral_image_path=HYPERSPECTRAL_IMAGE_PATH,
+            ground_truth_image_path=GROUND_TRUTH_IMAGE_PATH,
             stage=Stage.TEST
         )
 
         test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-        lbae = LBAE.load_from_checkpoint(checkpoint_path='lightning_logs/version_0/checkpoints/epoch=99-step=211300.ckpt', 
-                                        hparams_file='lightning_logs/version_0/hparams.yaml',
-                                        map_location=torch.device('cpu'))
+        lbae = LBAE.load_from_checkpoint(
+            checkpoint_path=AUTOENCODER_CHECKPOINT_PATH, 
+            hparams_file=AUTOENCODE_HPARAMS_PATH,
+            map_location=torch.device('cpu')
+        )
+
+        rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
+        rbm.load(file=RBM_WEIGHTS_PATH)
         
     except FileNotFoundError as e:
-        print(f"FileNotFoundError: {e}")
+        print(f'FileNotFoundError: {e}')
+        print("Please make sure to:\n"
+              "1. Provide paths to the hyperspectral image and ground truth image files.\n"
+              "2. Run the training pipeline before starting the evaluation. \n"
+              "   Training will generate a 'lightning_logs' folder containing model checkpoint and hparams files.\n"
+              "3. The application will terminate now.")
         return
 
     lbae.eval()
@@ -56,9 +74,6 @@ def main():
 
     distancse = pairwise_euclidean_distance(X_true, predictions)
     mean_distance = torch.mean(distancse)
-
-    rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
-    rbm.load(file='rbm.npz')
 
     threshold_finder = ThresholdFinder(
         test_dataloader=test_dataloader,
