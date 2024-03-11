@@ -1,5 +1,5 @@
 from torch.utils.data import DataLoader
-from src.utils.hyperspectral_dataset import HyperspectralDataset
+from src.utils.hyperspectral_dataset import HyperspectralDataset, Stage
 import torch
 import numpy as np
 
@@ -27,7 +27,7 @@ def main():
     train_dataset = HyperspectralDataset(
         hyperspectral_image_path=HYPERSPECTRAL_IMAGE_PATH,
         ground_truth_image_path=GROUND_TRUTH_IMAGE_PATH,
-        stage='train'
+        stage=Stage.TRAIN
     )
 
     train_dataloader = DataLoader(

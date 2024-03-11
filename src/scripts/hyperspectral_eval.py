@@ -3,7 +3,7 @@ import lightning as pl
 import numpy as np
 from torch.utils.data import DataLoader
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
-from src.utils.hyperspectral_dataset import HyperspectralDataset
+from src.utils.hyperspectral_dataset import HyperspectralDataset, Stage
 from src.utils.utils import ThresholdFinder
 
 from src.qbm4eo.lbae import LBAE
@@ -22,7 +22,7 @@ def main():
         test_dataset = HyperspectralDataset(
             hyperspectral_image_path='dataset/hyperspectral_image.tif',
             ground_truth_image_path='dataset/ground_truth_image.tif',
-            stage='test'
+            stage=Stage.TEST
         )
 
         test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
