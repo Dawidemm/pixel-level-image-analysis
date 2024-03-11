@@ -10,13 +10,13 @@ from src.qbm4eo.encoder import LBAEEncoder
 
 class LBAE(pl.LightningModule):
     def __init__(
-        self, input_size, out_channels, zsize, num_layers, quantize, *args: Any, **kwargs: Any
+        self, input_size, out_channels, latent_size, num_layers, quantize, *args: Any, **kwargs: Any
     ):
         super().__init__(*args, **kwargs)
-        self.save_hyperparameters("input_size", "out_channels", "zsize", "num_layers", "quantize")
+        self.save_hyperparameters("input_size", "out_channels", "latent_size", "num_layers", "quantize")
 
-        self.encoder = LBAEEncoder(input_size, out_channels, zsize, num_layers, quantize)
-        self.decoder = LBAEDecoder(self.encoder.final_conv_size, input_size, zsize, num_layers)
+        self.encoder = LBAEEncoder(input_size, out_channels, latent_size, num_layers, quantize)
+        self.decoder = LBAEDecoder(self.encoder.final_conv_size, input_size, latent_size, num_layers)
         self.epoch = 0
 
     def forward(self, x):
