@@ -6,3 +6,4 @@ torch==2.1.0
 lightning==2.1.2
 dimod==0.12.14
 tifffile==2023.4.12
+pytest==8.1.1
