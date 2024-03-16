@@ -1,8 +1,9 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import numpy as np
 import tifffile
 from enum import IntEnum, Enum
+from typing import Union
 from src.utils.utils import train_test_split
 
 class ImagePartitions(IntEnum):
@@ -18,18 +19,27 @@ class Stage(Enum):
 class HyperspectralDataset(Dataset):
     def __init__(
             self, 
-            hyperspectral_image_path: str, 
-            ground_truth_image_path: str,
+            hyperspectral_data: Union[str, np.array], 
+            ground_truth_data: Union[str, np.array],
             stage: Stage
     ):
-        hyperspectral_image = tifffile.imread(hyperspectral_image_path)
-        ground_truth_image = tifffile.imread(ground_truth_image_path)
+        if isinstance(hyperspectral_data, str):
+            hyperspectral_image = tifffile.imread(hyperspectral_data)
+        else:
+            hyperspectral_image = hyperspectral_data
+
+        if isinstance(ground_truth_data, str):
+            ground_truth_image = tifffile.imread(ground_truth_data)
+        else:
+            ground_truth_image = ground_truth_data
+
+        if len(ground_truth_image.shape) == 2:
+            ground_truth_image = ground_truth_image.reshape(1, ground_truth_image.shape[0], ground_truth_image.shape[1])
 
         hyperspectral_image = hyperspectral_image.astype(np.float32)
         ground_truth_image = ground_truth_image.astype(np.float32)
         
         hyperspectral_image /= hyperspectral_image.max()
-        ground_truth_image = ground_truth_image.reshape(1, ground_truth_image.shape[0], ground_truth_image.shape[1])
 
         dataset = train_test_split(hyperspectral_image, ground_truth_image, split=0.2)
 
