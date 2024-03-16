@@ -20,6 +20,9 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     - hyperspectral_removed_samples (np.array): Array of removed hyperspectral samples for testing.
     - ground_truth_remaining_samples (np.array): Array of remaining ground truth samples for training.
     - ground_truth_removed_samples (np.array): Array of removed ground truth samples for testing.
+
+    Raises:
+    - ValueError: If the dimensions of the ground truth image do not match the dimensions of the hyperspectral image.
     '''
 
     if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
