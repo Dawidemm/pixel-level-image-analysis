@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import tifffile
 from enum import IntEnum, Enum
@@ -49,25 +49,12 @@ class HyperspectralDataset(Dataset):
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
 
-        self.image_shape = self.hyperspectral_image.shape
-        self.bands = self.image_shape[0]
-        self.width = self.image_shape[1]
-        self.height = self.image_shape[2]
-
     def  __len__(self):
-        return self.width * self.height
+        return len(self.hyperspectral_image[0])
     
     def __getitem__(self, index):
 
-        x = index // self.width
-        y = index % self.height
-
-        pixel_values = self.hyperspectral_image[:, x, y]
-        padding = torch.zeros(36)
-        combined_pixel_values = torch.cat((pixel_values, padding), dim=0)
-        combined_pixel_values = combined_pixel_values.reshape(1, 16, 16)
-
-        label = self.ground_truth_image.clone().detach()
-        label = int(label[:, x, y].item())
+        pixel_values = self.hyperspectral_image[index]
+        label = self.ground_truth_image.clone().detach()[index]
         
-        return combined_pixel_values, label
+        return pixel_values, label
