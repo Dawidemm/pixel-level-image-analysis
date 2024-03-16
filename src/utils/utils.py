@@ -57,8 +57,8 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     indices_to_remove = np.concatenate(indices_to_remove)
     remaining_indices = np.setdiff1d(np.arange(ground_truth_image.size), indices_to_remove)
 
-    ground_truth_remaining_samples = ground_truth_image[remaining_indices]
-    ground_truth_removed_samples = ground_truth_image[indices_to_remove]
+    ground_truth_remaining_samples = ground_truth_image[remaining_indices].T
+    ground_truth_removed_samples = ground_truth_image[indices_to_remove].T
 
     bands = hyperspectral_image.shape[0]
 
@@ -75,8 +75,8 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
         hyperspectral_remaining_samples.append(hyperspectral_remaining_data)
         hyperspectral_removed_samples.append(hyperspectral_removed_data)
 
-    hyperspectral_remaining_samples = np.array(hyperspectral_remaining_samples)
-    hyperspectral_removed_samples = np.array(hyperspectral_removed_samples)
+    hyperspectral_remaining_samples = np.array(hyperspectral_remaining_samples).T
+    hyperspectral_removed_samples = np.array(hyperspectral_removed_samples).T
 
     dataset = (hyperspectral_remaining_samples, 
               hyperspectral_removed_samples, 
