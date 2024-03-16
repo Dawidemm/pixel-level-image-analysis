@@ -25,44 +25,37 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
         raise ValueError('Dimension mismatch between ground truth image and hyperspectral image.')  
 
-    total_samples = ground_truth_image.shape[1] * ground_truth_image.shape[2]
-    samples_to_remove = int(split * total_samples)
-
     ground_truth_remaining_samples = []
     ground_truth_removed_samples = []
+    hyperspectral_remaining_samples = []
+    hyperspectral_removed_samples = []
 
     ground_truth_image = ground_truth_image[0]
     ground_truth_image = ground_truth_image.flatten()
-    indices_to_remove = np.random.choice(ground_truth_image.size, size=samples_to_remove, replace=False)
+
+    classes_in_ground_truth_image = np.unique(ground_truth_image)
+ 
+    samples_to_remove_per_class = {class_pixel_value: int(len(np.argwhere(ground_truth_image == class_pixel_value)) * split) for class_pixel_value in classes_in_ground_truth_image}
+
+    indices_to_remove = []
+
+    for class_pixel_value in classes_in_ground_truth_image:
+
+        class_indices = np.argwhere(ground_truth_image == class_pixel_value)
+        count_of_indices_to_remove = samples_to_remove_per_class[class_pixel_value]
+        indices_to_remove_per_class = np.random.choice(
+            class_indices.flatten(),
+            size=count_of_indices_to_remove,
+            replace=False
+        )
+        
+        indices_to_remove.append(indices_to_remove_per_class)
+
+    indices_to_remove = np.concatenate(indices_to_remove)
     remaining_indices = np.setdiff1d(np.arange(ground_truth_image.size), indices_to_remove)
 
-    ground_truth_remaining_data = ground_truth_image[remaining_indices]
-    ground_truth_removed_data = ground_truth_image[indices_to_remove]
-
-    ground_truth_remaining_data = np.pad(ground_truth_remaining_data,
-                            (0, int(np.ceil(np.sqrt(len(ground_truth_remaining_data)))**2 - len(ground_truth_remaining_data))),
-                            mode='constant', 
-                            constant_values=0)
-    
-    ground_truth_removed_data = np.pad(ground_truth_removed_data,
-                          (0, int(np.ceil(np.sqrt(len(ground_truth_removed_data)))**2 - len(ground_truth_removed_data))),
-                          mode='constant',
-                          constant_values=0)
-    
-    ground_truth_remaining_data_shape = int(np.sqrt(len(ground_truth_remaining_data)))
-    ground_truth_remaining_data = ground_truth_remaining_data.reshape(ground_truth_remaining_data_shape, ground_truth_remaining_data_shape)
-
-    ground_truth_removed_data_shape = int(np.sqrt(len(ground_truth_removed_data)))
-    ground_truth_removed_data = ground_truth_removed_data.reshape(ground_truth_removed_data_shape, ground_truth_removed_data_shape)
-
-    ground_truth_remaining_samples.append(ground_truth_remaining_data)
-    ground_truth_removed_samples.append(ground_truth_removed_data)
-
-    ground_truth_remaining_samples = np.array(ground_truth_remaining_samples)
-    ground_truth_removed_samples = np.array(ground_truth_removed_samples)
-
-    hyperspectral_remaining_samples = []
-    hyperspectral_removed_samples = []
+    ground_truth_remaining_samples = ground_truth_image[remaining_indices]
+    ground_truth_removed_samples = ground_truth_image[indices_to_remove]
 
     bands = hyperspectral_image.shape[0]
 
@@ -75,22 +68,6 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
 
         hyperspectral_remaining_data = hyperspectral_data[remaining_indices]
         hyperspectral_removed_data = hyperspectral_data[indices_to_remove]
-
-        hyperspectral_remaining_data = np.pad(hyperspectral_remaining_data,
-                                              (0, int(np.ceil(np.sqrt(len(hyperspectral_remaining_data)))**2 - len(hyperspectral_remaining_data))), 
-                                              mode='constant',
-                                              constant_values=0)
-        
-        hyperspectral_removed_data = np.pad(hyperspectral_removed_data,
-                                            (0, int(np.ceil(np.sqrt(len(hyperspectral_removed_data)))**2 - len(hyperspectral_removed_data))),
-                                            mode='constant',
-                                            constant_values=0)
-        
-        hyperspectral_remaining_data_shape = int(np.sqrt(len(hyperspectral_remaining_data)))
-        hyperspectral_remaining_data = hyperspectral_remaining_data.reshape(hyperspectral_remaining_data_shape, hyperspectral_remaining_data_shape)
-
-        hyperspectral_removed_data_shape = int(np.sqrt(len(hyperspectral_removed_data)))
-        hyperspectral_removed_data = hyperspectral_removed_data.reshape(hyperspectral_removed_data_shape, hyperspectral_removed_data_shape)
 
         hyperspectral_remaining_samples.append(hyperspectral_remaining_data)
         hyperspectral_removed_samples.append(hyperspectral_removed_data)
