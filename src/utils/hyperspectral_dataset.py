@@ -60,7 +60,7 @@ class HyperspectralDataset(Dataset):
         self.ground_truth_image = torch.tensor(ground_truth_image)
 
     def  __len__(self):
-        return len(self.hyperspectral_image[0])
+        return len(self.hyperspectral_image)
     
     def __getitem__(self, index):
 
