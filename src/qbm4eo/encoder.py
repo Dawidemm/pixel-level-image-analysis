@@ -15,43 +15,46 @@ class QuantizerFunc(torch.autograd.Function):
         grad_input = grad_output.clone()
         return grad_input, None
 
-
+    
 class ResBlockConvPart(nn.Module):
     def __init__(self, channels, negative_slope=0.02, bias=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.subnet = nn.Sequential(
-            nn.LeakyReLU(negative_slope),
-            nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
-            nn.BatchNorm2d(channels),
-        )
+
+        subnet = [nn.LeakyReLU(negative_slope),
+                  nn.Conv1d(channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
+                  nn.BatchNorm1d(channels)
+        ]
+        
+        self.subnet = nn.Sequential(*subnet)
 
     def forward(self, x):
         return self.subnet(x)
-
+    
 
 class ResBlockConv(nn.Module):
-    def __init__(
-        self, channels, in_channels=None, negative_slope=0.02, bias=False, *args, **kwargs
-    ):
+    def __init__(self, channels, in_channels=None, negative_slope=0.02, bias=False, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+
         if in_channels is None:
             in_channels = channels
 
-        self.initial_block = nn.Sequential(
-            nn.Conv2d(in_channels, channels, kernel_size=4, stride=2, padding=1, bias=bias),
-            nn.BatchNorm2d(channels),
-        )
+        initial_block = [nn.Conv1d(in_channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
+                         nn.BatchNorm1d(channels)
+        ]
+        middle_block = [ResBlockConvPart(channels, negative_slope, bias),
+                        ResBlockConvPart(channels, negative_slope, bias)
+        ]
+        
+        self.initial_block = nn.Sequential(*initial_block)
+        self.middle_block = nn.Sequential(*middle_block)
 
-        self.middle_block = nn.Sequential(
-            ResBlockConvPart(channels, negative_slope, bias),
-            ResBlockConvPart(channels, negative_slope, bias),
-        )
         self.negative_slope = negative_slope
 
     def forward(self, x):
         x = self.initial_block(x)
         y = x
         x = self.middle_block(x)
+        
         return leaky_relu(x + y, self.negative_slope)
 
 
@@ -69,9 +72,9 @@ class LBAEEncoder(nn.Module):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-
+        
         layers = [
-            nn.Conv2d(
+            nn.Conv1d(
                 input_size[0],
                 out_channels,
                 kernel_size=3,
@@ -79,7 +82,7 @@ class LBAEEncoder(nn.Module):
                 padding=1,
                 bias=bias,
             ),
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm1d(out_channels),
             nn.LeakyReLU(negative_slope),
         ]
         for i in range(num_layers):
@@ -90,24 +93,20 @@ class LBAEEncoder(nn.Module):
             layers.append(new_layer)
 
         layers.append(
-            nn.Conv2d(
+            nn.Conv1d(
                 2 ** (num_layers - 1) * out_channels,
                 2**num_layers * out_channels,
-                kernel_size=4,
-                stride=2,
-                bias=bias,
+                kernel_size=3,
+                stride=1,
                 padding=1,
+                bias=bias,
             )
         )
         self.net = nn.Sequential(*layers)
 
-        final_res = (
-            input_size[1] // 2 ** (num_layers + 1),
-            input_size[2] // 2 ** (num_layers + 1),
-        )
         final_channels = 2**num_layers * out_channels
-        self.final_conv_size = (final_channels, *final_res)
-        lin_in_size = final_channels * final_res[0] * final_res[1]
+        self.final_conv_size = (final_channels, input_size[1])
+        lin_in_size = final_channels * input_size[1]
         self.linear = nn.Linear(lin_in_size, latent_size)
 
         self.quantize = should_quantize

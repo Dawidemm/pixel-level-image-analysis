@@ -10,9 +10,9 @@ from src.qbm4eo.encoder import LBAEEncoder
 
 class LBAE(pl.LightningModule):
     def __init__(
-        self, input_size, out_channels, latent_size, num_layers, quantize, *args: Any, **kwargs: Any
-    ):
+        self, input_size, out_channels, latent_size, num_layers, quantize, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
+        
         self.save_hyperparameters("input_size", "out_channels", "latent_size", "num_layers", "quantize")
 
         self.encoder = LBAEEncoder(input_size, out_channels, latent_size, num_layers, quantize)
@@ -21,26 +21,28 @@ class LBAE(pl.LightningModule):
 
     def forward(self, x):
         z, quant_err = self.encoder(x, self.epoch)
-        xr = self.decoder(z)
+        x_reconstructed = self.decoder(z)
         self.log("quant_error", quant_err)
-        return xr
+
+        return x_reconstructed
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
-        if self.epoch == 0 and batch_idx == 0:
-            self.reference_image = x[0:1, :, :, :]
-        xr = self.forward(x)
-        l = mse_loss(xr.view(x.size()), x, reduction="sum")
-        self.log("loss", l, logger=True)
+        x_reconstructed = self.forward(x)
+        l = mse_loss(x_reconstructed.view(x.size()), x, reduction="sum")
+        self.log("loss", l, logger=True, prog_bar=True, on_epoch=True, on_step=False)
+
         return l
 
     def predict_step(self, batch, batch_idx):
         x, labels = batch
+
         return self.forward(x), x, labels
 
     def test_step(self, batch, batch_idx):
         x, _ = batch
         xr = self.forward(x)
+        
         return mse_loss(xr.view(x.size()), x, reduction="sum")
 
     def configure_optimizers(self):
