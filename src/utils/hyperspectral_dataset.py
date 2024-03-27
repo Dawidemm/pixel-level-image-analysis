@@ -65,6 +65,7 @@ class HyperspectralDataset(Dataset):
     def __getitem__(self, index):
 
         pixel_values = self.hyperspectral_image[index]
+        pixel_values = pixel_values.reshape(1, len(pixel_values))
         label = self.ground_truth_image.clone().detach()[index]
         
         return pixel_values, label
