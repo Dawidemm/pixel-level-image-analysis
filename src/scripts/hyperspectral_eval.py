@@ -12,24 +12,24 @@ from src.qbm4eo.rbm import RBM
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 16
-NUM_HIDDEN = 17
+NUM_VISIBLE = 60
+NUM_HIDDEN = 30
 
-THRESHOLDS = np.linspace(1/10, 1, 10)
+THRESHOLDS = np.linspace(1/100, 1, 100)
 
-HYPERSPECTRAL_IMAGE_PATH = 'dataset/hyperspectral_image.tif'
-GROUND_TRUTH_IMAGE_PATH = 'dataset/ground_truth_image.tif'
+HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/hyperspectral_image.tif'
+GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=99-step=211300.ckpt'
-AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_2/checkpoints/epoch=24-step=100.ckpt'
+AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_2/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
 
 def main():
     try:
         test_dataset = HyperspectralDataset(
-            hyperspectral_image_path=HYPERSPECTRAL_IMAGE_PATH,
-            ground_truth_image_path=GROUND_TRUTH_IMAGE_PATH,
+            hyperspectral_data=HYPERSPECTRAL_IMAGE_PATH,
+            ground_truth_data=GROUND_TRUTH_IMAGE_PATH,
             stage=Stage.TEST
         )
 
@@ -55,25 +55,15 @@ def main():
 
     lbae.eval()
 
-    predictions = []
-    X_true = []
+    distance = []
 
     with torch.no_grad():
-        for X, _ in test_dataloader:
-
-            X_true.append(X)
-            predictions.append(lbae(X))
-
-    predictions= torch.cat(predictions, dim=0)
-    predictions = predictions.reshape(predictions.shape[0],
-                                    predictions.shape[1] * predictions.shape[2] * predictions.shape[3])
-
-    X_true = torch.cat(X_true, dim=0)
-    X_true = X_true.reshape(X_true.shape[0],
-                                    X_true.shape[1] * X_true.shape[2] * X_true.shape[3])
-
-    distancse = pairwise_euclidean_distance(X_true, predictions)
-    mean_distance = torch.mean(distancse)
+        for _, (X, _) in enumerate(test_dataloader):
+            preds = lbae(X)
+            preds = preds.reshape(preds.shape[0]*preds.shape[2], 1)
+            X = X.reshape(X.shape[0]*X.shape[2], 1)
+            dist = pairwise_euclidean_distance(X, preds)
+            distance.append(torch.mean(dist))
 
     threshold_finder = ThresholdFinder(
         test_dataloader=test_dataloader,
@@ -85,12 +75,12 @@ def main():
 
     print(f'\n---------------------------------------------')
     print(f'Autoencoder')
-    print(f'Pairwise euclidean distance: {round(mean_distance.item(), 3)}.')
+    print(f'Pairwise euclidean distance: {round(torch.mean(torch.tensor(distance)).item(), 3)}.')
 
     print(f'\n---------------------------------------------')
     print(f'RBM')
-    print(f'Best threshold: {round(best_threshold, 3)}.')
-    print(f'Best rand score: {round(best_rand_score, 3)}.')
+    print(f'Best threshold: {round(best_threshold, 4)}.,')
+    print(f'Best rand score: {round(best_rand_score, 4)},.')
     print(f'\n')
 
 if __name__ == '__main__':
