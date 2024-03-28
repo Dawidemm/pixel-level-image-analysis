@@ -38,7 +38,7 @@ class ResBlockConv(nn.Module):
         if in_channels is None:
             in_channels = channels
 
-        initial_block = [nn.Conv1d(in_channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
+        initial_block = [nn.Conv1d(in_channels, channels, kernel_size=4, stride=2, padding=1, bias=bias),
                          nn.BatchNorm1d(channels)
         ]
         middle_block = [ResBlockConvPart(channels, negative_slope, bias),
@@ -104,13 +104,20 @@ class LBAEEncoder(nn.Module):
         )
         self.net = nn.Sequential(*layers)
 
-        final_channels = 2**num_layers * out_channels
-        self.final_conv_size = (final_channels, input_size[1])
-        lin_in_size = final_channels * input_size[1]
+        self.final_conv_size = self._calculate_final_conv_size(self.net, input_size)
+        lin_in_size = self.final_conv_size[0] * self.final_conv_size[1]
         self.linear = nn.Linear(lin_in_size, latent_size)
 
         self.quantize = should_quantize
         self.quant = QuantizerFunc.apply
+
+    def _calculate_final_conv_size(self, sequential_net, input_size):
+        with torch.no_grad():
+            x = torch.randn(1, *input_size)
+            x = sequential_net(x)
+            final_channels, final_length = x.size(1), x.size(2)
+            
+        return final_channels, final_length
 
     def forward(self, x, epoch=None):
         x = self.net(x)
