@@ -7,6 +7,7 @@ import lightning as pl
 from scipy import stats
 from torch import nn
 from torch.utils.data import DataLoader
+from lightning.pytorch.callbacks import EarlyStopping
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 
@@ -41,11 +42,18 @@ class Pipeline:
         skip_autoencoder = skip_autoencoder or self.auto_encoder is None
         skip_rbm = skip_rbm or self.rbm is None
 
+        early_stopping = EarlyStopping(
+            monitor='loss',
+            mode='min',
+            patience=3
+        )
+
         trainer = pl.Trainer(
             accelerator='auto',
             precision=precision,
             max_epochs=max_epochs,
-            enable_checkpointing=enable_checkpointing
+            enable_checkpointing=enable_checkpointing,
+            callbacks=[early_stopping]
         )
 
         if skip_autoencoder:
