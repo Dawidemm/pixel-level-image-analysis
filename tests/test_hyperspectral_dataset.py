@@ -22,10 +22,10 @@ def test_hyperspectral_dataset_getitem(hyperspectral_dataset_train, hyperspectra
 
     assert isinstance(pixel_values_train, torch.Tensor)
     assert isinstance(label_train, torch.Tensor)
-    assert pixel_values_train.shape == torch.Size([220])
+    assert pixel_values_train.shape == torch.Size([1, 220])
     assert label_train.shape == torch.Size([])
 
     assert isinstance(pixel_values_test, torch.Tensor)
     assert isinstance(label_test, torch.Tensor)
-    assert pixel_values_test.shape == torch.Size([220])
+    assert pixel_values_test.shape == torch.Size([1, 220])
     assert label_test.shape == torch.Size([])
