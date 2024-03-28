@@ -15,13 +15,13 @@ torch.manual_seed(0)
 NUM_VISIBLE = 60
 NUM_HIDDEN = 30
 
-THRESHOLDS = np.linspace(1/100, 1, 100)
+THRESHOLDS = np.linspace(1/10, 1, 10)
 
-HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/hyperspectral_image.tif'
-GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/ground_truth_image.tif'
+HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
+GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_2/checkpoints/epoch=24-step=100.ckpt'
-AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_2/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=41-step=22092.ckpt'
+AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
 

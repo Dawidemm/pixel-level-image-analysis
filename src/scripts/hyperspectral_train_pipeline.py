@@ -15,12 +15,12 @@ torch.manual_seed(0)
 NUM_VISIBLE = 60
 NUM_HIDDEN = 30
 
-MAX_EPOCHS = 25
+MAX_EPOCHS = 50
 RBM_STEPS = 1000
 BATCH_SIZE = 32
 
-HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/hyperspectral_image.tif'
-GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x2678x614/ground_truth_image.tif'
+HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
+GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
 def main():
 
@@ -32,16 +32,16 @@ def main():
 
     train_dataloader = DataLoader(
         dataset=train_dataset,
-        batch_size=64, 
+        batch_size=BATCH_SIZE, 
         shuffle=True, 
         num_workers=4
     )
 
     autoencoder = LBAE(
         input_size=(1, 220),
-        out_channels=16, 
+        out_channels=8, 
         latent_size=NUM_VISIBLE,
-        num_layers=4,
+        num_layers=2,
         quantize=list(range(MAX_EPOCHS))
     )
     
