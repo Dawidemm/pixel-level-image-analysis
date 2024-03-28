@@ -31,8 +31,8 @@ class ResBlockDeConv(nn.Module):
             nn.ConvTranspose1d(
                 in_channels,
                 channels,
-                kernel_size=3,
-                stride=1,
+                kernel_size=4,
+                stride=2,
                 padding=1,
                 output_padding=0,
                 bias=bias,
