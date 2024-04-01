@@ -29,10 +29,10 @@ class LBAE(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, _ = batch
         x_reconstructed = self.forward(x)
-        l = mse_loss(x_reconstructed.view(x.size()), x, reduction="sum")
-        self.log("loss", l, logger=True, prog_bar=True, on_epoch=True, on_step=False)
+        loss = mse_loss(x_reconstructed.view(x.size()), x, reduction="sum")
+        self.log("auto_encoder_loss", loss, logger=True, prog_bar=True, on_epoch=True, on_step=False)
 
-        return l
+        return loss
 
     def predict_step(self, batch, batch_idx):
         x, labels = batch
