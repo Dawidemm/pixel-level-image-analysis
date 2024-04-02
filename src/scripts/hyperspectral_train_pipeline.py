@@ -6,6 +6,7 @@ import numpy as np
 from src.qbm4eo.lbae import LBAE
 from src.qbm4eo.pipeline import Pipeline
 from src.qbm4eo.rbm import RBM
+from src.qbm4eo.classifier import Classifier
 
 torch.set_float32_matmul_precision('medium')
 
@@ -34,7 +35,8 @@ def main():
         dataset=train_dataset,
         batch_size=BATCH_SIZE, 
         shuffle=True, 
-        num_workers=4
+        num_workers=4,
+        persistent_workers=True
     )
 
     autoencoder = LBAE(
@@ -47,9 +49,11 @@ def main():
     
     rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
 
-    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm)
+    classifier = Classifier(output_size=17, encoder=autoencoder.encoder, rbm=rbm)
 
-    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1')
+    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm, classifier=classifier)
+
+    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1', skip_rbm=True)
 
 if __name__ == '__main__':
     main()
