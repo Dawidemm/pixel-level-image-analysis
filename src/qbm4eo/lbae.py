@@ -30,7 +30,7 @@ class LBAE(pl.LightningModule):
         x, _ = batch
         x_reconstructed = self.forward(x)
         loss = mse_loss(x_reconstructed.view(x.size()), x, reduction="sum")
-        self.log("auto_encoder_loss", loss, logger=True, prog_bar=True, on_epoch=True, on_step=False)
+        self.log("loss", loss, prog_bar=True, on_epoch=True, on_step=False)
 
         return loss
 
