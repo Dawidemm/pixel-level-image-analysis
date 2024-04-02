@@ -20,9 +20,10 @@ def encoded_dataloader(data_loader, encoder):
 
 class Pipeline:
 
-    def __init__(self, auto_encoder, rbm):
+    def __init__(self, auto_encoder, rbm, classifier):
         self.auto_encoder = auto_encoder
         self.rbm = rbm
+        self.classifier = classifier
 
     def fit(
         self,
@@ -35,12 +36,14 @@ class Pipeline:
         rbm_steps=100,
         skip_autoencoder=False,
         skip_rbm=False,
+        skip_classifier=False,
         rbm_trainer=None
     ):
         # Adjust flags for skipping training components. If given component
         # is None, we train it anyway, otherwise whole process does not make sense.
         skip_autoencoder = skip_autoencoder or self.auto_encoder is None
         skip_rbm = skip_rbm or self.rbm is None
+        skip_classifier = skip_classifier or self.classifier is None
 
         early_stopping = EarlyStopping(
             monitor='loss',
@@ -49,9 +52,10 @@ class Pipeline:
         )
 
         trainer = pl.Trainer(
-            accelerator='auto',
+            accelerator='cpu',
             precision=precision,
             max_epochs=max_epochs,
+            logger=True,
             enable_checkpointing=enable_checkpointing,
             callbacks=[early_stopping]
         )
@@ -81,3 +85,20 @@ class Pipeline:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
 
         self.rbm.save("rbm.npz")
+
+        trainer = pl.Trainer(
+            accelerator='cpu',
+            precision=precision,
+            max_epochs=2*max_epochs,
+            logger=False,
+            enable_checkpointing=enable_checkpointing,
+        )
+
+        if skip_classifier:
+            print("Skipping classifier training.")
+        else:
+            print("Training classifier.")
+            trainer.fit(self.classifier, data_loader)
+            self.classifier.freeze()
+            torch.save(self.classifier.state_dict(), "classifier.pt")
+            trainer.save_checkpoint("classifier.ckpt")
