@@ -11,17 +11,20 @@ class ImagePartitions(IntEnum):
     TEST_IMAGE = 1
     TRAIN_LABEL = 2
     TEST_LABEL = 3
+    SEG_IMG = 0
+    SEG_LABEL = 1
 
 class Stage(Enum):
     TRAIN = 'train'
     TEST = 'test'
+    IMG_SEG = 'image_segmentation'
 
 class HyperspectralDataset(Dataset):
     def __init__(
             self, 
             hyperspectral_data: Union[str, np.array], 
             ground_truth_data: Union[str, np.array],
-            stage: Stage
+            stage: Stage,
     ):
         if isinstance(hyperspectral_data, str):
             hyperspectral_image = tifffile.imread(hyperspectral_data)
@@ -38,10 +41,16 @@ class HyperspectralDataset(Dataset):
 
         hyperspectral_image = hyperspectral_image.astype(np.float32)
         ground_truth_image = ground_truth_image.astype(np.float32)
-        
+
         hyperspectral_image /= hyperspectral_image.max()
 
-        dataset = train_test_split(hyperspectral_image, ground_truth_image, split=0.2)
+        if stage == Stage.TRAIN or stage == Stage.TEST:
+            split = 0.2
+
+        elif stage == Stage.IMG_SEG:
+            split = 0
+
+        dataset = train_test_split(hyperspectral_image, ground_truth_image, split=split)
 
         if stage == Stage.TRAIN:
 
@@ -53,8 +62,10 @@ class HyperspectralDataset(Dataset):
             hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
             ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
 
-        else:
-            raise ValueError(f'Stage should be set as one from ["train", "test"] values.')
+        elif stage == Stage.IMG_SEG:
+
+            hyperspectral_image = dataset[ImagePartitions.SEG_IMG]
+            ground_truth_image= dataset[ImagePartitions.SEG_LABEL]
         
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
