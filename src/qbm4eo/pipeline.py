@@ -20,10 +20,9 @@ def encoded_dataloader(data_loader, encoder):
 
 class Pipeline:
 
-    def __init__(self, auto_encoder, rbm, classifier):
+    def __init__(self, auto_encoder, rbm):
         self.auto_encoder = auto_encoder
         self.rbm = rbm
-        self.classifier = classifier
 
     def fit(
         self,
@@ -36,14 +35,12 @@ class Pipeline:
         rbm_steps=100,
         skip_autoencoder=False,
         skip_rbm=False,
-        skip_classifier=False,
         rbm_trainer=None
     ):
         # Adjust flags for skipping training components. If given component
         # is None, we train it anyway, otherwise whole process does not make sense.
         skip_autoencoder = skip_autoencoder or self.auto_encoder is None
         skip_rbm = skip_rbm or self.rbm is None
-        skip_classifier = skip_classifier or self.classifier is None
 
         early_stopping = EarlyStopping(
             monitor='loss',
