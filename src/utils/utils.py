@@ -25,6 +25,17 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     - ValueError: If the dimensions of the ground truth image do not match the dimensions of the hyperspectral image.
     '''
 
+    if split == 0:
+        hyperspectral_image = hyperspectral_image.reshape(
+            hyperspectral_image.shape[1] * hyperspectral_image.shape[2],
+            hyperspectral_image.shape[0]
+        )
+        
+        ground_truth_image = ground_truth_image.reshape(
+            ground_truth_image.shape[1] * ground_truth_image.shape[2])
+
+        return hyperspectral_image, ground_truth_image
+
     if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
         raise ValueError('Dimension mismatch between ground truth image and hyperspectral image.')  
 
