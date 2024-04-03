@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch.callbacks import EarlyStopping
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
-
+import time
 
 def encoded_dataloader(data_loader, encoder):
     while True:
@@ -76,6 +76,7 @@ class Pipeline:
             print("Skipping RBM training as requested.")
         else:
             if rbm_trainer == 'cd1':
+                print('RBM training.')
                 rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
             elif rbm_trainer == 'annealing':
@@ -83,22 +84,5 @@ class Pipeline:
                 rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
-
+            
         self.rbm.save("rbm.npz")
-
-        trainer = pl.Trainer(
-            accelerator='cpu',
-            precision=precision,
-            max_epochs=2*max_epochs,
-            logger=False,
-            enable_checkpointing=enable_checkpointing,
-        )
-
-        if skip_classifier:
-            print("Skipping classifier training.")
-        else:
-            print("Training classifier.")
-            trainer.fit(self.classifier, data_loader)
-            self.classifier.freeze()
-            torch.save(self.classifier.state_dict(), "classifier.pt")
-            trainer.save_checkpoint("classifier.ckpt")

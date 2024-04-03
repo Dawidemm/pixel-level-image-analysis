@@ -6,7 +6,6 @@ import numpy as np
 from src.qbm4eo.lbae import LBAE
 from src.qbm4eo.pipeline import Pipeline
 from src.qbm4eo.rbm import RBM
-from src.qbm4eo.classifier import Classifier
 
 torch.set_float32_matmul_precision('medium')
 
@@ -16,8 +15,8 @@ torch.manual_seed(0)
 NUM_VISIBLE = 60
 NUM_HIDDEN = 30
 
-MAX_EPOCHS = 50
-RBM_STEPS = 1000
+MAX_EPOCHS = 25
+RBM_STEPS = 1000000
 BATCH_SIZE = 32
 
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
@@ -49,11 +48,9 @@ def main():
     
     rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
 
-    classifier = Classifier(output_size=17, encoder=autoencoder.encoder, rbm=rbm)
+    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm)
 
-    pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm, classifier=classifier)
-
-    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1', skip_rbm=True)
+    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1')
 
 if __name__ == '__main__':
     main()
