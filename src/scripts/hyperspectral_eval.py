@@ -20,8 +20,8 @@ THRESHOLDS = np.linspace(1/10, 1, 10)
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=41-step=22092.ckpt'
-AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_1/checkpoints/epoch=24-step=13150.ckpt'
+AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_1/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
 
