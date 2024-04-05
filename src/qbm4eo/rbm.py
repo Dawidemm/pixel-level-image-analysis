@@ -107,6 +107,7 @@ class RBMTrainer:
 
     def __init__(self, num_steps: int):
         self.num_steps = num_steps
+        self.losses = []
 
     def fit(self, rbm: RBM, data_loader: DataLoader, callback=None):
         for i, (_idx, (batch, target)) in enumerate(pbar := tqdm.tqdm(islice(
@@ -116,6 +117,7 @@ class RBMTrainer:
             batch = batch.detach().cpu().numpy().squeeze()
             self.training_step(rbm, batch)
             loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
+            self.losses.append(loss)
             pbar.set_postfix(loss=loss)
             if callback is not None:
                 callback(i, rbm, loss)
