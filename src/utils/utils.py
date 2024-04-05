@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 from sklearn.metrics import rand_score
+import matplotlib.pyplot as plt
+import lightning
+from typing import List
 
 np.random.seed(10)
 
@@ -170,3 +173,22 @@ class ThresholdFinder:
         indices = [target_list.index(value) for value in values_to_map]
 
         return indices
+    
+class LossLoggerCallback(lightning.Callback):
+    def __init__(self):
+        super().__init__()
+        self.losses = []
+
+    def on_train_epoch_end(self, trainer: lightning.Trainer, pl_module: lightning.LightningModule) -> None:
+        loss = trainer.logged_metrics['loss']
+        self.losses.append(loss)
+    
+def plot_loss(epochs: int, loss_values: List[float], plot_title: str):
+
+    plt.plot(list(range(epochs)), loss_values)
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title(plot_title)
+    plt.grid()
+
+    plt.show()
