@@ -12,15 +12,15 @@ from src.qbm4eo.rbm import RBM
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 60
-NUM_HIDDEN = 30
+NUM_VISIBLE = 68
+NUM_HIDDEN = 34
 
-THRESHOLDS = np.linspace(1/10, 1, 10)
+THRESHOLDS = np.linspace(1/25, 1, 25)
 
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=49-step=26300.ckpt'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=24-step=13150.ckpt'
 AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
