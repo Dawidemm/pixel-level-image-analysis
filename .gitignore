@@ -6,6 +6,6 @@ encoder.pt
 dataset/
 *.egg-info
 .pytest_cache
-classifier.pt
-classifier.ckpt
+classifier.py
+image_segmentation.py
 mnist/
