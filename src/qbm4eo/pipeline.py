@@ -1,6 +1,6 @@
 from itertools import islice
 from pathlib import Path
-
+import time
 import numpy as np
 import torch
 import lightning as pl
@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch.callbacks import EarlyStopping
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
-import time
+from src.utils import utils
 
 def encoded_dataloader(data_loader, encoder):
     while True:
@@ -35,7 +35,8 @@ class Pipeline:
         rbm_steps=100,
         skip_autoencoder=False,
         skip_rbm=False,
-        rbm_trainer=None
+        rbm_trainer=None,
+        learnig_curve=True
     ):
         # Adjust flags for skipping training components. If given component
         # is None, we train it anyway, otherwise whole process does not make sense.
@@ -48,13 +49,15 @@ class Pipeline:
             patience=3
         )
 
+        loss_logs = utils.LossLoggerCallback()
+
         trainer = pl.Trainer(
             accelerator='cpu',
             precision=precision,
             max_epochs=max_epochs,
             logger=True,
             enable_checkpointing=enable_checkpointing,
-            callbacks=[early_stopping]
+            callbacks=[early_stopping, loss_logs]
         )
 
         if skip_autoencoder:
@@ -62,6 +65,12 @@ class Pipeline:
         else:
             print("Training autoencoder.")
             trainer.fit(self.auto_encoder, data_loader)
+
+            if learnig_curve:
+                utils.plot_loss(
+                    epochs=trainer.max_epochs, 
+                    loss_values=loss_logs.losses, 
+                    plot_title='Autoencoder')
 
         encoder = self.auto_encoder.encoder
         for param in encoder.parameters():
@@ -73,10 +82,19 @@ class Pipeline:
             print("Skipping RBM training as requested.")
         else:
             if rbm_trainer == 'cd1':
-                print('RBM training.')
+                print('RBM training with CD1Trainer.')
                 rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
+
+                if learnig_curve:
+                    utils.plot_loss(
+                        epochs=rbm_trainer.num_steps, 
+                        loss_values=rbm_trainer.losses, 
+                        plot_title='RBM'
+                    )
+
             elif rbm_trainer == 'annealing':
+                print('RBM training with AnnealingRBMTrainer.')
                 rbm_trainer = AnnealingRBMTrainer(rbm_steps, sampler='placeholder', learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
             else:
