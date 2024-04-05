@@ -50,7 +50,7 @@ def main():
 
     pipeline = Pipeline(auto_encoder=autoencoder, rbm=rbm)
 
-    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_trainer='cd1')
+    pipeline.fit(train_dataloader, max_epochs=MAX_EPOCHS, rbm_steps=RBM_STEPS, rbm_trainer='cd1', learnig_curve=True)
 
 if __name__ == '__main__':
     main()
