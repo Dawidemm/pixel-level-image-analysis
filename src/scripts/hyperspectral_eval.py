@@ -49,7 +49,7 @@ def main():
         print("Please make sure to:\n"
               "1. Provide paths to the hyperspectral image and ground truth image files.\n"
               "2. Run the training pipeline before starting the evaluation. \n"
-              "   Training will generate a 'lightning_logs' folder containing model checkpoint and hparams files.\n"
+              "   Training will generate a 'lightning_logs' folder containing autoencoder checkpoint and hparams files as well as rbm.npz file.\n"
               "3. The application will terminate now.")
         return
 

@@ -24,11 +24,18 @@ GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.ti
 
 def main():
 
-    train_dataset = HyperspectralDataset(
-        hyperspectral_data=HYPERSPECTRAL_IMAGE_PATH,
-        ground_truth_data=GROUND_TRUTH_IMAGE_PATH,
-        stage=Stage.TRAIN
-    )
+    try:
+        train_dataset = HyperspectralDataset(
+            hyperspectral_data=HYPERSPECTRAL_IMAGE_PATH,
+            ground_truth_data=GROUND_TRUTH_IMAGE_PATH,
+            stage=Stage.TRAIN
+        )
+
+    except FileNotFoundError as e:
+        print(f'FileNotFoundError: {e}')
+        print("Please make sure to provide paths to the hyperspectral image and ground truth image files.\n"
+              "The application will terminate now.")
+        return
 
     train_dataloader = DataLoader(
         dataset=train_dataset,
