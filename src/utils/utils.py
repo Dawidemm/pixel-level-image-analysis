@@ -183,12 +183,23 @@ class LossLoggerCallback(lightning.Callback):
         loss = trainer.logged_metrics['loss']
         self.losses.append(loss)
     
-def plot_loss(epochs: int, loss_values: List[float], plot_title: str):
+def plot_loss(
+        epochs: int, 
+        loss_values: List[float], 
+        plot_title: str, 
+        save: bool=True
+):
 
+    plt.figure(figsize=(6, 5))
     plt.plot(list(range(epochs)), loss_values)
+    plt.gcf().set_facecolor('none')
+    plt.gca().set_facecolor('none')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title(plot_title)
     plt.grid()
+
+    if save:
+        plt.savefig(f'{plot_title.lower()}_learning.pdf', dpi=300)
 
     plt.show()
