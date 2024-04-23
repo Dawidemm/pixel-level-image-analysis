@@ -20,8 +20,8 @@ THRESHOLDS = np.linspace(1/25, 1, 25)
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=24-step=13150.ckpt'
-AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_4/checkpoints/epoch=24-step=13150.ckpt0'
+AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_4/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
 
@@ -47,10 +47,9 @@ def main():
     except FileNotFoundError as e:
         print(f'FileNotFoundError: {e}')
         print("Please make sure to:\n"
-              "1. Provide paths to the hyperspectral image and ground truth image files.\n"
-              "2. Run the training pipeline before starting the evaluation. \n"
-              "   Training will generate a 'lightning_logs' folder containing autoencoder checkpoint and hparams files as well as rbm.npz file.\n"
-              "3. The application will terminate now.")
+              "\t1.Provide paths to the hyperspectral image and ground truth image files.\n"
+              "\t2.Run the training pipeline before starting the evaluation. \n"
+              "\t3.The application will terminate now.")
         return
 
     lbae.eval()
@@ -79,8 +78,8 @@ def main():
 
     print(f'\n---------------------------------------------')
     print(f'RBM')
-    print(f'Best threshold: {round(best_threshold, 4)}.,')
-    print(f'Best rand score: {round(best_rand_score, 4)},.')
+    print(f'Best threshold: {round(best_threshold, 3)}.,')
+    print(f'Best rand score: {round(best_rand_score, 3)},.')
     print(f'\n')
 
 if __name__ == '__main__':
