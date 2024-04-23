@@ -3,8 +3,8 @@ from torch.utils.data import Dataset
 import numpy as np
 import tifffile
 from enum import IntEnum, Enum
-from typing import Union
-from src.utils.utils import train_test_split
+from typing import Union, Tuple, Sequence
+from src.utils import utils
 
 class ImagePartitions(IntEnum):
     TRAIN_IMAGE = 0
@@ -25,6 +25,7 @@ class HyperspectralDataset(Dataset):
             hyperspectral_data: Union[str, np.array], 
             ground_truth_data: Union[str, np.array],
             stage: Stage,
+            split: float=0.2
     ):
         if isinstance(hyperspectral_data, str):
             hyperspectral_image = tifffile.imread(hyperspectral_data)
@@ -44,13 +45,10 @@ class HyperspectralDataset(Dataset):
 
         hyperspectral_image /= hyperspectral_image.max()
 
-        if stage == Stage.TRAIN or stage == Stage.TEST:
-            split = 0.2
-
-        elif stage == Stage.IMG_SEG:
+        if stage == Stage.IMG_SEG:
             split = 0
 
-        dataset = train_test_split(hyperspectral_image, ground_truth_image, split=split)
+        dataset = utils.train_test_split(hyperspectral_image, ground_truth_image, split=split)
 
         if stage == Stage.TRAIN:
 
@@ -73,7 +71,7 @@ class HyperspectralDataset(Dataset):
     def  __len__(self):
         return len(self.hyperspectral_image)
     
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[Sequence, int]:
 
         pixel_values = self.hyperspectral_image[index]
         pixel_values = pixel_values.reshape(1, len(pixel_values))
