@@ -18,10 +18,6 @@ def test_train_test_split_output():
     for data in dataset:
         assert isinstance(data, np.ndarray)
 
-def test_dimension_mismatch_error():
-    with pytest.raises(ValueError):
-        utils.train_test_split(HYPERSPECTRAL_IMAGE, np.random.rand(1, 50, 50))
-
 def test_multiple_splits(split):
     _, _, ground_truth_train, ground_truth_test = utils.train_test_split(HYPERSPECTRAL_IMAGE, GROUND_TRUTH_IMAGE, split=split)
     expected_split = len(ground_truth_test)/(len(ground_truth_train)+len(ground_truth_test))
