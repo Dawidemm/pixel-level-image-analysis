@@ -3,7 +3,7 @@ import torch
 from sklearn.metrics import rand_score
 import matplotlib.pyplot as plt
 import lightning
-from typing import List
+from typing import Union, Sequence
 
 np.random.seed(10)
 
@@ -28,7 +28,7 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     - ValueError: If the dimensions of the ground truth image do not match the dimensions of the hyperspectral image.
     '''
 
-    if split == 0:
+    if split <= 0:
         hyperspectral_image = hyperspectral_image.reshape(
             hyperspectral_image.shape[1] * hyperspectral_image.shape[2],
             hyperspectral_image.shape[0]
@@ -105,7 +105,7 @@ class ThresholdFinder:
         self.encoder = encoder
         self.rbm = rbm
 
-    def find_threshold(self, thresholds):
+    def find_threshold(self, thresholds: Union[Sequence, np.array]):
         '''
         Finds the best threshold value for binarizing RBM output based on Rand Score.
 
@@ -185,7 +185,7 @@ class LossLoggerCallback(lightning.Callback):
     
 def plot_loss(
         epochs: int, 
-        loss_values: List[float], 
+        loss_values: Sequence[float], 
         plot_title: str, 
         save: bool=True
 ):
