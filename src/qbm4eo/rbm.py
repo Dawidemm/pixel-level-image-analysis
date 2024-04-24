@@ -107,9 +107,10 @@ class RBMTrainer:
 
     def __init__(self, num_steps: int):
         self.num_steps = num_steps
+        self.losses = []
 
     def fit(self, rbm: RBM, data_loader: DataLoader, callback=None):
-        self.losses = []
+        self.losses.clear()
         
         for i, (_idx, (batch, target)) in enumerate(pbar := tqdm.tqdm(islice(
                 infinite_dataloader_generator(data_loader),
