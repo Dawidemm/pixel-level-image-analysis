@@ -24,8 +24,7 @@ def test_multiple_splits(split):
 
     assert np.isclose(split, expected_split, atol=0.01)
 
-def test_class_balance():
-    split = 0.2
+def test_class_balance(split):
     dataset = utils.train_test_split(HYPERSPECTRAL_IMAGE, GROUND_TRUTH_IMAGE, split=split)
     _, _, _, removed_ground_truth = dataset
 
