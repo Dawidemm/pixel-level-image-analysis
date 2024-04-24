@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from sklearn.metrics import rand_score
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import lightning
 from typing import Union, Sequence
 
@@ -187,19 +187,25 @@ def plot_loss(
         epochs: int, 
         loss_values: Sequence[float], 
         plot_title: str, 
-        save: bool=True
+        save: bool=True,
+        format: str='pdf'
 ):
-
-    plt.figure(figsize=(6, 5))
-    plt.plot(list(range(epochs)), loss_values)
-    plt.gcf().set_facecolor('none')
-    plt.gca().set_facecolor('none')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title(plot_title)
-    plt.grid()
-
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=loss_values, mode='lines', name='Loss'))
+    fig.update_layout(
+        title=plot_title,
+        xaxis_title='Epoch',
+        yaxis_title='Loss',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    
     if save:
-        plt.savefig(f'{plot_title.lower()}_learning.pdf', dpi=300)
-
-    plt.show()
+        fig.write_image(
+            f'{plot_title.lower()}_learning.{format}',
+            width=800,
+            height=600,
+            scale=1
+        )
