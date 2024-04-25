@@ -7,11 +7,13 @@ from torch import nn
 class ResBlockDeConvPart(nn.Module):
     def __init__(self, channels, negative_slope=0.02, bias=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.subnet = nn.Sequential(
-            nn.LeakyReLU(negative_slope),
-            nn.ConvTranspose2d(channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
-            nn.BatchNorm2d(channels),
-        )
+
+        subnet = [nn.LeakyReLU(negative_slope),
+                  nn.ConvTranspose1d(channels, channels, kernel_size=3, stride=1, padding=1, bias=bias),
+                  nn.BatchNorm1d(channels)
+        ]
+        
+        self.subnet = nn.Sequential(*subnet)
 
     def forward(self, x):
         return self.subnet(x)
@@ -26,7 +28,7 @@ class ResBlockDeConv(nn.Module):
             in_channels = channels
 
         self.initial_block = nn.Sequential(
-            nn.ConvTranspose2d(
+            nn.ConvTranspose1d(
                 in_channels,
                 channels,
                 kernel_size=4,
@@ -35,7 +37,7 @@ class ResBlockDeConv(nn.Module):
                 output_padding=0,
                 bias=bias,
             ),
-            nn.BatchNorm2d(channels),
+            nn.BatchNorm1d(channels),
         )
 
         self.middle_block = nn.Sequential(
@@ -68,7 +70,7 @@ class LBAEDecoder(nn.Module):
 
         self.input_size = input_size
         self.linear = nn.Linear(zsize, prod(input_size))
-
+  
         layers = []
         for i in range(num_layers):
             layers.append(
@@ -76,19 +78,18 @@ class LBAEDecoder(nn.Module):
             )
 
         layers += [
-            # Again, swapped input/output number of channels
-            nn.ConvTranspose2d(
+            nn.ConvTranspose1d(
                 input_size[0] // 2**num_layers,
                 input_size[0] // 2**num_layers,
-                kernel_size=4,
-                stride=2,
-                bias=bias,
+                kernel_size=3,
+                stride=1,
                 padding=1,
+                bias=bias,
                 output_padding=0,
             ),
-            nn.BatchNorm2d(input_size[0] // 2**num_layers),
+            nn.BatchNorm1d(input_size[0] // 2**num_layers),
             nn.LeakyReLU(negative_slope),
-            nn.ConvTranspose2d(
+            nn.ConvTranspose1d(
                 input_size[0] // 2**num_layers,
                 output_size[0],
                 kernel_size=3,
@@ -106,4 +107,5 @@ class LBAEDecoder(nn.Module):
 
         x = self.net(x)
         x = torch.sigmoid(x)
+
         return x

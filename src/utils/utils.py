@@ -1,11 +1,15 @@
 import numpy as np
 import torch
 from sklearn.metrics import rand_score
+import plotly.graph_objects as go
+import lightning
+from typing import Union, Sequence
+from numpy.typing import ArrayLike
 
 np.random.seed(10)
 
 
-def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array, split=0.2):
+def train_test_split(hyperspectral_image: ArrayLike, ground_truth_image: ArrayLike, split=0.2):
     '''
     Splits the hyperspectral and ground truth images into training and testing datasets.
 
@@ -20,49 +24,56 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
     - hyperspectral_removed_samples (np.array): Array of removed hyperspectral samples for testing.
     - ground_truth_remaining_samples (np.array): Array of remaining ground truth samples for training.
     - ground_truth_removed_samples (np.array): Array of removed ground truth samples for testing.
+
+    Raises:
+    - ValueError: If the dimensions of the ground truth image do not match the dimensions of the hyperspectral image.
     '''
+
+    if split <= 0:
+        hyperspectral_image = hyperspectral_image.reshape(
+            hyperspectral_image.shape[1] * hyperspectral_image.shape[2],
+            hyperspectral_image.shape[0]
+        )
+        
+        ground_truth_image = ground_truth_image.reshape(
+            ground_truth_image.shape[1] * ground_truth_image.shape[2])
+
+        return hyperspectral_image, ground_truth_image
 
     if ground_truth_image.shape[1] != hyperspectral_image.shape[1] or ground_truth_image.shape[2] != hyperspectral_image.shape[2]:
         raise ValueError('Dimension mismatch between ground truth image and hyperspectral image.')  
 
-    total_samples = ground_truth_image.shape[1] * ground_truth_image.shape[2]
-    samples_to_remove = int(split * total_samples)
-
     ground_truth_remaining_samples = []
     ground_truth_removed_samples = []
+    hyperspectral_remaining_samples = []
+    hyperspectral_removed_samples = []
 
     ground_truth_image = ground_truth_image[0]
     ground_truth_image = ground_truth_image.flatten()
-    indices_to_remove = np.random.choice(ground_truth_image.size, size=samples_to_remove, replace=False)
+
+    classes_in_ground_truth_image = np.unique(ground_truth_image)
+ 
+    samples_to_remove_per_class = {class_pixel_value: int(len(np.argwhere(ground_truth_image == class_pixel_value)) * split) for class_pixel_value in classes_in_ground_truth_image}
+
+    indices_to_remove = []
+
+    for class_pixel_value in classes_in_ground_truth_image:
+
+        class_indices = np.argwhere(ground_truth_image == class_pixel_value)
+        count_of_indices_to_remove = samples_to_remove_per_class[class_pixel_value]
+        indices_to_remove_per_class = np.random.choice(
+            class_indices.flatten(),
+            size=count_of_indices_to_remove,
+            replace=False
+        )
+        
+        indices_to_remove.append(indices_to_remove_per_class)
+
+    indices_to_remove = np.concatenate(indices_to_remove)
     remaining_indices = np.setdiff1d(np.arange(ground_truth_image.size), indices_to_remove)
 
-    ground_truth_remaining_data = ground_truth_image[remaining_indices]
-    ground_truth_removed_data = ground_truth_image[indices_to_remove]
-
-    ground_truth_remaining_data = np.pad(ground_truth_remaining_data,
-                            (0, int(np.ceil(np.sqrt(len(ground_truth_remaining_data)))**2 - len(ground_truth_remaining_data))),
-                            mode='constant', 
-                            constant_values=0)
-    
-    ground_truth_removed_data = np.pad(ground_truth_removed_data,
-                          (0, int(np.ceil(np.sqrt(len(ground_truth_removed_data)))**2 - len(ground_truth_removed_data))),
-                          mode='constant',
-                          constant_values=0)
-    
-    ground_truth_remaining_data_shape = int(np.sqrt(len(ground_truth_remaining_data)))
-    ground_truth_remaining_data = ground_truth_remaining_data.reshape(ground_truth_remaining_data_shape, ground_truth_remaining_data_shape)
-
-    ground_truth_removed_data_shape = int(np.sqrt(len(ground_truth_removed_data)))
-    ground_truth_removed_data = ground_truth_removed_data.reshape(ground_truth_removed_data_shape, ground_truth_removed_data_shape)
-
-    ground_truth_remaining_samples.append(ground_truth_remaining_data)
-    ground_truth_removed_samples.append(ground_truth_removed_data)
-
-    ground_truth_remaining_samples = np.array(ground_truth_remaining_samples)
-    ground_truth_removed_samples = np.array(ground_truth_removed_samples)
-
-    hyperspectral_remaining_samples = []
-    hyperspectral_removed_samples = []
+    ground_truth_remaining_samples = ground_truth_image[remaining_indices].T
+    ground_truth_removed_samples = ground_truth_image[indices_to_remove].T
 
     bands = hyperspectral_image.shape[0]
 
@@ -76,27 +87,11 @@ def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array
         hyperspectral_remaining_data = hyperspectral_data[remaining_indices]
         hyperspectral_removed_data = hyperspectral_data[indices_to_remove]
 
-        hyperspectral_remaining_data = np.pad(hyperspectral_remaining_data,
-                                              (0, int(np.ceil(np.sqrt(len(hyperspectral_remaining_data)))**2 - len(hyperspectral_remaining_data))), 
-                                              mode='constant',
-                                              constant_values=0)
-        
-        hyperspectral_removed_data = np.pad(hyperspectral_removed_data,
-                                            (0, int(np.ceil(np.sqrt(len(hyperspectral_removed_data)))**2 - len(hyperspectral_removed_data))),
-                                            mode='constant',
-                                            constant_values=0)
-        
-        hyperspectral_remaining_data_shape = int(np.sqrt(len(hyperspectral_remaining_data)))
-        hyperspectral_remaining_data = hyperspectral_remaining_data.reshape(hyperspectral_remaining_data_shape, hyperspectral_remaining_data_shape)
-
-        hyperspectral_removed_data_shape = int(np.sqrt(len(hyperspectral_removed_data)))
-        hyperspectral_removed_data = hyperspectral_removed_data.reshape(hyperspectral_removed_data_shape, hyperspectral_removed_data_shape)
-
         hyperspectral_remaining_samples.append(hyperspectral_remaining_data)
         hyperspectral_removed_samples.append(hyperspectral_removed_data)
 
-    hyperspectral_remaining_samples = np.array(hyperspectral_remaining_samples)
-    hyperspectral_removed_samples = np.array(hyperspectral_removed_samples)
+    hyperspectral_remaining_samples = np.array(hyperspectral_remaining_samples).T
+    hyperspectral_removed_samples = np.array(hyperspectral_removed_samples).T
 
     dataset = (hyperspectral_remaining_samples, 
               hyperspectral_removed_samples, 
@@ -111,7 +106,7 @@ class ThresholdFinder:
         self.encoder = encoder
         self.rbm = rbm
 
-    def find_threshold(self, thresholds):
+    def find_threshold(self, thresholds: Union[Sequence, ArrayLike]):
         '''
         Finds the best threshold value for binarizing RBM output based on Rand Score.
 
@@ -179,3 +174,39 @@ class ThresholdFinder:
         indices = [target_list.index(value) for value in values_to_map]
 
         return indices
+    
+class LossLoggerCallback(lightning.Callback):
+    def __init__(self):
+        super().__init__()
+        self.losses = []
+
+    def on_train_epoch_end(self, trainer: lightning.Trainer, pl_module: lightning.LightningModule) -> None:
+        loss = trainer.logged_metrics['loss']
+        self.losses.append(loss)
+    
+def plot_loss(
+        epochs: int, 
+        loss_values: Sequence[float], 
+        plot_title: str, 
+        save: bool=True,
+        format: str='svg'
+):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=loss_values, mode='lines', name='Loss'))
+    fig.update_layout(
+        title=plot_title,
+        xaxis_title='Epoch',
+        yaxis_title='Loss',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+    
+    if save:
+        fig.write_image(
+            f'{plot_title.lower()}_learning.{format}',
+            width=800,
+            height=600,
+            scale=1
+        )
