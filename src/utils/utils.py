@@ -4,11 +4,12 @@ from sklearn.metrics import rand_score
 import plotly.graph_objects as go
 import lightning
 from typing import Union, Sequence
+from numpy.typing import ArrayLike
 
 np.random.seed(10)
 
 
-def train_test_split(hyperspectral_image: np.array, ground_truth_image: np.array, split=0.2):
+def train_test_split(hyperspectral_image: ArrayLike, ground_truth_image: ArrayLike, split=0.2):
     '''
     Splits the hyperspectral and ground truth images into training and testing datasets.
 
@@ -105,7 +106,7 @@ class ThresholdFinder:
         self.encoder = encoder
         self.rbm = rbm
 
-    def find_threshold(self, thresholds: Union[Sequence, np.array]):
+    def find_threshold(self, thresholds: Union[Sequence, ArrayLike]):
         '''
         Finds the best threshold value for binarizing RBM output based on Rand Score.
 
@@ -188,7 +189,7 @@ def plot_loss(
         loss_values: Sequence[float], 
         plot_title: str, 
         save: bool=True,
-        format: str='pdf'
+        format: str='svg'
 ):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=list(range(epochs)), y=loss_values, mode='lines', name='Loss'))
