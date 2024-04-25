@@ -4,6 +4,7 @@ import numpy as np
 import tifffile
 from enum import IntEnum, Enum
 from typing import Union, Tuple, Sequence
+from numpy.typing import ArrayLike
 from src.utils import utils
 
 class ImagePartitions(IntEnum):
@@ -22,8 +23,8 @@ class Stage(Enum):
 class HyperspectralDataset(Dataset):
     def __init__(
             self, 
-            hyperspectral_data: Union[str, np.array], 
-            ground_truth_data: Union[str, np.array],
+            hyperspectral_data: Union[str, ArrayLike], 
+            ground_truth_data: Union[str, ArrayLike],
             stage: Stage,
             split: float=0.2
     ):
