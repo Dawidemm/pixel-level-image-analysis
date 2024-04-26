@@ -7,5 +7,4 @@ dataset/
 *.egg-info
 .pytest_cache
 classifier.py
-image_segmentation.py
 mnist/
