@@ -87,7 +87,7 @@ class RBM:
     def save(self, file):
         np.savez(file, v_bias=self.v_bias, h_bias=self.h_bias, weights=self.weights)
 
-    def binarize_rbm_output(self, v_batch, threshold):
+    def binarized_rbm_output(self, v_batch, threshold):
         h_probabilities_given_v = self.h_probabilities_given_v(v_batch)
         binarized_probabilities = np.where(h_probabilities_given_v <= threshold, 0, 1)
         return binarized_probabilities

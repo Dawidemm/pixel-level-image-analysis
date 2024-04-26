@@ -133,7 +133,7 @@ class ThresholdFinder:
 
                 rbm_input = encoder_output.detach().numpy()
 
-                label = self.rbm.binarize_rbm_output(rbm_input, threshold)
+                label = self.rbm.binarized_rbm_output(rbm_input, threshold)
 
                 unique_label = tuple(map(tuple, label))
                 unique_labels.add(unique_label)
