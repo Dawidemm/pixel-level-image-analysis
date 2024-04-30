@@ -26,7 +26,8 @@ class HyperspectralDataset(Dataset):
             hyperspectral_data: Union[str, ArrayLike], 
             ground_truth_data: Union[str, ArrayLike],
             stage: Stage,
-            split: float=0.2
+            split: float=0.2,
+            class_filter=False
     ):
         if isinstance(hyperspectral_data, str):
             hyperspectral_image = tifffile.imread(hyperspectral_data)
@@ -65,6 +66,13 @@ class HyperspectralDataset(Dataset):
 
             hyperspectral_image = dataset[ImagePartitions.SEG_IMG]
             ground_truth_image= dataset[ImagePartitions.SEG_LABEL]
+
+        if class_filter:
+            hyperspectral_image, ground_truth_image = utils.classes_filter(
+                hyperspectral_vector=hyperspectral_image,
+                ground_truth_vector=ground_truth_image,
+                classes_to_remove=class_filter
+            )
         
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
