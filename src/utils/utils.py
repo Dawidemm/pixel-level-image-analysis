@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from sklearn.metrics import rand_score
+from sklearn.metrics import rand_score, adjusted_rand_score
 import plotly.graph_objects as go
 import lightning
 from typing import Union, Sequence
@@ -9,7 +9,11 @@ from numpy.typing import ArrayLike
 np.random.seed(10)
 
 
-def train_test_split(hyperspectral_image: ArrayLike, ground_truth_image: ArrayLike, split=0.2):
+def train_test_split(
+    hyperspectral_image: ArrayLike, 
+    ground_truth_image: ArrayLike, 
+    split=0.2
+):
     '''
     Splits the hyperspectral and ground truth images into training and testing datasets.
 
@@ -100,6 +104,33 @@ def train_test_split(hyperspectral_image: ArrayLike, ground_truth_image: ArrayLi
 
     return dataset
 
+
+def classes_filter(
+        hyperspectral_vector: ArrayLike, 
+        ground_truth_vector: ArrayLike, 
+        classes_to_remove: list
+):
+    '''
+    Filters a hyperspectral vector and ground truth vector based on list of class values to remove.
+    
+    Args:
+        image (np.array): Hyperspectral vector.
+        ground_truth (np.array): Ground truth vector.
+        values_to_keep (list): List of values to remove.
+    
+    Returns:
+        np.array: Filtered hyperspectral image vector.
+        np.array: Filtered ground truth vector.
+    '''
+
+    indices_to_remove = np.where(np.isin(ground_truth_vector, classes_to_remove))[0]
+
+    filtered_image = np.delete(hyperspectral_vector, indices_to_remove, axis=0)
+    filtered_gt = np.delete(ground_truth_vector, indices_to_remove, axis=0)
+    
+    return filtered_image, filtered_gt
+
+
 class ThresholdFinder:
     def __init__(self, test_dataloader, encoder, rbm):
         self.test_dataloader = test_dataloader
@@ -120,6 +151,7 @@ class ThresholdFinder:
 
         self.best_threshold = None
         self.best_rand_score = float('-inf')
+        self.adjusted_rand_score = float('-inf')
 
         for threshold in thresholds:
 
@@ -151,12 +183,16 @@ class ThresholdFinder:
             mapped_labels = np.array(mapped_labels)
 
             rand_score_value = rand_score(y_true, mapped_labels)
+            adj_rand_score_value = adjusted_rand_score(y_true, mapped_labels)
+            print(f'th: {threshold}, ri: {rand_score_value}, ari: {adj_rand_score_value}')
 
-            if rand_score_value > self.best_rand_score:
-                self.best_threshold = threshold
-                self.best_rand_score = rand_score_value
+            # if rand_score_value > self.best_rand_score:
+            #     self.best_threshold = threshold
+            #     self.best_rand_score = rand_score_value
+            #     self.adjusted_rand_score = adj_rand_score_value
 
-        return self.best_threshold, self.best_rand_score
+        # return self.best_threshold, self.best_rand_score, self.adjusted_rand_score
+        return 0, 0, 0
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
