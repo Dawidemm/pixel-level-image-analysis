@@ -12,12 +12,12 @@ torch.set_float32_matmul_precision('medium')
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 68
-NUM_HIDDEN = 34
+NUM_VISIBLE = 55
+NUM_HIDDEN = 5
 
 MAX_EPOCHS = 25
 RBM_STEPS = 1000
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
