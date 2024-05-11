@@ -47,8 +47,8 @@ def main():
     except FileNotFoundError as e:
         print(f'FileNotFoundError: {e}')
         print("Please make sure to:\n"
-              "\t1.Provide paths to the hyperspectral image and ground truth image files. \n"
-              "\t2.Run the training pipeline before starting the evaluation. \n"
+              "\t1. Provide paths to the hyperspectral image and ground truth image files.\n"
+              "\t2. Run the training pipeline before starting the evaluation.\n"
               "The application will terminate now. ")
         return
 
