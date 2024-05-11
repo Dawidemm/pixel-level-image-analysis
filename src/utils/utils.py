@@ -146,8 +146,8 @@ class ThresholdFinder:
         - thresholds (list): A list of threshold values to be evaluated.
 
         Returns:
-        Tuple (best_threshold, best_rand_score): A tuple containing the best threshold
-        value and its corresponding Rand Score achieved.
+        Tuple (best_threshold, best_rand_score, self.best_adjusted_rand_score): A tuple containing the best threshold
+        value and its corresponding Rand Score and Adjusted Rand Score achieved.
         '''
 
         self.best_threshold = None
