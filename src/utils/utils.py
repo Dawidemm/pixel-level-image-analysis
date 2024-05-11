@@ -3,6 +3,7 @@ import torch
 from sklearn.metrics import rand_score, adjusted_rand_score
 import plotly.graph_objects as go
 import lightning
+from itertools import combinations
 from typing import Union, Sequence
 from numpy.typing import ArrayLike
 
@@ -151,7 +152,7 @@ class ThresholdFinder:
 
         self.best_threshold = None
         self.best_rand_score = float('-inf')
-        self.adjusted_rand_score = float('-inf')
+        self.best_adjusted_rand_score = float('-inf')
 
         for threshold in thresholds:
 
@@ -184,15 +185,13 @@ class ThresholdFinder:
 
             rand_score_value = rand_score(y_true, mapped_labels)
             adj_rand_score_value = adjusted_rand_score(y_true, mapped_labels)
-            print(f'th: {threshold}, ri: {rand_score_value}, ari: {adj_rand_score_value}')
 
-            # if rand_score_value > self.best_rand_score:
-            #     self.best_threshold = threshold
-            #     self.best_rand_score = rand_score_value
-            #     self.adjusted_rand_score = adj_rand_score_value
+            if adj_rand_score_value > self.best_adjusted_rand_score:
+                self.best_threshold = threshold
+                self.best_rand_score = rand_score_value
+                self.best_adjusted_rand_score = adj_rand_score_value
 
-        # return self.best_threshold, self.best_rand_score, self.adjusted_rand_score
-        return 0, 0, 0
+        return self.best_threshold, self.best_rand_score, self.adjusted_rand_score
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
@@ -210,6 +209,31 @@ class ThresholdFinder:
         indices = [target_list.index(value) for value in values_to_map]
 
         return indices
+    
+def distance_matrix(rbm_labels):
+    n = len(rbm_labels)
+    unique_labels = np.unique(rbm_labels, axis=0) 
+    num_unique = len(unique_labels)
+    distance_dict = {}
+
+    for i, j in combinations(range(num_unique), 2):
+        distance = np.linalg.norm(unique_labels[i] - unique_labels[j])
+        distance_dict[(i, j)] = distance
+        distance_dict[(j, i)] = distance
+
+    print(distance_dict)
+
+    distance_matrix = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            label_i = np.where((unique_labels == rbm_labels[i]).all(axis=1))[0][0]
+            label_j = np.where((unique_labels == rbm_labels[j]).all(axis=1))[0][0]
+            if (label_i, label_j) in distance_dict:
+                distance_matrix[i, j] = distance_dict[(label_i, label_j)]
+                distance_matrix[j, i] = distance_dict[(label_i, label_j)]
+
+    return distance_matrix
     
 class LossLoggerCallback(lightning.Callback):
     def __init__(self):
