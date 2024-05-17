@@ -3,8 +3,10 @@ import torch
 from sklearn.metrics import rand_score, adjusted_rand_score
 import plotly.graph_objects as go
 import lightning
+from sklearn.datasets import make_blobs
+
 from itertools import combinations
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple
 from numpy.typing import ArrayLike
 
 np.random.seed(10)
@@ -270,3 +272,39 @@ def plot_loss(
             height=600,
             scale=1
         )
+
+def generate_synthetic_data(
+        pixels: int,
+        features: int,
+        classes: int,
+        image_width: int,
+        image_height: int
+) -> Tuple[ArrayLike, ArrayLike]:
+
+    '''
+    Generates synthetic image data using Gaussian blobs for clustering.
+
+    Args:
+    - pixels (int): The number of data points (pixels) to generate.
+    - features (int): The number of features for each data point.
+    - classes (int): The number of distinct classes (or clusters) to generate.
+    - image_width (int): The width of the synthetic image.
+    - image_height (int): The height of the synthetic image.
+
+    Returns:
+    Tuple (synthetic_data, synthetic_labels): A tuple containing the generated synthetic data and their labels.
+    - synthetic_image (ArrayLike): The generated synthetic data reshaped into (features, image_width, image_height).
+    - synthetic_labels (ArrayLike): The labels for the synthetic data reshaped into (1, image_width, image_height).
+    '''
+
+    blobs = make_blobs(
+        n_samples=pixels,
+        n_features=features,
+        centers=classes,
+        random_state=100
+    )
+
+    synthetic_image = blobs[0].reshape((features, image_width, image_height))
+    synthetic_labels = blobs[1].reshape((1, image_width, image_height))
+
+    return synthetic_image, synthetic_labels
