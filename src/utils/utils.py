@@ -273,38 +273,72 @@ def plot_loss(
             scale=1
         )
 
-def generate_synthetic_data(
-        pixels: int,
-        features: int,
-        classes: int,
-        image_width: int,
-        image_height: int
-) -> Tuple[ArrayLike, ArrayLike]:
+class SyntheticDataGenerator():
+    def __init__(
+            self,
+            n_pixels: int,
+            n_features: int,
+            n_classes: int,
+            image_width: int,
+            image_height: int,
+    ):
+        '''
+        Generator for synthetic image data.
 
-    '''
-    Generates synthetic image data using Gaussian blobs for clustering.
+        Attributes:
+        - n_pixels (int): Number of pixels.
+        - n_features (int): Number of features.
+        - n_classes (int): Number of classes.
+        - image_width (int): Width of the image.
+        - image_height (int): Height of the image.
 
-    Args:
-    - pixels (int): The number of data points (pixels) to generate.
-    - features (int): The number of features for each data point.
-    - classes (int): The number of distinct classes (or clusters) to generate.
-    - image_width (int): The width of the synthetic image.
-    - image_height (int): The height of the synthetic image.
+        Methods:
+        - generate_synthetic_data(quantize=False) -> Tuple[ArrayLike, ArrayLike]:
+            Generates synthetic image data and corresponding labels.
+        - should_quantize(x: ArrayLike) -> ArrayLike:
+            Quantizes the input data by changing all values to -1 or 1.
+        '''
 
-    Returns:
-    Tuple (synthetic_data, synthetic_labels): A tuple containing the generated synthetic data and their labels.
-    - synthetic_image (ArrayLike): The generated synthetic data reshaped into (features, image_width, image_height).
-    - synthetic_labels (ArrayLike): The labels for the synthetic data reshaped into (1, image_width, image_height).
-    '''
+        self.n_pixels = n_pixels
+        self.n_features = n_features
+        self.n_classes = n_classes
+        self.image_width = image_width
+        self.image_height = image_height
 
-    blobs = make_blobs(
-        n_samples=pixels,
-        n_features=features,
-        centers=classes,
-        random_state=100
-    )
+    def generate_synthetic_data(
+            self,
+            quantize: bool=False
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        
+        '''
+        Generates synthetic image data.
 
-    synthetic_image = blobs[0].reshape((features, image_width, image_height))
-    synthetic_labels = blobs[1].reshape((1, image_width, image_height))
+        Parameters:
+        - quantize (bool): Whether to quantize the data. Default is False.
 
-    return synthetic_image, synthetic_labels
+        Returns:
+        Tuple[ArrayLike, ArrayLike]: A tuple containing the synthetic image and corresponding labels.
+        - synthetic_image (ArrayLike): The generated synthetic data reshaped into (features, image_width, image_height).
+        - synthetic_labels (ArrayLike): The labels for the synthetic data reshaped into (1, image_width, image_height).
+        '''
+            
+        blobs = make_blobs(
+            n_samples=self.n_pixels,
+            n_features=self.n_features,
+            centers=self.n_classes,
+            random_state=100
+        )
+
+        synthetic_image = blobs[0].reshape((self.n_features, self.image_width, self.image_height))
+        synthetic_labels = blobs[1].reshape((1, self.image_width, self.image_height))
+
+        if quantize == True:
+            synthetic_image = self.should_quantize(synthetic_image)
+
+        return synthetic_image, synthetic_labels
+    
+    @staticmethod
+    def should_quantize(x: ArrayLike) -> ArrayLike:
+        x = np.sign(x)
+        x[x == 0] = 1
+        return x
