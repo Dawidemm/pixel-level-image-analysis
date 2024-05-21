@@ -164,7 +164,7 @@ class ThresholdFinder:
 
             for _, (X, y) in enumerate(self.test_dataloader):
 
-                encoder_output, _ = self.encoder.forward(X)
+                encoder_output, _ = self.encoder.forward(X, epoch=1)
 
                 rbm_input = encoder_output.detach().numpy()
 
@@ -193,7 +193,7 @@ class ThresholdFinder:
                 self.best_rand_score = rand_score_value
                 self.best_adjusted_rand_score = adj_rand_score_value
 
-        return self.best_threshold, self.best_rand_score, self.adjusted_rand_score
+        return self.best_threshold, self.best_rand_score, self.best_adjusted_rand_score
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
