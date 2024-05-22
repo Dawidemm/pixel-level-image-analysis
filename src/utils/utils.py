@@ -212,18 +212,26 @@ class ThresholdFinder:
 
         return indices
     
-def distance_matrix(rbm_labels):
+def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
+    dot_product = np.dot(vector_a, vector_b)
+    norm_a = np.linalg.norm(vector_a)
+    norm_b = np.linalg.norm(vector_b)
+
+    cos_theta = dot_product/(norm_a * norm_b)
+    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+
+    return angle
+    
+def spectral_angle_distance_matrix(rbm_labels):
     n = len(rbm_labels)
     unique_labels = np.unique(rbm_labels, axis=0) 
     num_unique = len(unique_labels)
     distance_dict = {}
 
     for i, j in combinations(range(num_unique), 2):
-        distance = np.linalg.norm(unique_labels[i] - unique_labels[j])
+        distance = spectral_angle(unique_labels[i], unique_labels[j])
         distance_dict[(i, j)] = distance
         distance_dict[(j, i)] = distance
-
-    print(distance_dict)
 
     distance_matrix = np.zeros((n, n))
 
