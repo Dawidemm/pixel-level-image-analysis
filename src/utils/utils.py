@@ -135,10 +135,15 @@ def classes_filter(
 
 
 class ThresholdFinder:
-    def __init__(self, test_dataloader, encoder, rbm):
+    def __init__(
+            self,
+            test_dataloader,
+            rbm,
+            encoder=None
+    ):
         self.test_dataloader = test_dataloader
-        self.encoder = encoder
         self.rbm = rbm
+        self.encoder = encoder
 
     def find_threshold(self, thresholds: Union[Sequence, ArrayLike]):
         '''
@@ -162,11 +167,13 @@ class ThresholdFinder:
             labels = []
             y_true = []
 
-            for _, (X, y) in enumerate(self.test_dataloader):
+            for X, y in self.test_dataloader:
 
-                encoder_output, _ = self.encoder.forward(X, epoch=1)
-
-                rbm_input = encoder_output.detach().numpy()
+                if self.encoder is None:
+                    rbm_input = X.detach().numpy()
+                else:
+                    encoder_output, _ = self.encoder.forward(X, epoch=1)
+                    rbm_input = encoder_output.detach().numpy()
 
                 label = self.rbm.binarized_rbm_output(rbm_input, threshold)
 
@@ -216,6 +223,9 @@ def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
     dot_product = np.dot(vector_a, vector_b)
     norm_a = np.linalg.norm(vector_a)
     norm_b = np.linalg.norm(vector_b)
+
+    if norm_a == 0 or norm_b == 0:
+        return 90.0
 
     cos_theta = dot_product/(norm_a * norm_b)
     angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
@@ -341,6 +351,9 @@ class SyntheticDataGenerator():
         synthetic_labels = blobs[1].reshape((1, self.image_width, self.image_height))
 
         if quantize == True:
+            for band in range(len(synthetic_image[0])):
+                synthetic_image[band] = synthetic_image[band]/synthetic_image[band].max()
+
             synthetic_image = self.should_quantize(synthetic_image)
 
         return synthetic_image, synthetic_labels
