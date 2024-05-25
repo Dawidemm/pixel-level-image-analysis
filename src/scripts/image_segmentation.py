@@ -8,7 +8,7 @@ from src.qbm4eo.rbm import RBM
 
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import completeness_score, homogeneity_score
-from src.utils.utils import distance_matrix
+from src.utils.utils import spectral_angle_distance_matrix
 
 np.random.seed(10)
 torch.manual_seed(0)
@@ -80,7 +80,7 @@ def main():
     y_true = np.concatenate(y_true)
     pixels = np.concatenate(pixels)
 
-    dist_matrix = distance_matrix(img_seg)
+    dist_matrix = spectral_angle_distance_matrix(pixels)
 
     ahc = AgglomerativeClustering(n_clusters=17, metric='precomputed', linkage='average')
     ahc.fit(dist_matrix)
