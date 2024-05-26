@@ -10,7 +10,7 @@ from src.qbm4eo.pipeline import Pipeline
 
 
 NUM_VISIBLE = 55
-NUM_HIDDEN = 5
+NUM_HIDDEN = 17
 
 BATCH_SIZE = 16
 MAX_EPOCHS = 25

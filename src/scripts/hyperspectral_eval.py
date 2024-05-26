@@ -13,7 +13,7 @@ np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 55
-NUM_HIDDEN = 5
+NUM_HIDDEN = 17
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
 

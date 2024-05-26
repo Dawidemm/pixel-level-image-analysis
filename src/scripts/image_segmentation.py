@@ -14,7 +14,7 @@ np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 55
-NUM_HIDDEN = 5
+NUM_HIDDEN = 17
 
 THRESHOLD = 0.6
 

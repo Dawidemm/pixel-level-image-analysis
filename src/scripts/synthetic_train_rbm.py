@@ -5,7 +5,7 @@ from src.qbm4eo.rbm import RBM, CD1Trainer
 from src.utils import utils
 
 NUM_VISIBLE = 220
-NUM_HIDDEN = 5
+NUM_HIDDEN = 17
 
 RBM_STEPS = 1000
 RBM_LEARNING_RATE = 0.001
