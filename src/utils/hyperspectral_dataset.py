@@ -85,5 +85,11 @@ class HyperspectralDataset(Dataset):
         pixel_values = self.hyperspectral_image[index]
         pixel_values = pixel_values.reshape(1, len(pixel_values))
         label = self.ground_truth_image.clone().detach()[index]
+        label = self.onehot_encoding(int(label))
         
         return pixel_values, label
+    
+    def onehot_encoding(self, label: torch.TensorType) -> Sequence[int]:
+        onehot_label = torch.zeros(len(torch.unique(self.ground_truth_image)))
+        onehot_label[label] = 1.0
+        return onehot_label
