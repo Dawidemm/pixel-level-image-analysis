@@ -11,6 +11,9 @@ RBM_STEPS = 1000
 RBM_LEARNING_RATE = 0.001
 
 SYNTH_IMG_SHAPE = 145
+N_FEATURES = 220
+N_CLASSES = 17
+
 BATCH_SIZE = 16
 
 def generator_dataloader(data_loader):
@@ -22,8 +25,8 @@ def main():
 
     synthetic_data = utils.SyntheticDataGenerator(
         n_pixels=int(SYNTH_IMG_SHAPE*SYNTH_IMG_SHAPE),
-        n_features=220,
-        n_classes=17,
+        n_features=N_FEATURES,
+        n_classes=N_CLASSES,
         image_width=SYNTH_IMG_SHAPE,
         image_height=SYNTH_IMG_SHAPE
     )   
@@ -47,16 +50,13 @@ def main():
     print('RBM training with CD1Trainer.')
     rbm_trainer = CD1Trainer(RBM_STEPS, RBM_LEARNING_RATE)
     rbm_trainer.fit(rbm, generator_dataloader(synthetic_train_dataloader))
-    rbm.save('rbm.npz')
+    rbm.save('synthetic_rbm.npz')
 
     utils.plot_loss(
         epochs=rbm_trainer.num_steps, 
         loss_values=rbm_trainer.losses, 
-        plot_title='RBM'
+        plot_title='synthetic_rbm'
     )
-
-    rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
-    rbm.load(file='rbm.npz')
 
 
 if __name__ == '__main__':

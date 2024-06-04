@@ -17,14 +17,16 @@ MAX_EPOCHS = 25
 RBM_STEPS = 1000
 RBM_LEARNING_RATE = 0.001
 
-SYNTH_IMG_SHAPE = 64
+SYNTH_IMG_SHAPE = 145
+N_FEATURES = 220
+N_CLASSES = 17
 
 def main():
 
     synthetic_data = utils.SyntheticDataGenerator(
         n_pixels=int(SYNTH_IMG_SHAPE*SYNTH_IMG_SHAPE),
-        n_features=220,
-        n_classes=17,
+        n_features=N_FEATURES,
+        n_classes=N_CLASSES,
         image_width=SYNTH_IMG_SHAPE,
         image_height=SYNTH_IMG_SHAPE
     )
@@ -45,7 +47,7 @@ def main():
     )
 
     autoencoder = LBAE(
-        input_size=(1, 220),
+        input_size=(1, N_FEATURES),
         out_channels=8, 
         latent_size=NUM_VISIBLE,
         num_layers=2,
