@@ -47,22 +47,24 @@ class HyperspectralDataset(Dataset):
 
         hyperspectral_image /= hyperspectral_image.max()
 
-        if stage == Stage.IMG_SEG:
+        self.stage = stage
+
+        if self.stage == Stage.IMG_SEG:
             split = 0
 
         dataset = utils.train_test_split(hyperspectral_image, ground_truth_image, split=split)
 
-        if stage == Stage.TRAIN:
+        if self.stage == Stage.TRAIN:
 
             hyperspectral_image = dataset[ImagePartitions.TRAIN_IMAGE]
             ground_truth_image = dataset[ImagePartitions.TRAIN_LABEL]
 
-        elif stage == Stage.TEST:
+        elif self.stage == Stage.TEST:
 
             hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
             ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
 
-        elif stage == Stage.IMG_SEG:
+        elif self.stage == Stage.IMG_SEG:
 
             hyperspectral_image = dataset[ImagePartitions.SEG_IMG]
             ground_truth_image= dataset[ImagePartitions.SEG_LABEL]
@@ -85,7 +87,9 @@ class HyperspectralDataset(Dataset):
         pixel_values = self.hyperspectral_image[index]
         pixel_values = pixel_values.reshape(1, len(pixel_values))
         label = self.ground_truth_image.clone().detach()[index]
-        label = self.onehot_encoding(int(label))
+
+        if self.stage == Stage.TRAIN:
+            label = self.onehot_encoding(int(label.item()))
         
         return pixel_values, label
     
