@@ -231,24 +231,12 @@ def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
     
 def spectral_angle_distance_matrix(objects):
     n = len(objects)
-    unique_labels = np.unique(objects, axis=0) 
-    num_unique = len(unique_labels)
-    distance_dict = {}
-
-    for i, j in combinations(range(num_unique), 2):
-        distance = spectral_angle(unique_labels[i], unique_labels[j])
-        distance_dict[(i, j)] = distance
-        distance_dict[(j, i)] = distance
-
     distance_matrix = np.zeros((n, n))
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            label_i = np.where((unique_labels == objects[i]).all(axis=1))[0][0]
-            label_j = np.where((unique_labels == objects[j]).all(axis=1))[0][0]
-            if (label_i, label_j) in distance_dict:
-                distance_matrix[i, j] = distance_dict[(label_i, label_j)]
-                distance_matrix[j, i] = distance_dict[(label_i, label_j)]
+    for i, j in combinations(range(n), 2):
+        distance = spectral_angle(objects[i], objects[j])
+        distance_matrix[i, j] = distance
+        distance_matrix[j, i] = distance
 
     return distance_matrix
     
