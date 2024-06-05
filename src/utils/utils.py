@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from sklearn.metrics import rand_score, adjusted_rand_score
+from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score
 import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
@@ -158,8 +158,7 @@ class ThresholdFinder:
         '''
 
         self.best_threshold = None
-        self.best_rand_score = float('-inf')
-        self.best_adjusted_rand_score = float('-inf')
+        self.adjusted_rand_score = float('-inf')
 
         for threshold in thresholds:
 
@@ -192,15 +191,16 @@ class ThresholdFinder:
             mapped_labels = self.map_to_indices(labels, unique_labels)
             mapped_labels = np.array(mapped_labels)
 
-            rand_score_value = rand_score(y_true, mapped_labels)
             adj_rand_score_value = adjusted_rand_score(y_true, mapped_labels)
 
-            if adj_rand_score_value > self.best_adjusted_rand_score:
+            if adj_rand_score_value > self.adjusted_rand_score:
                 self.best_threshold = threshold
-                self.best_rand_score = rand_score_value
-                self.best_adjusted_rand_score = adj_rand_score_value
+                self.adjusted_rand_score = adj_rand_score_value
+                self.rand_score = rand_score(y_true, mapped_labels)
+                self.homogenity = homogeneity_score(y_true, mapped_labels)
+                self.completeness = completeness_score(y_true, mapped_labels)
 
-        return self.best_threshold, self.best_rand_score, self.best_adjusted_rand_score
+        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
