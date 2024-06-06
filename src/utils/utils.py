@@ -169,7 +169,7 @@ class ThresholdFinder:
             for X, y in self.test_dataloader:
 
                 if self.encoder is None:
-                    rbm_input = X.detach().numpy()
+                    rbm_input = X.detach().numpy()[0]
                 else:
                     encoder_output, _ = self.encoder.forward(X, epoch=1)
                     rbm_input = encoder_output.detach().numpy()
