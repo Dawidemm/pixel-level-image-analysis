@@ -33,8 +33,7 @@ class BloodDataset(Dataset):
 
         if len(float_files) == len(hdr_files):
             number_of_images = len(float_files)
-            # number_of_images = 1
-
+            
         for i in range(number_of_images):
 
             img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
