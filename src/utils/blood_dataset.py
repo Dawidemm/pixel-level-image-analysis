@@ -5,6 +5,7 @@ import spectral.io.envi as envi
 from torch.utils.data import Dataset
 from typing import Tuple, Sequence
 
+
 def blood_pixel_generator(
         hyperspectral_data_path: str,
         ground_truth_data_path: str,
@@ -36,19 +37,19 @@ def blood_pixel_generator(
 
     for i in range(number_of_images):
 
-            img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
-            img = np.asarray(img[:,:,:], dtype=np.float32)
+        img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
+        img = np.asarray(img[:,:,:], dtype=np.float32)
 
-            gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
-            gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
-            gt[gt > 7] = 0
+        gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
+        gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
+        gt[gt > 7] = 0
 
-            if img.shape[:2] == gt.shape:
-                rows, cols, bands = img.shape
+        if img.shape[:2] == gt.shape:
+            rows, cols, bands = img.shape
 
-            for row in range(rows):
-                for col in range(cols):
-                    yield torch.tensor(img[row, col]), torch.tensor(gt[row, col])
+        for row in range(rows):
+            for col in range(cols):
+                yield torch.tensor(img[row, col]), torch.tensor(gt[row, col])
 
 def blood_dataset_params(
         hyperspectral_data_path: str,
@@ -84,21 +85,21 @@ def blood_dataset_params(
 
     for i in range(number_of_images):
 
-            img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
-            img = np.asarray(img[:,:,:], dtype=np.float32)
-            rows, cols, bands = img.shape
+        img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
+        img = np.asarray(img[:,:,:], dtype=np.float32)
+        rows, cols, bands = img.shape
 
-            if img.max() >= pixel_max_value:
-                pixel_max_value = img.max()
+        if img.max() >= pixel_max_value:
+            pixel_max_value = img.max()
 
-            dataset_length += rows * cols
+        dataset_length += rows * cols
 
-            gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
-            gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
-            gt[gt > 7] = 0
+        gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
+        gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
+        gt[gt > 7] = 0
 
-            if len(np.unique(gt)) >= classes:
-                classes = len(np.unique(gt))
+        if len(np.unique(gt)) >= classes:
+            classes = len(np.unique(gt))
 
     return pixel_max_value, dataset_length, classes    
 
