@@ -13,7 +13,7 @@ np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 32
-NUM_HIDDEN = 17
+NUM_HIDDEN = 8
 
 MAX_EPOCHS = 25
 RBM_STEPS = 1000
