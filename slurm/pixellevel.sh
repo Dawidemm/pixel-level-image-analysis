@@ -3,7 +3,7 @@
 #SBATCH -A plgrbm4heo-cpu
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem-per-cpu=1GB
+#SBATCH --mem-per-cpu=5GB
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=END
 #SBATCH --error="error.txt"
@@ -11,6 +11,4 @@
 
 source ~/.conda/envs/pixellevel/bin/activate
 
-echo "Starting the training script..."
 srun python ~/pixel-level-image-analysis/src/scripts/hyperspectral_blood_train_pipeline.py
-echo "Script finished with exit code $?"
