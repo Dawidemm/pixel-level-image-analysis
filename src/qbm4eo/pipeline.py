@@ -43,12 +43,6 @@ class Pipeline:
         skip_autoencoder = skip_autoencoder or self.auto_encoder is None
         skip_rbm = skip_rbm or self.rbm is None
 
-        early_stopping = EarlyStopping(
-            monitor='loss',
-            mode='min',
-            patience=3
-        )
-
         loss_logs = utils.LossLoggerCallback()
 
         trainer = pl.Trainer(
@@ -57,7 +51,7 @@ class Pipeline:
             max_epochs=max_epochs,
             logger=True,
             enable_checkpointing=enable_checkpointing,
-            callbacks=[early_stopping, loss_logs]
+            callbacks=[loss_logs]
         )
 
         if skip_autoencoder:
