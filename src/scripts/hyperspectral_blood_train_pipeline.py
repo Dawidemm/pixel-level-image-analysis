@@ -39,9 +39,7 @@ def main():
     train_dataloader = DataLoader(
         dataset=train_dataset,
         batch_size=BATCH_SIZE, 
-        shuffle=True, 
-        num_workers=4,
-        persistent_workers=True
+        shuffle=True,
     )
 
     autoencoder = LBAE(
