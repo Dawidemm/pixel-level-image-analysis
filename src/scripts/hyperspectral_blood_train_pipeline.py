@@ -40,6 +40,8 @@ def main():
         dataset=train_dataset,
         batch_size=BATCH_SIZE, 
         shuffle=True,
+        num_workers=1,
+        persistent_workers=True
     )
 
     autoencoder = LBAE(
