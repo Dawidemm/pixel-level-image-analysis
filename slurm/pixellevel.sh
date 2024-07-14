@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH -J RBM for pixel-level multispectral image segmentation
+#SBATCH -J RBM_for_pixel-level_multispectral_image_segmentation
 #SBATCH -A plgrbm4heo-cpu
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=1
