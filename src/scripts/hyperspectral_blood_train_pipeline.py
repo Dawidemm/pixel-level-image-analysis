@@ -1,5 +1,5 @@
 from torch.utils.data import DataLoader
-from src.utils.blood_dataset import BloodDataset
+from src.utils.blood_dataset import BloodIterableDataset
 import torch
 import numpy as np
 
@@ -25,7 +25,7 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 def main():
 
     try:
-        train_dataset = BloodDataset(
+        train_dataset = BloodIterableDataset(
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH
         )
@@ -38,10 +38,8 @@ def main():
 
     train_dataloader = DataLoader(
         dataset=train_dataset,
-        batch_size=BATCH_SIZE, 
-        shuffle=True,
-        num_workers=1,
-        persistent_workers=True
+        batch_size=BATCH_SIZE,
+        num_workers=0,
     )
 
     autoencoder = LBAE(
