@@ -137,11 +137,11 @@ def classes_filter(
 class ThresholdFinder:
     def __init__(
             self,
-            test_dataloader,
+            dataloader,
             rbm,
             encoder=None
     ):
-        self.test_dataloader = test_dataloader
+        self.dataloader = dataloader
         self.rbm = rbm
         self.encoder = encoder
 
@@ -166,7 +166,7 @@ class ThresholdFinder:
             labels = []
             y_true = []
 
-            for X, y in self.test_dataloader:
+            for X, y in self.dataloader:
 
                 if self.encoder is None:
                     rbm_input = X.detach().numpy()[0]
