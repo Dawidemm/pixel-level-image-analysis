@@ -44,7 +44,7 @@ def main():
     )
 
     autoencoder = LBAE(
-        input_size=(1, 128),
+        input_size=(1, 112),
         out_channels=8, 
         latent_size=NUM_VISIBLE,
         num_layers=2,
