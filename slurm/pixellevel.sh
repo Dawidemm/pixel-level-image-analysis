@@ -7,6 +7,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --mail-type=END
 #SBATCH --error="error.txt"
+#SBATCH --output="output.txt"
 #SBATCH -p plgrid
 
 source ~/.conda/envs/pixellevel/bin/activate
