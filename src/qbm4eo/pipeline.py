@@ -31,7 +31,7 @@ class Pipeline:
         precision=32,
         max_epochs=100,
         enable_checkpointing=True,
-        rbm_learning_rate=0.001,
+        rbm_learning_rate=0.0001,
         rbm_steps=100,
         skip_autoencoder=False,
         skip_rbm=False,
