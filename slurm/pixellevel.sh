@@ -10,6 +10,7 @@
 #SBATCH --output="output.txt"
 #SBATCH -p plgrid
 
-source ~/.conda/envs/pixellevel/bin/activate
+eval "$(conda shell.bash hook)"
+conda activate pixellevel
 
 srun python ~/pixel-level-image-analysis/src/scripts/hyperspectral_blood_train_pipeline.py
