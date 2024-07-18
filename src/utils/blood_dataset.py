@@ -56,7 +56,6 @@ def blood_dataset_params(
 
         gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
         gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
-        gt = np.delete(gt, NOISY_BANDS_INDICES, axis=2)
         gt[gt > 7] = 0
 
         if len(np.unique(gt)) >= classes:
@@ -70,7 +69,7 @@ class BloodIterableDataset(IterableDataset):
             self,
             hyperspectral_data_path: str,
             ground_truth_data_path: str,
-            num_images_to_load: Union[int, None],
+            num_images_to_load: Union[int, None]=None,
             stage = Stage
     ):
         self.hyperspectral_data_path = hyperspectral_data_path
@@ -118,7 +117,6 @@ class BloodIterableDataset(IterableDataset):
 
             gt = np.load(f'{self.ground_truth_data_path}/{ground_truth_files[i]}')
             gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
-            gt = np.delete(gt, NOISY_BANDS_INDICES, axis=2)
             gt[gt > 7] = 0
 
             if img.shape[:2] == gt.shape:
