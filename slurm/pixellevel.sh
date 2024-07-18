@@ -10,6 +10,7 @@
 #SBATCH --output="output.txt"
 #SBATCH -p plgrid
 
+ml miniconda3
 eval "$(conda shell.bash hook)"
 conda activate pixellevel
 
