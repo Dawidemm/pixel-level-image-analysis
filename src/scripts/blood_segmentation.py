@@ -13,16 +13,16 @@ from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 32
+NUM_VISIBLE = 28
 NUM_HIDDEN = 8
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 
-AUTOENCODER_CHECKPOINT_PATH = 'ares/lightning_logs/version_0/checkpoints/epoch=14-step=4410900.ckpt'
-AUTOENCODER_HPARAMS_PATH = 'ares/lightning_logs/version_0/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'ares2/pixel-level-image-analysis/lightning_logs/version_0/checkpoints/epoch=9-step=2940600.ckpt'
+AUTOENCODER_HPARAMS_PATH = 'ares2/pixel-level-image-analysis/lightning_logs/version_0/hparams.yaml'
 
-RBM_WEIGHTS_PATH = 'ares/rbm.npz'
+RBM_WEIGHTS_PATH = 'ares2/pixel-level-image-analysis/rbm.npz'
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
 
