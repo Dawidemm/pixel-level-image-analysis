@@ -17,6 +17,7 @@ class Stage(Enum):
 def blood_dataset_params(
         hyperspectral_data_path: str,
         ground_truth_data_path: str,
+        remove_noisy_bands: bool=True
 ):
     pixel_max_value = 0
     classes = 0
@@ -49,7 +50,9 @@ def blood_dataset_params(
 
         img = envi.open(f'{hyperspectral_data_path}/{hdr_files[i]}', f'{hyperspectral_data_path}/{float_files[i]}')
         img = np.asarray(img[:,:,:], dtype=np.float32)
-        img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
+
+        if remove_noisy_bands:
+            img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
 
         if img.max() >= pixel_max_value:
             pixel_max_value = img.max()
@@ -70,16 +73,19 @@ class BloodIterableDataset(IterableDataset):
             hyperspectral_data_path: str,
             ground_truth_data_path: str,
             num_images_to_load: Union[int, None]=None,
+            remove_noisy_bands: bool=True,
             stage = Stage
     ):
         self.hyperspectral_data_path = hyperspectral_data_path
         self.ground_truth_data_path = ground_truth_data_path
         self.num_images_to_load = num_images_to_load
+        self.remove_noisy_bands = remove_noisy_bands
         self.stage = stage
 
         self.pixel_max_value, self.classes = blood_dataset_params(
             hyperspectral_data_path=hyperspectral_data_path,
-            ground_truth_data_path=ground_truth_data_path
+            ground_truth_data_path=ground_truth_data_path,
+            remove_noisy_bands=self.remove_noisy_bands
         )
 
     def __iter__(self):
@@ -113,7 +119,9 @@ class BloodIterableDataset(IterableDataset):
 
             img = envi.open(f'{self.hyperspectral_data_path}/{hdr_files[i]}', f'{self.hyperspectral_data_path}/{float_files[i]}')
             img = np.asarray(img[:,:,:], dtype=np.float32)
-            img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
+
+            if self.remove_noisy_bands:
+                img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
 
             gt = np.load(f'{self.ground_truth_data_path}/{ground_truth_files[i]}')
             gt = np.asarray(gt['gt'][:,:], dtype=np.float32)

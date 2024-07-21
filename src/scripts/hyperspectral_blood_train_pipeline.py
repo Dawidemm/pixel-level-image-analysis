@@ -12,11 +12,11 @@ torch.set_float32_matmul_precision('medium')
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 28
+NUM_VISIBLE = 56
 NUM_HIDDEN = 8
 
 MAX_EPOCHS = 15
-RBM_STEPS = 10000
+RBM_STEPS = 1000
 BATCH_SIZE = 16
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
@@ -28,6 +28,7 @@ def main():
         train_dataset = BloodIterableDataset(
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+            remove_noisy_bands=False,
             stage=Stage.TRAIN
         )
 
@@ -44,7 +45,7 @@ def main():
     )
 
     autoencoder = LBAE(
-        input_size=(1, 112),
+        input_size=(1, 120),
         out_channels=8, 
         latent_size=NUM_VISIBLE,
         num_layers=2,
