@@ -12,7 +12,7 @@ torch.set_float32_matmul_precision('medium')
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 56
+NUM_VISIBLE = 64
 NUM_HIDDEN = 8
 
 MAX_EPOCHS = 15
@@ -45,7 +45,7 @@ def main():
     )
 
     autoencoder = LBAE(
-        input_size=(1, 120),
+        input_size=(1, 128),
         out_channels=8, 
         latent_size=NUM_VISIBLE,
         num_layers=2,
