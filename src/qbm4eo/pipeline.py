@@ -1,6 +1,8 @@
 from itertools import islice
 from pathlib import Path
 
+import os
+
 import numpy as np
 import torch
 import lightning as pl
@@ -11,6 +13,8 @@ from lightning.pytorch.callbacks import EarlyStopping
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
+
+from typing import Union
 
 def encoded_dataloader(data_loader, encoder):
     while True:
@@ -36,7 +40,8 @@ class Pipeline:
         skip_autoencoder=False,
         skip_rbm=False,
         rbm_trainer=None,
-        learnig_curve=True
+        learnig_curve=True,
+        experiment_number: Union[int, None]=None
     ):
         # Adjust flags for skipping training components. If given component
         # is None, we train it anyway, otherwise whole process does not make sense.
@@ -84,7 +89,8 @@ class Pipeline:
                     utils.plot_loss(
                         epochs=rbm_trainer.num_steps, 
                         loss_values=rbm_trainer.losses, 
-                        plot_title='RBM'
+                        plot_title='RBM',
+                        experiment_number=experiment_number
                     )
 
             elif rbm_trainer == 'annealing':
@@ -94,4 +100,9 @@ class Pipeline:
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
             
-        self.rbm.save("rbm.npz")
+        if experiment_number != None:
+            experiment_path = f'./experiments/exp_{experiment_number}/'
+            os.makedirs(experiment_path, exist_ok=True)
+            self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
+        else:
+            self.rbm.save(f'rbm.npz')

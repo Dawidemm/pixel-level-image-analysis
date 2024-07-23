@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score
@@ -254,7 +255,8 @@ def plot_loss(
         loss_values: Sequence[float], 
         plot_title: str, 
         save: bool=True,
-        format: str='svg'
+        format: str='svg',
+        experiment_number: Union[int, None]=None
 ):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=list(range(epochs)), y=loss_values, mode='lines', name='Loss'))
@@ -269,8 +271,15 @@ def plot_loss(
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
     
     if save:
+        if experiment_number != None:
+            experiment_path = f'./experiments/exp_{experiment_number}/'
+            os.makedirs(experiment_path, exist_ok=True)
+            plot_loss_path = os.path.join(experiment_path, f'{plot_title.lower()}_learning.{format}')
+        else:
+            plot_loss_path = f'{plot_title.lower()}_learning.{format}'
+
         fig.write_image(
-            f'{plot_title.lower()}_learning.{format}',
+            plot_loss_path,
             width=800,
             height=600,
             scale=1
