@@ -17,13 +17,13 @@ torch.manual_seed(0)
 
 NUM_VISIBLE = 32
 
-NUM_HIDDEN = [4, 8, 16, 32, 64, 128]
-RBM_STEPS = [100, 1000, 10000, 100000]
-RBM_LEARNING_RATE = [0.1, 0.01, 0.001, 0.0001]
+NUM_HIDDEN = [8, 16, 32, 64, 128]
+RBM_STEPS = [1000, 10000, 100000]
+RBM_LEARNING_RATE = [0.01, 0.001, 0.0001]
 
 BATCH_SIZE = 16
 
-THRESHOLDS = np.linspace(1/10, 1, 10)
+THRESHOLDS = np.linspace(2/10, 1, 9)[:-2]
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
@@ -109,7 +109,7 @@ def main():
                 threshold, ari, rand_score, homogenity, completeness  = threshold_finder.find_threshold(THRESHOLDS)
 
                 with open('experiments/experiments_raport.csv', 'a+') as file:
-                    file.write(f'{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}')
+                    file.write(f'{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
 
                 experiment += 1
 
