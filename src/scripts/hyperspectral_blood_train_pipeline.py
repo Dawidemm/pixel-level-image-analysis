@@ -18,12 +18,12 @@ torch.manual_seed(0)
 NUM_VISIBLE = 32
 
 NUM_HIDDEN = [8, 16, 32, 64, 128]
-RBM_STEPS = [1000, 10000, 100000]
-RBM_LEARNING_RATE = [0.01, 0.001, 0.0001]
+RBM_STEPS = [10000, 100000]
+RBM_LEARNING_RATE = [0.001, 0.0001]
 
 BATCH_SIZE = 16
 
-THRESHOLDS = np.linspace(2/10, 1, 9)[:-2]
+THRESHOLDS = np.linspace(1/10, 1, 10)[:-1]
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
@@ -38,7 +38,6 @@ def main():
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
             remove_noisy_bands=False,
-            num_images_to_load=1,
             stage=Stage.TRAIN
         )
 
@@ -46,7 +45,6 @@ def main():
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
             remove_noisy_bands=False,
-            num_images_to_load=1
         )
 
     except FileNotFoundError as e:
