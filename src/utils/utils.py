@@ -221,7 +221,7 @@ class ThresholdFinder:
         return indices
     
 def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
-    dot_product = np.dot(vector_a, vector_b)
+    dot_product = np.dot(np.squeeze(vector_a), np.squeeze(vector_b))
     norm_a = np.linalg.norm(vector_a)
     norm_b = np.linalg.norm(vector_b)
 
@@ -239,7 +239,7 @@ def spectral_angle_distance_matrix(objects, rbm_labels):
             distance = 0
         else:
             distance = spectral_angle(objects[i], objects[j])
-            
+
         distance_matrix[i, j] = distance
         distance_matrix[j, i] = distance
 
