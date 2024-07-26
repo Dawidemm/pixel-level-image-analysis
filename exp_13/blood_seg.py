@@ -83,15 +83,12 @@ def main():
         rbm_labels=rbm_labels
     )
 
-    ahc = AgglomerativeClustering(n_clusters=17, metric='precomputed', linkage='average')
+    ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
     ahc.fit(spectral_distance)
 
     ahc_segmentation = ahc.labels_
 
     y_true = np.concatenate(y_true)
-
-    ahc_segmentation = ahc_segmentation.reshape((520, 696, 1))
-    y_true = y_true.reshape((520, 696, 1))
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
