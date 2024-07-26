@@ -230,12 +230,16 @@ def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
 
     return angle
     
-def spectral_angle_distance_matrix(objects):
+def spectral_angle_distance_matrix(objects, rbm_labels):
     n = len(objects)
     distance_matrix = np.zeros((n, n))
 
     for i, j in combinations(range(n), 2):
-        distance = spectral_angle(objects[i], objects[j])
+        if rbm_labels[i] == rbm_labels[j]:
+            distance = 0
+        else:
+            distance = spectral_angle(objects[i], objects[j])
+            
         distance_matrix[i, j] = distance
         distance_matrix[j, i] = distance
 
