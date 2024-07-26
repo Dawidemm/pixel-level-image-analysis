@@ -235,7 +235,7 @@ def spectral_angle_distance_matrix(objects, rbm_labels):
     distance_matrix = np.zeros((n, n))
 
     for i, j in combinations(range(n), 2):
-        if rbm_labels[i] == rbm_labels[j]:
+        if np.array_equal(rbm_labels[i], rbm_labels[j]):
             distance = 0
         else:
             distance = spectral_angle(objects[i], objects[j])
