@@ -16,7 +16,7 @@ np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 32
-NUM_HIDDEN = 8
+NUM_HIDDEN = 16
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
