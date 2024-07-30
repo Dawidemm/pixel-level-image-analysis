@@ -7,7 +7,7 @@ import lightning
 from sklearn.datasets import make_blobs
 
 from itertools import combinations
-from typing import Union, Sequence, Tuple
+from typing import Union, Sequence, Tuple, Optional
 from numpy.typing import ArrayLike
 
 np.random.seed(10)
@@ -230,18 +230,27 @@ def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
 
     return angle
     
-def spectral_angle_distance_matrix(objects, rbm_labels):
+def spectral_angle_distance_matrix(
+        objects: ArrayLike, 
+        rbm_labels: Optional[ArrayLike]=None
+):
     n = len(objects)
     distance_matrix = np.zeros((n, n))
 
-    for i, j in combinations(range(n), 2):
-        if np.array_equal(rbm_labels[i], rbm_labels[j]):
-            distance = 0
-        else:
-            distance = spectral_angle(objects[i], objects[j])
+    if rbm_labels != None:
+        for i, j in combinations(range(n), 2):
+            if np.array_equal(rbm_labels[i], rbm_labels[j]):
+                distance = 0
+            else:
+                distance = spectral_angle(objects[i], objects[j])
 
-        distance_matrix[i, j] = distance
-        distance_matrix[j, i] = distance
+            distance_matrix[i, j] = distance
+            distance_matrix[j, i] = distance
+    else:
+        for i, j in combinations(range(n), 2):
+            distance = spectral_angle(objects[i], objects[j])
+            distance_matrix[i, j] = distance
+            distance_matrix[j, i] = distance
 
     return distance_matrix
     
