@@ -24,7 +24,7 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=14-step=4410900.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 
-RBM_WEIGHTS_PATH = 'experiments/experiments/exp_13/rbm.npz'
+RBM_WEIGHTS_PATH = 'exp_13/exp_13_rbm.npz'
 
 THRESHOLD = 0.4
 
