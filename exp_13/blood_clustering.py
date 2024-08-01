@@ -73,11 +73,11 @@ def main():
     #     objects=hidden_representations,
     # )
 
-    # lbae_ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    # lbae_ahc.fit(sad_lbae_matrix)
-    lbae_ahc = AgglomerativeClustering(n_clusters=8)
-    lbae_ahc.fit(hidden_representations)
-    lbae_ahc_clustering = lbae_ahc.labels_
+    # # lbae_ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
+    # # lbae_ahc.fit(sad_lbae_matrix)
+    # lbae_ahc = AgglomerativeClustering(n_clusters=8)
+    # lbae_ahc.fit(hidden_representations)
+    # lbae_ahc_clustering = lbae_ahc.labels_
 
     # lbae_kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
     # lbae_kmeans.fit(sad_lbae_matrix)
@@ -85,8 +85,8 @@ def main():
     lbae_kmeans.fit(hidden_representations)
     lbae_kmeans_clustering = lbae_kmeans.labels_
 
-    lbae_ahc_homogeneity = homogeneity_score(y_true, lbae_ahc_clustering)
-    lbae_ahc_completeness = completeness_score(y_true, lbae_ahc_clustering)
+    # lbae_ahc_homogeneity = homogeneity_score(y_true, lbae_ahc_clustering)
+    # lbae_ahc_completeness = completeness_score(y_true, lbae_ahc_clustering)
 
     lbae_kmeans_homogeneity = homogeneity_score(y_true, lbae_kmeans_clustering)
     lbae_kmeans_completeness = completeness_score(y_true, lbae_kmeans_clustering)
@@ -95,11 +95,11 @@ def main():
     #     objects=X_true,
     # )
 
-    # ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    # ahc.fit(sad_matrix)
-    ahc = AgglomerativeClustering(n_clusters=8)
-    ahc.fit(X_true)
-    ahc_clustering = ahc.labels_
+    # # ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
+    # # ahc.fit(sad_matrix)
+    # ahc = AgglomerativeClustering(n_clusters=8)
+    # ahc.fit(X_true)
+    # ahc_clustering = ahc.labels_
 
     # kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
     # kmeans.fit(sad_matrix)
@@ -107,25 +107,25 @@ def main():
     kmeans.fit(X_true)
     kmeans_clustering = kmeans.labels_
 
-    ahc_homogeneity = homogeneity_score(y_true, ahc_clustering)
-    ahc_completeness = completeness_score(y_true, ahc_clustering)
+    # ahc_homogeneity = homogeneity_score(y_true, ahc_clustering)
+    # ahc_completeness = completeness_score(y_true, ahc_clustering)
 
     kmeans_homogeneity = homogeneity_score(y_true, kmeans_clustering)
     kmeans_completeness = completeness_score(y_true, kmeans_clustering)
 
     os.makedirs('./exp_13', exist_ok=True)
     with open('exp_13/lbae_metrics.txt', 'a+') as file:
-        file.write(f'LBAE+AHC Clustering:')
-        file.write(f'Homogenity score: {round(lbae_ahc_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(lbae_ahc_completeness, 3)}\n')
+        # file.write(f'LBAE+AHC Clustering:')
+        # file.write(f'Homogenity score: {round(lbae_ahc_homogeneity, 3)}')
+        # file.write(f'Completeness score: {round(lbae_ahc_completeness, 3)}\n')
 
         file.write(f'LBAE+Kmeans Clustering:')
         file.write(f'Homogenity score: {round(lbae_kmeans_homogeneity, 3)}')
         file.write(f'Completeness score: {round(lbae_kmeans_completeness, 3)}\n')
 
-        file.write(f'AHC Clustering:')
-        file.write(f'Homogenity score: {round(ahc_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(ahc_completeness, 3)}\n')
+        # file.write(f'AHC Clustering:')
+        # file.write(f'Homogenity score: {round(ahc_homogeneity, 3)}')
+        # file.write(f'Completeness score: {round(ahc_completeness, 3)}\n')
 
         file.write(f'Kmeans Clustering:')
         file.write(f'Homogenity score: {round(kmeans_homogeneity, 3)}')
