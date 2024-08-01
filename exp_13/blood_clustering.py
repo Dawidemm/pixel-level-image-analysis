@@ -69,20 +69,20 @@ def main():
     y_true = np.concatenate(y_true)
     hidden_representations = np.concatenate(hidden_representations)
 
-    sad_lbae_matrix= utils.spectral_angle_distance_matrix(
-        objects=hidden_representations,
-    )
+    # sad_lbae_matrix= utils.spectral_angle_distance_matrix(
+    #     objects=hidden_representations,
+    # )
 
-    lbae_ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    lbae_ahc.fit(sad_lbae_matrix)
-    # lbae_ahc = AgglomerativeClustering(n_clusters=8)
-    # lbae_ahc.fit(hidden_representations)
+    # lbae_ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
+    # lbae_ahc.fit(sad_lbae_matrix)
+    lbae_ahc = AgglomerativeClustering(n_clusters=8)
+    lbae_ahc.fit(hidden_representations)
     lbae_ahc_clustering = lbae_ahc.labels_
 
-    lbae_kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
-    lbae_kmeans.fit(sad_lbae_matrix)
-    # lbae_kmeans = KMeans(n_clusters=8)
-    # lbae_kmeans.fit(hidden_representations)
+    # lbae_kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
+    # lbae_kmeans.fit(sad_lbae_matrix)
+    lbae_kmeans = KMeans(n_clusters=8)
+    lbae_kmeans.fit(hidden_representations)
     lbae_kmeans_clustering = lbae_kmeans.labels_
 
     lbae_ahc_homogeneity = homogeneity_score(y_true, lbae_ahc_clustering)
@@ -91,20 +91,20 @@ def main():
     lbae_kmeans_homogeneity = homogeneity_score(y_true, lbae_kmeans_clustering)
     lbae_kmeans_completeness = completeness_score(y_true, lbae_kmeans_clustering)
 
-    sad_matrix= utils.spectral_angle_distance_matrix(
-        objects=X_true,
-    )
+    # sad_matrix= utils.spectral_angle_distance_matrix(
+    #     objects=X_true,
+    # )
 
-    ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    ahc.fit(sad_matrix)
-    # lbae_ahc = AgglomerativeClustering(n_clusters=8)
-    # lbae_ahc.fit(hidden_representations)
+    # ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
+    # ahc.fit(sad_matrix)
+    ahc = AgglomerativeClustering(n_clusters=8)
+    ahc.fit(X_true)
     ahc_clustering = ahc.labels_
 
-    kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
-    kmeans.fit(sad_matrix)
-    # lbae_kmeans = KMeans(n_clusters=8)
-    # lbae_kmeans.fit(hidden_representations)
+    # kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
+    # kmeans.fit(sad_matrix)
+    kmeans = KMeans(n_clusters=8)
+    kmeans.fit(X_true)
     kmeans_clustering = kmeans.labels_
 
     ahc_homogeneity = homogeneity_score(y_true, ahc_clustering)
