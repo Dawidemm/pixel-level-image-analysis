@@ -70,12 +70,12 @@ def main():
     y_true = np.concatenate(y_true)
     hidden_representations = np.concatenate(hidden_representations)
 
-    sad_lbae_matrix= utils.spectral_angle_distance_matrix(
-        objects=hidden_representations,
-    )
+    # sad_lbae_matrix= utils.spectral_angle_distance_matrix(
+    #     objects=hidden_representations,
+    # )
 
-    lbae_hdbscan = HDBSCAN(metric='precomputed')
-    lbae_hdbscan.fit(sad_lbae_matrix)
+    lbae_hdbscan = HDBSCAN()
+    lbae_hdbscan.fit(hidden_representations)
     lbae_hdbscan_clustering = lbae_hdbscan.labels_
 
     lbae_hdbscan_homogeneity = homogeneity_score(y_true, lbae_hdbscan_clustering)
@@ -88,12 +88,12 @@ def main():
     lbae_kmeans_homogeneity = homogeneity_score(y_true, lbae_kmeans_clustering)
     lbae_kmeans_completeness = completeness_score(y_true, lbae_kmeans_clustering)
 
-    sad_matrix= utils.spectral_angle_distance_matrix(
-        objects=X_true,
-    )
+    # sad_matrix= utils.spectral_angle_distance_matrix(
+    #     objects=X_true,
+    # )
 
-    hdbscan = HDBSCAN(metric='precomputed')
-    hdbscan.fit(sad_matrix)
+    hdbscan = HDBSCAN()
+    hdbscan.fit(X_true)
     hdbscan_clustering = hdbscan.labels_
 
     hdbscan_homogeneity = homogeneity_score(y_true, hdbscan_clustering)
@@ -108,17 +108,17 @@ def main():
 
     os.makedirs('./exp_13', exist_ok=True)
     with open('exp_13/lbae_metrics.txt', 'a+') as file:
-        file.write(f'LBAE+HDBSCAN Clustering:')
-        file.write(f'Homogenity score: {round(lbae_hdbscan_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(lbae_hdbscan_completeness, 3)}\n')
+        file.write(f'LBAE+HDBSCAN Clustering:\n')
+        file.write(f'Homogenity score: {round(lbae_hdbscan_homogeneity, 3)}.\n')
+        file.write(f'Completeness score: {round(lbae_hdbscan_completeness, 3)}.\n')
 
         file.write(f'LBAE+Kmeans Clustering:\n')
         file.write(f'Homogenity score: {round(lbae_kmeans_homogeneity, 3)}.\n')
         file.write(f'Completeness score: {round(lbae_kmeans_completeness, 3)}.\n')
 
-        file.write(f'HDBSCAN Clustering:')
-        file.write(f'Homogenity score: {round(hdbscan_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(hdbscan_completeness, 3)}\n')
+        file.write(f'HDBSCAN Clustering:\n')
+        file.write(f'Homogenity score: {round(hdbscan_homogeneity, 3)}.\n')
+        file.write(f'Completeness score: {round(hdbscan_completeness, 3)}.\n')
 
         file.write(f'Kmeans Clustering:\n')
         file.write(f'Homogenity score: {round(kmeans_homogeneity, 3)}.\n')
