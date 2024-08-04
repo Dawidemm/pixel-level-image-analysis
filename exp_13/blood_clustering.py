@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.cluster import KMeans, HDBSCAN
 from sklearn.metrics import completeness_score, homogeneity_score
 
 from src.utils.blood_dataset import BloodIterableDataset, Stage
@@ -61,75 +61,68 @@ def main():
             hidden_representation, _ = lbae.encoder(X, epoch=1)
             hidden_representation = hidden_representation.detach().numpy()
 
-            X_true.append(y)
+            X_true.append(X)
             y_true.append(y)
             hidden_representations.append(hidden_representation)
 
     X_true = np.concatenate(X_true)
+    X_true = X_true.reshape(X_true.shape[0], X_true.shape[2])
     y_true = np.concatenate(y_true)
     hidden_representations = np.concatenate(hidden_representations)
 
-    # sad_lbae_matrix= utils.spectral_angle_distance_matrix(
-    #     objects=hidden_representations,
-    # )
+    sad_lbae_matrix= utils.spectral_angle_distance_matrix(
+        objects=hidden_representations,
+    )
 
-    # # lbae_ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    # # lbae_ahc.fit(sad_lbae_matrix)
-    # lbae_ahc = AgglomerativeClustering(n_clusters=8)
-    # lbae_ahc.fit(hidden_representations)
-    # lbae_ahc_clustering = lbae_ahc.labels_
+    lbae_hdbscan = HDBSCAN(metric='precomputed')
+    lbae_hdbscan.fit(sad_lbae_matrix)
+    lbae_hdbscan_clustering = lbae_hdbscan.labels_
 
-    # lbae_kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
-    # lbae_kmeans.fit(sad_lbae_matrix)
+    lbae_hdbscan_homogeneity = homogeneity_score(y_true, lbae_hdbscan_clustering)
+    lbae_hdbscan_completeness = completeness_score(y_true, lbae_hdbscan_clustering)
+
     lbae_kmeans = KMeans(n_clusters=8)
     lbae_kmeans.fit(hidden_representations)
     lbae_kmeans_clustering = lbae_kmeans.labels_
 
-    # lbae_ahc_homogeneity = homogeneity_score(y_true, lbae_ahc_clustering)
-    # lbae_ahc_completeness = completeness_score(y_true, lbae_ahc_clustering)
-
     lbae_kmeans_homogeneity = homogeneity_score(y_true, lbae_kmeans_clustering)
     lbae_kmeans_completeness = completeness_score(y_true, lbae_kmeans_clustering)
 
-    # sad_matrix= utils.spectral_angle_distance_matrix(
-    #     objects=X_true,
-    # )
+    sad_matrix= utils.spectral_angle_distance_matrix(
+        objects=X_true,
+    )
 
-    # # ahc = AgglomerativeClustering(n_clusters=8, metric='precomputed', linkage='average')
-    # # ahc.fit(sad_matrix)
-    # ahc = AgglomerativeClustering(n_clusters=8)
-    # ahc.fit(X_true)
-    # ahc_clustering = ahc.labels_
+    hdbscan = HDBSCAN(metric='precomputed')
+    hdbscan.fit(sad_matrix)
+    hdbscan_clustering = hdbscan.labels_
 
-    # kmeans = KMeans(n_clusters=8, metric='precomputed', linkage='average')
-    # kmeans.fit(sad_matrix)
+    hdbscan_homogeneity = homogeneity_score(y_true, hdbscan_clustering)
+    hdbscan_completeness = completeness_score(y_true, hdbscan_clustering)
+
     kmeans = KMeans(n_clusters=8)
     kmeans.fit(X_true)
     kmeans_clustering = kmeans.labels_
-
-    # ahc_homogeneity = homogeneity_score(y_true, ahc_clustering)
-    # ahc_completeness = completeness_score(y_true, ahc_clustering)
 
     kmeans_homogeneity = homogeneity_score(y_true, kmeans_clustering)
     kmeans_completeness = completeness_score(y_true, kmeans_clustering)
 
     os.makedirs('./exp_13', exist_ok=True)
     with open('exp_13/lbae_metrics.txt', 'a+') as file:
-        # file.write(f'LBAE+AHC Clustering:')
-        # file.write(f'Homogenity score: {round(lbae_ahc_homogeneity, 3)}')
-        # file.write(f'Completeness score: {round(lbae_ahc_completeness, 3)}\n')
+        file.write(f'LBAE+HDBSCAN Clustering:')
+        file.write(f'Homogenity score: {round(lbae_hdbscan_homogeneity, 3)}')
+        file.write(f'Completeness score: {round(lbae_hdbscan_completeness, 3)}\n')
 
-        file.write(f'LBAE+Kmeans Clustering:')
-        file.write(f'Homogenity score: {round(lbae_kmeans_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(lbae_kmeans_completeness, 3)}\n')
+        file.write(f'LBAE+Kmeans Clustering:\n')
+        file.write(f'Homogenity score: {round(lbae_kmeans_homogeneity, 3)}.\n')
+        file.write(f'Completeness score: {round(lbae_kmeans_completeness, 3)}.\n')
 
-        # file.write(f'AHC Clustering:')
-        # file.write(f'Homogenity score: {round(ahc_homogeneity, 3)}')
-        # file.write(f'Completeness score: {round(ahc_completeness, 3)}\n')
+        file.write(f'HDBSCAN Clustering:')
+        file.write(f'Homogenity score: {round(hdbscan_homogeneity, 3)}')
+        file.write(f'Completeness score: {round(hdbscan_completeness, 3)}\n')
 
-        file.write(f'Kmeans Clustering:')
-        file.write(f'Homogenity score: {round(kmeans_homogeneity, 3)}')
-        file.write(f'Completeness score: {round(kmeans_completeness, 3)}\n')
+        file.write(f'Kmeans Clustering:\n')
+        file.write(f'Homogenity score: {round(kmeans_homogeneity, 3)}.\n')
+        file.write(f'Completeness score: {round(kmeans_completeness, 3)}.\n')
 
 if __name__ == '__main__':
     main()
