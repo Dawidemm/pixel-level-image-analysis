@@ -201,7 +201,7 @@ class ThresholdFinder:
                 self.homogenity = homogeneity_score(y_true, mapped_labels)
                 self.completeness = completeness_score(y_true, mapped_labels)
 
-        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness
+        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, mapped_labels
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
