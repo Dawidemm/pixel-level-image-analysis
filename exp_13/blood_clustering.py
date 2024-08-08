@@ -27,7 +27,7 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=14-step=4410900.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 
-RBM_WEIGHTS_PATH = 'exp_13/exp_13_rbm.npz'
+RBM_WEIGHTS_PATH = 'exp_13/exp_12_rbm.npz'
 
 def main():
     try:
@@ -120,7 +120,7 @@ def main():
     rbm_labels = rbm_labels.reshape((520, 696))
     y_true = y_true.reshape((520, 696))
 
-    fig, axes = plt.subplots(1, 4, figsize=(6, 12))
+    fig, axes = plt.subplots(1, 4, figsize=(12, 6))
 
     ax = axes[0]
     ax.imshow(lbae_hdbscan_clustering)
