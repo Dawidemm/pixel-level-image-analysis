@@ -16,8 +16,8 @@ from src.qbm4eo.rbm import RBM
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 28
-NUM_HIDDEN = 8
+NUM_VISIBLE = 32
+NUM_HIDDEN = 16
 
 THRESHOLDS = np.linspace(1/10, 1, 10)
 
