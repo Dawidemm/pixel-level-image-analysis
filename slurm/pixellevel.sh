@@ -14,6 +14,6 @@ ml miniconda3
 eval "$(conda shell.bash hook)"
 conda activate pixellevel
 
-## srun python ~/pixel-level-image-analysis/src/scripts/hyperspectral_blood_train_pipeline.py
+srun python ~/pixel-level-image-analysis/src/scripts/hyperspectral_blood_train_pipeline.py
 ## srun python ~/pixel-level-image-analysis/exp_13/blood_seg.py
-srun python ~/pixel-level-image-analysis/exp_13/blood_clustering.py
+## srun python ~/pixel-level-image-analysis/exp_13/blood_clustering.py
