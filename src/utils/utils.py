@@ -370,3 +370,17 @@ class SyntheticDataGenerator():
         x = np.sign(x)
         x[x == 0] = 1
         return x
+    
+def gini_index(x: ArrayLike) -> float:
+
+    x = x.flatten()
+
+    if np.amin(x) < 0:
+        x -= np.amin(x)
+
+    x = x + 0.0000001
+    x = np.sort(x)
+    index = np.arange(1, x.shape[0]+1)
+    num_elements = len(x)
+
+    return round(((np.sum((2 * index - num_elements - 1) * x)) / (num_elements * np.sum(x))), 3)
