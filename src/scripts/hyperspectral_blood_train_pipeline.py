@@ -33,11 +33,15 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=14-step=4410900.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 
+EXPERIMENT_FOLDER_PATH = './experiments/diff_imgs/'
+
 def main():
 
-    os.makedirs('./experiments/diff_imgs/', exist_ok=True)
-    with open('experiments/diff_imgs/experiments_raport.csv', 'a+') as file:
+    os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
+    with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
         file.write(f'image,experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
+
+    experiment = 0
 
     for image in IMAGES:
 
@@ -74,8 +78,6 @@ def main():
             map_location=torch.device('cpu')
         )
     
-        experiment = 0
-    
         for num_hidden in NUM_HIDDEN:
             for rbm_steps in RBM_STEPS:
                 for rbm_lr in RBM_LEARNING_RATE:
@@ -91,11 +93,12 @@ def main():
                         rbm_learning_rate=rbm_lr, 
                         rbm_trainer='cd1', 
                         learnig_curve=True,
+                        experiment_folder_path=EXPERIMENT_FOLDER_PATH,
                         experiment_number=experiment
                     )
 
                     rbm = RBM(NUM_VISIBLE, num_hidden)
-                    rbm.load(file=f'./experiments/diff_imgs/exp_{experiment}/rbm.npz')
+                    rbm.load(file=f'{EXPERIMENT_FOLDER_PATH}exp_{experiment}/rbm.npz')
 
                     threshold_finder = utils.ThresholdFinder(
                         dataloader=find_threshold_dataloader,
@@ -105,7 +108,7 @@ def main():
 
                     threshold, ari, rand_score, homogenity, completeness  = threshold_finder.find_threshold(THRESHOLDS)
 
-                    with open('experiments/diff_imgs/experiments_raport.csv', 'a+') as file:
+                    with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
                         file.write(f'{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
 
                     experiment += 1

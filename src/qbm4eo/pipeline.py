@@ -41,6 +41,7 @@ class Pipeline:
         skip_rbm=False,
         rbm_trainer=None,
         learnig_curve=True,
+        experiment_folder_path: Union[str, None]=None,
         experiment_number: Union[int, None]=None
     ):
         # Adjust flags for skipping training components. If given component
@@ -101,7 +102,7 @@ class Pipeline:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
             
         if experiment_number != None:
-            experiment_path = f'./experiments/exp_{experiment_number}/'
+            experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
             os.makedirs(experiment_path, exist_ok=True)
             self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
         else:
