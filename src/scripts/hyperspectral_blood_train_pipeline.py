@@ -17,9 +17,11 @@ torch.manual_seed(0)
 
 NUM_VISIBLE = 32
 
-NUM_HIDDEN = [8, 16, 32, 64, 128]
-RBM_STEPS = [10000, 100000]
+NUM_HIDDEN = [3, 8, 16]
+RBM_STEPS = [1000, 10000]
 RBM_LEARNING_RATE = [0.001, 0.0001]
+
+IMAGES = ['D_1', 'E_1', 'F_1']
 
 BATCH_SIZE = 16
 
@@ -33,10 +35,16 @@ AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 
 def main():
 
-    try:
+    os.makedirs('./experiments/diff_imgs/', exist_ok=True)
+    with open('experiments/diff_imgs/experiments_raport.csv', 'a+') as file:
+        file.write(f'image,experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
+
+    for image in IMAGES:
+
         train_dataset = BloodIterableDataset(
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+            load_specific_image=image,
             remove_noisy_bands=False,
             stage=Stage.TRAIN
         )
@@ -44,72 +52,63 @@ def main():
         find_threshold_dataset = BloodIterableDataset(
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+            load_specific_image=image,
             remove_noisy_bands=False,
         )
 
-    except FileNotFoundError as e:
-        print(f'FileNotFoundError: {e}')
-        print("Please make sure to provide paths to the hyperspectral data and ground truth data folders.\n"
-              "The application will terminate now.")
-        return
+        train_dataloader = DataLoader(
+            dataset=train_dataset,
+            batch_size=BATCH_SIZE,
+            num_workers=0,
+        )
 
-    train_dataloader = DataLoader(
-        dataset=train_dataset,
-        batch_size=BATCH_SIZE,
-        num_workers=0,
-    )
+        find_threshold_dataloader = DataLoader(
+            dataset=find_threshold_dataset,
+            batch_size=1,
+            num_workers=0,
+        )
 
-    find_threshold_dataloader = DataLoader(
-        dataset=find_threshold_dataset,
-        batch_size=1,
-        num_workers=0,
-    )
-
-    lbae = LBAE.load_from_checkpoint(
-        checkpoint_path=AUTOENCODER_CHECKPOINT_PATH,
-        hparams_file=AUTOENCODER_HPARAMS_PATH,
-        map_location=torch.device('cpu')
-    )
-
-    os.makedirs('./experiments/', exist_ok=True)
-    with open('experiments/experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
+        lbae = LBAE.load_from_checkpoint(
+            checkpoint_path=AUTOENCODER_CHECKPOINT_PATH,
+            hparams_file=AUTOENCODER_HPARAMS_PATH,
+            map_location=torch.device('cpu')
+        )
     
-    experiment = 0
+        experiment = 0
     
-    for num_hidden in NUM_HIDDEN:
-        for rbm_steps in RBM_STEPS:
-            for rbm_lr in RBM_LEARNING_RATE:
-    
-                rbm = RBM(NUM_VISIBLE, num_hidden)
+        for num_hidden in NUM_HIDDEN:
+            for rbm_steps in RBM_STEPS:
+                for rbm_lr in RBM_LEARNING_RATE:
+        
+                    rbm = RBM(NUM_VISIBLE, num_hidden)
 
-                pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
+                    pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
 
-                pipeline.fit(
-                    train_dataloader,
-                    skip_autoencoder=True,
-                    rbm_steps=rbm_steps,
-                    rbm_learning_rate=rbm_lr, 
-                    rbm_trainer='cd1', 
-                    learnig_curve=True,
-                    experiment_number=experiment
-                )
+                    pipeline.fit(
+                        train_dataloader,
+                        skip_autoencoder=True,
+                        rbm_steps=rbm_steps,
+                        rbm_learning_rate=rbm_lr, 
+                        rbm_trainer='cd1', 
+                        learnig_curve=True,
+                        experiment_number=experiment
+                    )
 
-                rbm = RBM(NUM_VISIBLE, num_hidden)
-                rbm.load(file=f'./experiments/exp_{experiment}/rbm.npz')
+                    rbm = RBM(NUM_VISIBLE, num_hidden)
+                    rbm.load(file=f'./experiments/diff_imgs/exp_{experiment}/rbm.npz')
 
-                threshold_finder = utils.ThresholdFinder(
-                    dataloader=find_threshold_dataloader,
-                    encoder=lbae.encoder,
-                    rbm=rbm
-                )
+                    threshold_finder = utils.ThresholdFinder(
+                        dataloader=find_threshold_dataloader,
+                        encoder=lbae.encoder,
+                        rbm=rbm
+                    )
 
-                threshold, ari, rand_score, homogenity, completeness  = threshold_finder.find_threshold(THRESHOLDS)
+                    threshold, ari, rand_score, homogenity, completeness  = threshold_finder.find_threshold(THRESHOLDS)
 
-                with open('experiments/experiments_raport.csv', 'a+') as file:
-                    file.write(f'{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
+                    with open('experiments/diff_imgs/experiments_raport.csv', 'a+') as file:
+                        file.write(f'{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
 
-                experiment += 1
+                    experiment += 1
 
 if __name__ == '__main__':
     main()
