@@ -92,14 +92,14 @@ def main():
     y_true = np.concatenate(y_true)
     hidden_representations = np.concatenate(hidden_representations)
 
-    lbae_hdbscan = HDBSCAN()
-    lbae_hdbscan.fit(hidden_representations)
-    lbae_hdbscan_clustering = lbae_hdbscan.labels_
+    # lbae_hdbscan = HDBSCAN()
+    # lbae_hdbscan.fit(hidden_representations)
+    # lbae_hdbscan_clustering = lbae_hdbscan.labels_
 
-    lbae_hdbscan_homogeneity = homogeneity_score(y_true, lbae_hdbscan_clustering)
-    lbae_hdbscan_completeness = completeness_score(y_true, lbae_hdbscan_clustering)
+    # lbae_hdbscan_homogeneity = homogeneity_score(y_true, lbae_hdbscan_clustering)
+    # lbae_hdbscan_completeness = completeness_score(y_true, lbae_hdbscan_clustering)
 
-    lbae_kmeans = KMeans(n_clusters=8)
+    lbae_kmeans = KMeans(n_clusters=3)
     lbae_kmeans.fit(hidden_representations)
     lbae_kmeans_clustering = lbae_kmeans.labels_
 
@@ -107,37 +107,42 @@ def main():
     lbae_kmeans_completeness = completeness_score(y_true, lbae_kmeans_clustering)
 
 
-    threshold_finder = utils.ThresholdFinder(
-        dataloader=blood_dataloader,
-        encoder=lbae.encoder,
-        rbm=rbm
-    )
+    # threshold_finder = utils.ThresholdFinder(
+    #     dataloader=blood_dataloader,
+    #     encoder=lbae.encoder,
+    #     rbm=rbm
+    # )
 
-    _, _, _, rbm_homogeneity, rbm_completeness, rbm_labels = threshold_finder.find_threshold(THRESHOLDS)
+    # _, _, _, rbm_homogeneity, rbm_completeness, rbm_labels = threshold_finder.find_threshold(THRESHOLDS)
 
-    lbae_hdbscan_clustering = lbae_hdbscan_clustering.reshape((520, 696))
+    # lbae_hdbscan_clustering = lbae_hdbscan_clustering.reshape((520, 696))
+    # lbae_kmeans_clustering = lbae_kmeans_clustering.reshape((520, 696))
+    # rbm_labels = rbm_labels.reshape((520, 696))
+    # y_true = y_true.reshape((520, 696))
+
+    lbae_hdbscan_clustering = np.ones((520, 696))
     lbae_kmeans_clustering = lbae_kmeans_clustering.reshape((520, 696))
-    rbm_labels = rbm_labels.reshape((520, 696))
+    rbm_labels = np.ones((520, 696))
     y_true = y_true.reshape((520, 696))
 
-    fig, axes = plt.subplots(1, 4, figsize=(12, 6))
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    # ax = axes[0]
+    # ax.imshow(lbae_hdbscan_clustering)
+    # ax.set_title(f'LBAE+HDBSCAN')
+    # ax.axis('off')
 
     ax = axes[0]
-    ax.imshow(lbae_hdbscan_clustering)
-    ax.set_title(f'LBAE+HDBSCAN')
-    ax.axis('off')
-
-    ax = axes[1]
     ax.imshow(lbae_kmeans_clustering)
     ax.set_title(f'LBAE+KMeans')
     ax.axis('off')
 
-    ax = axes[2]
-    ax.imshow(rbm_labels)
-    ax.set_title(f'LBAE+RBM')
-    ax.axis('off')
+    # ax = axes[2]
+    # ax.imshow(rbm_labels)
+    # ax.set_title(f'LBAE+RBM')
+    # ax.axis('off')
 
-    ax = axes[3]
+    ax = axes[1]
     ax.imshow(y_true)
     ax.set_title(f'Ground Truth')
     ax.axis('off')
@@ -173,17 +178,17 @@ def main():
 
     os.makedirs('./exp_13', exist_ok=True)
     with open('exp_13/lbae_metrics.txt', 'a+') as file:
-        file.write(f'LBAE+HDBSCAN Clustering:\n')
-        file.write(f'Homogenity score: {round(lbae_hdbscan_homogeneity, 3)}.\n')
-        file.write(f'Completeness score: {round(lbae_hdbscan_completeness, 3)}.\n')
+        # file.write(f'LBAE+HDBSCAN Clustering:\n')
+        # file.write(f'Homogenity score: {round(lbae_hdbscan_homogeneity, 3)}.\n')
+        # file.write(f'Completeness score: {round(lbae_hdbscan_completeness, 3)}.\n')
 
         file.write(f'LBAE+Kmeans Clustering:\n')
         file.write(f'Homogenity score: {round(lbae_kmeans_homogeneity, 3)}.\n')
         file.write(f'Completeness score: {round(lbae_kmeans_completeness, 3)}.\n')
 
-        file.write(f'LBAE+RBM Clustering:\n')
-        file.write(f'Homogenity score: {round(rbm_homogeneity, 3)}.\n')
-        file.write(f'Completeness score: {round(rbm_completeness, 3)}.\n')
+        # file.write(f'LBAE+RBM Clustering:\n')
+        # file.write(f'Homogenity score: {round(rbm_homogeneity, 3)}.\n')
+        # file.write(f'Completeness score: {round(rbm_completeness, 3)}.\n')
 
 if __name__ == '__main__':
     main()
