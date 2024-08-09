@@ -106,7 +106,7 @@ def main():
                         rbm=rbm
                     )
 
-                    threshold, ari, rand_score, homogenity, completeness  = threshold_finder.find_threshold(THRESHOLDS)
+                    threshold, ari, rand_score, homogenity, completeness, _  = threshold_finder.find_threshold(THRESHOLDS)
 
                     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
                         file.write(f'{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
