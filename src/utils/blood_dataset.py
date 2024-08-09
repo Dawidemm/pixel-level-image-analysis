@@ -73,12 +73,34 @@ class BloodIterableDataset(IterableDataset):
             hyperspectral_data_path: str,
             ground_truth_data_path: str,
             num_images_to_load: Union[int, None]=None,
+            load_specific_image: Union[str, None]=None,
             remove_noisy_bands: bool=True,
             stage = Stage
-    ):
+    ):  
+        '''
+        A dataset class for loading hyperspectral images and ground truth data in an iterable format.
+
+        Parameters:
+        - hyperspectral_data_path (str): Path to the directory containing hyperspectral data. Should include .hdr and .float files.
+        - ground_truth_data_path (str): Path to the directory containing ground truth data. Should include .npz files with ground truth data.
+        - num_images_to_load (Union[int, None], optional): Number of images to load. If None, all images in the directory will be loaded.
+        - load_specific_image (Union[str, None], optional): Specific image to load (without extension). If None, images will be loaded based on `num_images_to_load`.
+        - remove_noisy_bands (bool, optional): Flag indicating whether to remove noisy bands from hyperspectral data. Default is True.
+        - stage (Stage, optional): Processing stage (e.g., training). Default is Stage.
+
+        Attributes:
+        - pixel_max_value (float): Maximum pixel value in the hyperspectral data used for normalization.
+        - classes (int): Number of classes in the ground truth data, used for one-hot encoding labels.
+
+        Methods:
+        - __iter__(): Generator that iterates over hyperspectral images and ground truth data. Normalizes hyperspectral data and converts ground truth to one-hot encoding if required.
+        - onehot_encoding(label: torch.TensorType) -> Sequence[int]: Converts a label to a one-hot encoded format.
+        '''
+
         self.hyperspectral_data_path = hyperspectral_data_path
         self.ground_truth_data_path = ground_truth_data_path
         self.num_images_to_load = num_images_to_load
+        self.load_specific_image = load_specific_image
         self.remove_noisy_bands = remove_noisy_bands
         self.stage = stage
 
@@ -114,6 +136,12 @@ class BloodIterableDataset(IterableDataset):
             number_of_images = len(float_files)
         else:
             number_of_images = self.num_images_to_load
+
+        if self.load_specific_image != None:
+            hdr_files = [self.load_specific_image + '.hdr']
+            float_files = [self.load_specific_image + '.float']
+            ground_truth_files = [self.load_specific_image + '.npz']
+            number_of_images = 1
 
         for i in range(number_of_images):
 
