@@ -38,6 +38,7 @@ EXPERIMENT_FOLDER_PATH = './experiments/'
 
 def main():
 
+    print(f'Starting experiments... Time: {time.time()}.')
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
         file.write(f'time,image,experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
@@ -45,6 +46,7 @@ def main():
     experiment = 0
 
     for image in IMAGES:
+        print(f'Processing image: {image}.')
 
         train_dataset = BloodIterableDataset(
             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
@@ -80,13 +82,19 @@ def main():
         )
     
         for num_hidden in NUM_HIDDEN:
+            print(f'Using num_hidden: {num_hidden}')
+
             for rbm_steps in RBM_STEPS:
+                print(f'Using rbm_steps: {rbm_steps}')
+
                 for rbm_lr in RBM_LEARNING_RATE:
-        
+                    print(f'Using rbm_lr: {rbm_lr}')
+
                     rbm = RBM(NUM_VISIBLE, num_hidden)
 
                     pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
 
+                    print(f'Start RBM training... Time: {time.time()}')
                     pipeline.fit(
                         train_dataloader,
                         skip_autoencoder=True,
@@ -97,10 +105,12 @@ def main():
                         experiment_folder_path=EXPERIMENT_FOLDER_PATH,
                         experiment_number=experiment
                     )
+                    print(f'RBM training finished. Time: {time.time()}')
 
                     rbm = RBM(NUM_VISIBLE, num_hidden)
                     rbm.load(file=f'{EXPERIMENT_FOLDER_PATH}exp_{experiment}/rbm.npz')
 
+                    print(f'Finding threshold for experiment: {experiment}. Time: {time.time()}')
                     threshold_finder = utils.ThresholdFinder(
                         dataloader=find_threshold_dataloader,
                         encoder=lbae.encoder,
@@ -108,6 +118,7 @@ def main():
                     )
 
                     threshold, ari, rand_score, homogenity, completeness, _  = threshold_finder.find_threshold(THRESHOLDS)
+                    print(f'Threshold found for experiment: {experiment}. Time: {time.time()}')
 
                     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
                         file.write(f'{time.time()},{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
