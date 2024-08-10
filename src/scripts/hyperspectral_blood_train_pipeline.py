@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from src.utils.blood_dataset import BloodIterableDataset, Stage
 import torch
 import numpy as np
+import time
 import os
 
 from src.utils import utils
@@ -33,13 +34,13 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=14-step=4410900.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 
-EXPERIMENT_FOLDER_PATH = './experiments/diff_imgs/'
+EXPERIMENT_FOLDER_PATH = './experiments/'
 
 def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'image,experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
+        file.write(f'time,image,experiment,num_hidden,rbm_steps,rbm_lr,threshold,ari,rand_score,homogenity,completeness\n')
 
     experiment = 0
 
@@ -109,7 +110,7 @@ def main():
                     threshold, ari, rand_score, homogenity, completeness, _  = threshold_finder.find_threshold(THRESHOLDS)
 
                     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-                        file.write(f'{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
+                        file.write(f'{time.time()},{image},{experiment},{num_hidden},{rbm_steps},{rbm_lr},{threshold},{ari},{rand_score},{homogenity},{completeness}\n')
 
                     experiment += 1
 
