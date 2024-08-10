@@ -94,7 +94,7 @@ def main():
 
                     pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
 
-                    print(f'Start RBM training... Time: {time.time()}')
+                    print(f'Start RBM training... Time: {time.ctime()}')
                     pipeline.fit(
                         train_dataloader,
                         skip_autoencoder=True,
