@@ -64,6 +64,7 @@ def main():
 
         y_true = np.concatenate(y_true)
         background_values = np.sum(y_true == BACKGROUND_VALUE)
+        bacground_percentage = round(((background_values/y_true.size)*100), 3)
 
         hidden_representations = np.concatenate(hidden_representations)
 
@@ -99,7 +100,7 @@ def main():
 
         ax = axes[2]
         ax.imshow(y_true)
-        ax.set_title(f'Ground Truth (Background: {(background_values/y_true.size)*100}%)')
+        ax.set_title(f'Ground Truth (Background: {bacground_percentage})')
         ax.axis('off')
 
         plt.tight_layout()
