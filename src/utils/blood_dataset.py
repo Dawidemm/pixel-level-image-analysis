@@ -9,6 +9,7 @@ from enum import Enum
 
 
 NOISY_BANDS_INDICES = np.array([0, 1, 2, 3, 4, 5, 48, 49, 50, 121, 122, 123, 124, 125, 126, 127])
+BACKGROUND_VALUE = 0
 
 class Stage(Enum):
     TRAIN = 'train'
@@ -174,7 +175,7 @@ class BloodIterableDataset(IterableDataset):
             img = img.reshape(rows*cols, bands)
 
             if self.remove_background:
-                background_indices = np.where(gt == 0)[0]
+                background_indices = np.where(gt == BACKGROUND_VALUE)[0]
                 
                 gt = np.delete(gt, background_indices)
                 img = np.delete(img, background_indices, axis=0)
