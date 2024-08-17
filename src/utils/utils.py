@@ -257,11 +257,15 @@ def spectral_angle_distance_matrix(
 class LossLoggerCallback(lightning.Callback):
     def __init__(self):
         super().__init__()
-        self.losses = []
+        self.train_losses = []
+        self.validation_losses = []
 
     def on_train_epoch_end(self, trainer: lightning.Trainer, pl_module: lightning.LightningModule) -> None:
-        loss = trainer.logged_metrics['loss']
-        self.losses.append(loss)
+        train_loss = trainer.logged_metrics['train_loss']
+        self.losses.append(train_loss)
+
+        val_loss = trainer.logged_metrics['val_loss']
+        self.losses.append(val_loss)
     
 def plot_loss(
         epochs: int, 
