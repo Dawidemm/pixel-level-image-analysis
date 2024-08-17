@@ -13,7 +13,7 @@ class LBAE(pl.LightningModule):
         self, input_size, out_channels, latent_size, num_layers, quantize, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         
-        self.save_hyperparameters("input_size", "out_channels", "latent_size", "num_layers", "quantize")
+        self.save_hyperparameters('input_size', 'out_channels', 'latent_size', 'num_layers', 'quantize')
 
         self.encoder = LBAEEncoder(input_size, out_channels, latent_size, num_layers, quantize)
         self.decoder = LBAEDecoder(self.encoder.final_conv_size, input_size, latent_size, num_layers)
@@ -22,15 +22,23 @@ class LBAE(pl.LightningModule):
     def forward(self, x):
         z, quant_err = self.encoder(x, self.epoch)
         x_reconstructed = self.decoder(z)
-        self.log("quant_error", quant_err)
+        self.log('quant_error', quant_err)
 
         return x_reconstructed
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
         x_reconstructed = self.forward(x)
-        loss = mse_loss(x_reconstructed.view(x.size()), x, reduction="sum")
-        self.log("loss", loss, prog_bar=True, on_epoch=True, on_step=False)
+        loss = mse_loss(x_reconstructed.view(x.size()), x, reduction='sum')
+        self.log('train_loss', loss, prog_bar=True, on_epoch=True, on_step=False)
+
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        x, _ = batch
+        x_reconstructed = self.forward(x)
+        loss = mse_loss(x_reconstructed.view(x.size()), x, reduction='sum')
+        self.log('val_loss', loss, prog_bar=True, on_epoch=True, on_step=False)
 
         return loss
 
