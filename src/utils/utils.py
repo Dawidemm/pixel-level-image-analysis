@@ -269,9 +269,9 @@ class LossLoggerCallback(lightning.Callback):
     
 def plot_loss(
         epochs: int,
-        plot_title: str,
         train_loss_values: Sequence[float],
         validation_loss_values: Sequence[float],
+        plot_title: str,
         save: bool=True,
         format: str='svg',
         experiment_number: Union[int, None]=None
