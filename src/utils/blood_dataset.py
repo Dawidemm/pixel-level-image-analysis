@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 import spectral.io.envi as envi
-from torch.utils.data import IterableDataset, DataLoader
+from torch.utils.data import IterableDataset
 
 from typing import Sequence, Union, List
 from enum import Enum
@@ -80,7 +80,6 @@ class BloodIterableDataset(IterableDataset):
             remove_background: bool=False,
             stage = Stage,
             shuffle = bool,
-            # split_ratio = float
     ):  
         '''
         A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
