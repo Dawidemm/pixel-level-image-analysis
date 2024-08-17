@@ -2,9 +2,9 @@ import os
 import torch
 import numpy as np
 import spectral.io.envi as envi
-from torch.utils.data import IterableDataset
+from torch.utils.data import IterableDataset, DataLoader
 
-from typing import Sequence, Union
+from typing import Sequence, Union, List
 from enum import Enum
 
 
@@ -12,7 +12,9 @@ NOISY_BANDS_INDICES = np.array([0, 1, 2, 3, 4, 5, 48, 49, 50, 121, 122, 123, 124
 
 class Stage(Enum):
     TRAIN = 'train'
-    IMG_SEG = 'image_segmentation'
+    VALIDATE = 'validate'
+    TEST = 'test'
+
 
 def blood_dataset_params(
         hyperspectral_data_path: str,
@@ -72,37 +74,45 @@ class BloodIterableDataset(IterableDataset):
             self,
             hyperspectral_data_path: str,
             ground_truth_data_path: str,
-            num_images_to_load: Union[int, None]=None,
-            load_specific_image: Union[str, None]=None,
+            load_specific_images: Union[List[str], None]=None,
             remove_noisy_bands: bool=True,
-            stage = Stage
+            remove_background: bool=False,
+            stage = Stage,
+            shuffle = bool,
+            # split_ratio = float
     ):  
         '''
-        A dataset class for loading hyperspectral images and ground truth data in an iterable format.
+        A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
+        The dataset provides an iterable over pixel-label pairs.
 
         Parameters:
-        - hyperspectral_data_path (str): Path to the directory containing hyperspectral data. Should include .hdr and .float files.
-        - ground_truth_data_path (str): Path to the directory containing ground truth data. Should include .npz files with ground truth data.
-        - num_images_to_load (Union[int, None], optional): Number of images to load. If None, all images in the directory will be loaded.
-        - load_specific_image (Union[str, None], optional): Specific image to load (without extension). If None, images will be loaded based on `num_images_to_load`.
-        - remove_noisy_bands (bool, optional): Flag indicating whether to remove noisy bands from hyperspectral data. Default is True.
-        - stage (Stage, optional): Processing stage (e.g., training). Default is Stage.
+        - hyperspectral_data_path (str): Path to the folder containing hyperspectral image files (.hdr and .float format).
+        - ground_truth_data_path (str): Path to the folder containing ground truth data files (.npz format).
+        - load_specific_images (Union[List[str], None], optional): List of specific images to load (without extension).
+        If None, all available images will be loaded. Default is None.
+        - remove_noisy_bands (bool, optional): Flag indicating whether noisy spectral bands should be removed. Default is True.
+        - remove_background (bool, optional): If True, pixels corresponding to background in the ground truth are excluded.
+        Default is False.
+        - stage (Stage, optional): Specifies the processing stage (e.g., training or inference). Default is Stage.
 
         Attributes:
-        - pixel_max_value (float): Maximum pixel value in the hyperspectral data used for normalization.
-        - classes (int): Number of classes in the ground truth data, used for one-hot encoding labels.
+        - pixel_max_value (float): Maximum pixel value from hyperspectral data for normalization.
+        - classes (int): The number of classes for one-hot encoding in the ground truth data.
 
         Methods:
-        - __iter__(): Generator that iterates over hyperspectral images and ground truth data. Normalizes hyperspectral data and converts ground truth to one-hot encoding if required.
-        - onehot_encoding(label: torch.TensorType) -> Sequence[int]: Converts a label to a one-hot encoded format.
+        - __iter__(): An iterable that yields pairs of normalized pixel data (torch.Tensor) and ground truth labels.
+        Labels are one-hot encoded when in training mode and background pixels can be optionally removed.
+        - onehot_encoding(label: torch.TensorType) -> Sequence[int]: Converts a scalar label into a one-hot encoded vector.
         '''
+        np.random.seed(100)
 
         self.hyperspectral_data_path = hyperspectral_data_path
         self.ground_truth_data_path = ground_truth_data_path
-        self.num_images_to_load = num_images_to_load
-        self.load_specific_image = load_specific_image
+        self.load_specific_images = load_specific_images
         self.remove_noisy_bands = remove_noisy_bands
+        self.remove_background = remove_background
         self.stage = stage
+        self.shuffle = shuffle
 
         self.pixel_max_value, self.classes = blood_dataset_params(
             hyperspectral_data_path=hyperspectral_data_path,
@@ -112,41 +122,40 @@ class BloodIterableDataset(IterableDataset):
 
     def __iter__(self):
 
-        hyperspectral_data_files = os.listdir(self.hyperspectral_data_path)
-        hyperspectral_files = [f for f in hyperspectral_data_files if os.path.isfile(os.path.join(self.hyperspectral_data_path, f))]
+        if self.load_specific_images is None:
+            hyperspectral_data_files = os.listdir(self.hyperspectral_data_path)
+            hyperspectral_files = [f for f in hyperspectral_data_files if os.path.isfile(os.path.join(self.hyperspectral_data_path, f))]
 
-        float_files = []
-        hdr_files = []
+            float_files = []
+            hdr_files = []
 
-        for file in hyperspectral_files:
-            if file.endswith('.float'):
-                float_files.append(file)
-            elif file.endswith('.hdr'):
-                hdr_files.append(file)
+            for file in hyperspectral_files:
+                if file.endswith('.float'):
+                    float_files.append(file)
+                elif file.endswith('.hdr'):
+                    hdr_files.append(file)
 
-        float_files = sorted(float_files)
-        hdr_files = sorted(hdr_files)
+            float_files = sorted(float_files)
+            hdr_files = sorted(hdr_files)
 
-        ground_truth_data_files = os.listdir(self.ground_truth_data_path)
+            ground_truth_data_files = os.listdir(self.ground_truth_data_path)
 
-        ground_truth_files = [f for f in ground_truth_data_files if os.path.isfile(os.path.join(self.ground_truth_data_path, f))]
-        ground_truth_files = sorted(ground_truth_files)
+            ground_truth_files = [f for f in ground_truth_data_files if os.path.isfile(os.path.join(self.ground_truth_data_path, f))]
+            ground_truth_files = sorted(ground_truth_files)
 
-        if self.num_images_to_load == None:
-            number_of_images = len(float_files)
+            number_of_images = len(ground_truth_files)
+
         else:
-            number_of_images = self.num_images_to_load
-
-        if self.load_specific_image != None:
-            hdr_files = [self.load_specific_image + '.hdr']
-            float_files = [self.load_specific_image + '.float']
-            ground_truth_files = [self.load_specific_image + '.npz']
-            number_of_images = 1
+            hdr_files = [image + '.hdr' for image in self.load_specific_images]
+            float_files = [image + '.float' for image in self.load_specific_images]
+            ground_truth_files = [image + '.npz' for image in self.load_specific_images]
+            number_of_images = len(self.load_specific_images)
 
         for i in range(number_of_images):
 
             img = envi.open(f'{self.hyperspectral_data_path}/{hdr_files[i]}', f'{self.hyperspectral_data_path}/{float_files[i]}')
             img = np.asarray(img[:,:,:], dtype=np.float32)
+            img /= self.pixel_max_value
 
             if self.remove_noisy_bands:
                 img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
@@ -157,17 +166,46 @@ class BloodIterableDataset(IterableDataset):
 
             if img.shape[:2] == gt.shape:
                 rows, cols, bands = img.shape
+            else:
+                error_message = f'Dimensions mismatch.\nHyperspectral image shape: {img.shape},\nGroud truth shape: {gt.shape}.'
+                raise ValueError(error_message)
+            
+            gt = gt.flatten()
+            img = img.reshape(rows*cols, bands)
 
-            for row in range(rows):
-                for col in range(cols):
-                    pixel = torch.tensor(img[row, col]) / self.pixel_max_value
-                    pixel = pixel.reshape(1, pixel.shape[0])
-                    label = torch.tensor(gt[row, col])
+            if self.remove_background:
+                background_indices = np.where(gt == 0)[0]
+                
+                gt = np.delete(gt, background_indices)
+                img = np.delete(img, background_indices, axis=0)
 
-                    if self.stage == Stage.TRAIN:
-                        label = self.onehot_encoding(int(label.item()))
+            if self.shuffle == True:
+                combined = list(zip(gt, img))
+                np.random.shuffle(combined)
+                gt, img = zip(*combined)
+                gt, img = np.array(gt), np.array(img)
 
-                    yield pixel, label
+            if self.stage == Stage.TRAIN:
+                gt = gt[:int(0.75*len(gt))]
+                img = img[:int(0.75*len(img))]  
+
+            elif self.stage == Stage.VALIDATE:
+                gt = gt[int(0.75*len(gt)):int(0.90*len(gt))]
+                img = img[:int(0.75*len(img)):int(0.90*len(gt))]
+
+            elif self.stage == Stage.TEST:
+                gt = gt[int(0.9*len(gt))]
+                img = img[:int(0.9*len(img))]
+
+            for i in range(len(img)):
+                pixel = torch.tensor(img[i])
+                pixel = pixel.reshape(1, pixel.shape[0])
+                label = torch.tensor(gt[i])
+
+                if self.stage == Stage.TRAIN or self.stage == Stage.VALIDATE:
+                    label = self.onehot_encoding(int(label.item()))
+                    
+                yield pixel, label
 
     def onehot_encoding(self, label: torch.TensorType) -> Sequence[int]:
         onehot_label = torch.zeros(self.classes)
