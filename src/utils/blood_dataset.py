@@ -82,8 +82,9 @@ class BloodIterableDataset(IterableDataset):
             shuffle = bool,
     ):  
         '''
-        A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
-        The dataset provides an iterable over pixel-label pairs.
+        A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data. 
+        The dataset provides an iterable over pixel-label pairs, supporting different processing stages (TRAIN, VALIDATE, TEST)
+        and optional background removal and shuffling.
 
         Parameters:
         - hyperspectral_data_path (str): Path to the folder containing hyperspectral image files (.hdr and .float format).
@@ -93,16 +94,24 @@ class BloodIterableDataset(IterableDataset):
         - remove_noisy_bands (bool, optional): Flag indicating whether noisy spectral bands should be removed. Default is True.
         - remove_background (bool, optional): If True, pixels corresponding to background in the ground truth are excluded.
         Default is False.
-        - stage (Stage, optional): Specifies the processing stage (e.g., training or inference). Default is Stage.
+        - stage (Stage, optional): Specifies the processing stage (TRAIN, VALIDATE, or TEST), which determines how the data is split.
+        Default is Stage.TRAIN.
+        - shuffle (bool, optional): Flag indicating whether to shuffle the dataset. Default is False.
 
         Attributes:
-        - pixel_max_value (float): Maximum pixel value from hyperspectral data for normalization.
-        - classes (int): The number of classes for one-hot encoding in the ground truth data.
+        - pixel_max_value (float): Maximum pixel value from hyperspectral data used for normalization.
+        - classes (int): The number of unique classes in the ground truth data for one-hot encoding.
 
         Methods:
         - __iter__(): An iterable that yields pairs of normalized pixel data (torch.Tensor) and ground truth labels.
-        Labels are one-hot encoded when in training mode and background pixels can be optionally removed.
+        Labels are one-hot encoded during training and validation, and background pixels can be optionally removed.
+        The dataset is shuffled if specified.
         - onehot_encoding(label: torch.TensorType) -> Sequence[int]: Converts a scalar label into a one-hot encoded vector.
+
+        Data Splitting:
+        - Training: The first 75% of the dataset is used for training.
+        - Validation: 15% of the dataset is used for validation (from 75% to 90%).
+        - Test: The remaining 10% of the dataset is used for testing.
         '''
         np.random.seed(100)
 
