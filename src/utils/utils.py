@@ -268,15 +268,18 @@ class LossLoggerCallback(lightning.Callback):
         self.losses.append(val_loss)
     
 def plot_loss(
-        epochs: int, 
-        loss_values: Sequence[float], 
-        plot_title: str, 
+        epochs: int,
+        plot_title: str,
+        train_loss_values: Sequence[float],
+        validation_loss_values: Sequence[float],
         save: bool=True,
         format: str='svg',
         experiment_number: Union[int, None]=None
 ):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=list(range(epochs)), y=loss_values, mode='lines', name='Loss'))
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=train_loss_values, mode='lines', name='Loss', color='blue'))
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=validation_loss_values, mode='lines', name='Loss', color='green'))
+
     fig.update_layout(
         title=plot_title,
         xaxis_title='Epoch',
