@@ -262,10 +262,10 @@ class LossLoggerCallback(lightning.Callback):
 
     def on_train_epoch_end(self, trainer: lightning.Trainer, pl_module: lightning.LightningModule) -> None:
         train_loss = trainer.logged_metrics['train_loss']
-        self.losses.append(train_loss)
+        self.train_losses.append(train_loss)
 
         val_loss = trainer.logged_metrics['val_loss']
-        self.losses.append(val_loss)
+        self.validation_losses.append(val_loss)
     
 def plot_loss(
         epochs: int,
@@ -277,15 +277,14 @@ def plot_loss(
         experiment_number: Union[int, None]=None
 ):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=list(range(epochs)), y=train_loss_values, mode='lines', name='Loss', color='blue'))
-    fig.add_trace(go.Scatter(x=list(range(epochs)), y=validation_loss_values, mode='lines', name='Loss', color='green'))
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=train_loss_values, mode='lines', name='Loss'))
+    fig.add_trace(go.Scatter(x=list(range(epochs)), y=validation_loss_values, mode='lines', name='Loss'))
 
     fig.update_layout(
         title=plot_title,
         xaxis_title='Epoch',
         yaxis_title='Loss',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)'
+        plot_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
