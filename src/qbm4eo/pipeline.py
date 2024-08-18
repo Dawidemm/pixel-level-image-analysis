@@ -66,7 +66,7 @@ class Pipeline:
             if learnig_curve:
                 utils.plot_loss(
                     epochs=trainer.max_epochs, 
-                    train_loss_values=loss_logs.train_losseslosses,
+                    train_loss_values=loss_logs.train_losses,
                     validation_loss_values=loss_logs.validation_losses,
                     plot_title='Autoencoder'
                 )
@@ -74,8 +74,6 @@ class Pipeline:
         encoder = self.auto_encoder.encoder
         for param in encoder.parameters():
             param.requires_grad = False
-
-        torch.save(encoder.state_dict(), "encoder.pt")
 
         if skip_rbm:
             print("Skipping RBM training as requested.")
