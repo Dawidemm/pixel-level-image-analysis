@@ -1,15 +1,7 @@
-from itertools import islice
-from pathlib import Path
-
 import os
-
-import numpy as np
 import torch
 import lightning as pl
-from scipy import stats
-from torch import nn
 from torch.utils.data import DataLoader
-from lightning.pytorch.callbacks import EarlyStopping
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
@@ -30,7 +22,8 @@ class Pipeline:
 
     def fit(
         self,
-        data_loader: DataLoader,
+        train_data_loader: DataLoader,
+        validation_data_loader: DataLoader,
         gpus=1,
         precision=32,
         max_epochs=100,
@@ -64,13 +57,19 @@ class Pipeline:
             print("Skipping autoencoder training as requested.")
         else:
             print("Training autoencoder.")
-            trainer.fit(self.auto_encoder, data_loader)
+            trainer.fit(
+                model=self.auto_encoder,
+                train_dataloaders=train_data_loader,
+                val_dataloaders=validation_data_loader
+            )
 
             if learnig_curve:
                 utils.plot_loss(
                     epochs=trainer.max_epochs, 
-                    loss_values=loss_logs.losses, 
-                    plot_title='Autoencoder')
+                    train_loss_values=loss_logs.train_losseslosses,
+                    validation_loss_values=loss_logs.validation_losses,
+                    plot_title='Autoencoder'
+                )
 
         encoder = self.auto_encoder.encoder
         for param in encoder.parameters():
@@ -84,7 +83,7 @@ class Pipeline:
             if rbm_trainer == 'cd1':
                 print('RBM training with CD1Trainer.')
                 rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
-                rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
+                rbm_trainer.fit(self.rbm, encoded_dataloader(train_data_loader, encoder))
 
                 if learnig_curve:
                     utils.plot_loss(
@@ -97,7 +96,7 @@ class Pipeline:
             elif rbm_trainer == 'annealing':
                 print('RBM training with AnnealingRBMTrainer.')
                 rbm_trainer = AnnealingRBMTrainer(rbm_steps, sampler='placeholder', learning_rate=rbm_learning_rate)
-                rbm_trainer.fit(self.rbm, encoded_dataloader(data_loader, encoder))
+                rbm_trainer.fit(self.rbm, encoded_dataloader(train_data_loader, encoder))
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
             
