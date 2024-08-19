@@ -200,11 +200,11 @@ class BloodIterableDataset(IterableDataset):
 
             elif self.stage == Stage.VALIDATE:
                 gt = gt[int(0.75*len(gt)):int(0.90*len(gt))]
-                img = img[:int(0.75*len(img)):int(0.90*len(gt))]
+                img = img[int(0.75*len(img)):int(0.90*len(img))]
 
             elif self.stage == Stage.TEST:
-                gt = gt[int(0.9*len(gt))]
-                img = img[:int(0.9*len(img))]
+                gt = gt[int(0.9*len(gt)):]
+                img = img[int(0.9*len(img)):]
 
             for i in range(len(img)):
                 pixel = torch.tensor(img[i])
