@@ -268,7 +268,6 @@ class LossLoggerCallback(lightning.Callback):
         self.validation_losses.append(val_loss)
     
 def plot_loss(
-        epochs: int,
         train_loss_values: Sequence[float],
         validation_loss_values: Sequence[float],
         plot_title: str,
@@ -277,8 +276,26 @@ def plot_loss(
         experiment_number: Union[int, None]=None
 ):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=list(range(epochs)), y=train_loss_values, mode='lines', name='Loss'))
-    fig.add_trace(go.Scatter(x=list(range(epochs)), y=validation_loss_values, mode='lines', name='Loss'))
+    fig.add_trace(go.Scatter(x=list(range(len(train_loss_values))), y=train_loss_values, mode='lines', name='Train Loss'))
+
+    if len(train_loss_values) != len(validation_loss_values):
+        fig.add_trace(
+            go.Scatter(
+                x=[(len(train_loss_values)/len(validation_loss_values))*i for i in range(len(validation_loss_values))], 
+                y=validation_loss_values, 
+                mode='lines', 
+                name='Val Loss'
+            )
+        )
+    else:
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(len(validation_loss_values))), 
+                y=validation_loss_values, 
+                mode='lines', 
+                name='Val Loss'
+            )
+        )
 
     fig.update_layout(
         title=plot_title,

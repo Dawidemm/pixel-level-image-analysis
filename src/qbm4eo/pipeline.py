@@ -8,6 +8,7 @@ from src.utils import utils
 
 from typing import Union
 
+
 def encoded_dataloader(data_loader, encoder):
     while True:
         for batch_idx, (data, target) in enumerate(data_loader):
@@ -26,10 +27,10 @@ class Pipeline:
         validation_data_loader: DataLoader,
         gpus=1,
         precision=32,
-        max_epochs=100,
+        autoencoder_epochs=100,
         enable_checkpointing=True,
-        rbm_learning_rate=0.0001,
-        rbm_steps=100,
+        rbm_learning_rate=0.001,
+        rbm_epochs=1,
         skip_autoencoder=False,
         skip_rbm=False,
         rbm_trainer=None,
@@ -47,7 +48,7 @@ class Pipeline:
         trainer = pl.Trainer(
             accelerator='cpu',
             precision=precision,
-            max_epochs=max_epochs,
+            max_epochs=autoencoder_epochs,
             logger=True,
             enable_checkpointing=enable_checkpointing,
             callbacks=[loss_logs]
@@ -65,10 +66,10 @@ class Pipeline:
 
             if learnig_curve:
                 utils.plot_loss(
-                    epochs=trainer.max_epochs, 
                     train_loss_values=loss_logs.train_losses,
                     validation_loss_values=loss_logs.validation_losses,
-                    plot_title='Autoencoder'
+                    plot_title='Autoencoder',
+                    experiment_number=experiment_number
                 )
 
         encoder = self.auto_encoder.encoder
@@ -80,20 +81,25 @@ class Pipeline:
         else:
             if rbm_trainer == 'cd1':
                 print('RBM training with CD1Trainer.')
-                rbm_trainer = CD1Trainer(rbm_steps, learning_rate=rbm_learning_rate)
-                rbm_trainer.fit(self.rbm, encoded_dataloader(train_data_loader, encoder))
+                rbm_trainer = CD1Trainer(rbm_epochs, learning_rate=rbm_learning_rate)
+                rbm_trainer.fit(
+                    rbm=self.rbm,
+                    encoder=encoder,
+                    train_data_loader=train_data_loader,
+                    val_data_loader=validation_data_loader
+                )
 
                 if learnig_curve:
                     utils.plot_loss(
-                        epochs=rbm_trainer.num_steps, 
-                        loss_values=rbm_trainer.losses, 
+                        train_loss_values=rbm_trainer.train_losses,
+                        validation_loss_values=rbm_trainer.val_losses,
                         plot_title='RBM',
                         experiment_number=experiment_number
                     )
 
             elif rbm_trainer == 'annealing':
                 print('RBM training with AnnealingRBMTrainer.')
-                rbm_trainer = AnnealingRBMTrainer(rbm_steps, sampler='placeholder', learning_rate=rbm_learning_rate)
+                rbm_trainer = AnnealingRBMTrainer(rbm_epochs, sampler='placeholder', learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(self.rbm, encoded_dataloader(train_data_loader, encoder))
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
