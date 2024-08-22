@@ -13,12 +13,6 @@ from typing import Union
 INITIAL_COEF_SCALE = 0.1
 
 
-def infinite_dataloader_generator(data_loader):
-    while True:
-        for batch_idx, (data, target) in enumerate(data_loader):
-            yield batch_idx, (data, target)
-
-
 def qubo_from_rbm_coefficients(
     weights: np.ndarray, v_bias: np.ndarray, h_bias: np.ndarray
 ):
