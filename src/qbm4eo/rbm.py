@@ -121,7 +121,6 @@ class RBMTrainer:
     def fit(
             self,
             rbm: RBM,
-            encoder,
             train_data_loader: DataLoader,
             val_data_loader: Union[DataLoader, None] = None,
     ):
@@ -138,11 +137,11 @@ class RBMTrainer:
                 train_loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
                 self.train_losses.append(train_loss)
 
-                if val_data_loader is not None:
-                    val_loss = self.validation_step(rbm, encoder, val_data_loader)
-                    self.val_losses.append(val_loss)
+                pbar.set_postfix(train_loss=train_loss)
 
-                pbar.set_postfix(train_loss=train_loss, val_loss=val_loss)
+            if val_data_loader is not None:
+                val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
+                self.val_losses.append(val_loss)
 
     @abc.abstractmethod
     def training_step(self, rbm: RBM, batch):
@@ -156,10 +155,14 @@ class RBMTrainer:
         ):
             val_losses = []
 
-            for val_batch, _ in val_data_loader:
+            pbar = tqdm.tqdm(val_data_loader, desc=f'\tValidation step')
+
+            for val_batch, _ in pbar:
                 val_batch = encoder(val_batch)[0].detach().cpu().numpy().squeeze()
                 val_loss = ((val_batch - rbm.reconstruct(val_batch)) ** 2).sum() / val_batch.shape[0] / val_batch.shape[1]
                 val_losses.append(val_loss)
+
+                pbar.set_postfix(val_loss=val_loss)
                 
             return np.mean(val_losses)
 
@@ -211,8 +214,8 @@ class AnnealingRBMTrainer(RBMTrainer):
 
 class CD1Trainer(RBMTrainer):
 
-    def __init__(self, num_steps: int, learning_rate: float = 0.01):
-        super().__init__(num_steps)
+    def __init__(self, epochs: int, encoder: nn.Module, learning_rate: float = 0.01):
+        super().__init__(epochs, encoder)
         self.learning_rate = learning_rate
 
     def training_step(self, rbm: RBM, batch):

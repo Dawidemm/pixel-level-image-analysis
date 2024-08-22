@@ -81,10 +81,9 @@ class Pipeline:
         else:
             if rbm_trainer == 'cd1':
                 print('RBM training with CD1Trainer.')
-                rbm_trainer = CD1Trainer(rbm_epochs, learning_rate=rbm_learning_rate)
+                rbm_trainer = CD1Trainer(rbm_epochs, encoder=encoder, learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(
                     rbm=self.rbm,
-                    encoder=encoder,
                     train_data_loader=train_data_loader,
                     val_data_loader=validation_data_loader
                 )
