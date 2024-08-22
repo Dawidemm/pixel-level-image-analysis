@@ -4,7 +4,8 @@ import numpy as np
 import spectral.io.envi as envi
 from torch.utils.data import IterableDataset
 
-from typing import Sequence, Union, List
+from typing import Sequence, Union, Tuple, List
+from numpy.typing import ArrayLike
 from enum import Enum
 
 
@@ -79,7 +80,8 @@ class BloodIterableDataset(IterableDataset):
             remove_noisy_bands: bool=True,
             remove_background: bool=False,
             stage = Stage,
-            shuffle = bool,
+            shuffle: bool = True,
+            random_seed: int = 42
     ):  
         '''
         A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data. 
@@ -113,7 +115,6 @@ class BloodIterableDataset(IterableDataset):
         - Validation: 15% of the dataset is used for validation (from 75% to 90%).
         - Test: The remaining 10% of the dataset is used for testing.
         '''
-        np.random.seed(100)
 
         self.hyperspectral_data_path = hyperspectral_data_path
         self.ground_truth_data_path = ground_truth_data_path
@@ -122,6 +123,7 @@ class BloodIterableDataset(IterableDataset):
         self.remove_background = remove_background
         self.stage = stage
         self.shuffle = shuffle
+        self.random_seed = random_seed
 
         self.pixel_max_value, self.classes = blood_dataset_params(
             hyperspectral_data_path=hyperspectral_data_path,
@@ -189,22 +191,16 @@ class BloodIterableDataset(IterableDataset):
                 img = np.delete(img, background_indices, axis=0)
 
             if self.shuffle == True:
-                combined = list(zip(gt, img))
-                np.random.shuffle(combined)
-                gt, img = zip(*combined)
-                gt, img = np.array(gt), np.array(img)
+                gt, img = self.shuffle_data(
+                    gt=gt,
+                    img=img,
+                )
 
-            if self.stage == Stage.TRAIN:
-                gt = gt[:int(0.75*len(gt))]
-                img = img[:int(0.75*len(img))]  
-
-            elif self.stage == Stage.VALIDATE:
-                gt = gt[int(0.75*len(gt)):int(0.90*len(gt))]
-                img = img[int(0.75*len(img)):int(0.90*len(img))]
-
-            elif self.stage == Stage.TEST:
-                gt = gt[int(0.9*len(gt)):]
-                img = img[int(0.9*len(img)):]
+            gt, img = self.train_val_test_split(
+                gt=gt,
+                img=img,
+                stage=self.stage
+            )
 
             for i in range(len(img)):
                 pixel = torch.tensor(img[i])
@@ -220,3 +216,45 @@ class BloodIterableDataset(IterableDataset):
         onehot_label = torch.zeros(self.classes)
         onehot_label[label] = 1.0
         return onehot_label
+    
+    def shuffle_data(
+            self,
+            gt: ArrayLike,
+            img: ArrayLike,
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        
+        random_state = np.random.RandomState(seed=self.random_seed)
+
+        combined = list(zip(gt, img))
+        random_state.shuffle(combined)
+        gt, img = zip(*combined)
+        gt, img = np.array(gt), np.array(img)
+
+        return gt, img
+    
+    def train_val_test_split(
+            self,
+            gt: ArrayLike,
+            img: ArrayLike,
+            stage: Stage
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        
+        if stage == Stage.TRAIN:
+            gt = gt[:int(0.8*len(gt))]
+            img = img[:int(0.8*len(img))]
+
+            gt = gt[:int(0.8*len(gt))]
+            img = img[:int(0.8*len(img))]
+
+        elif stage == Stage.VALIDATE:
+            gt = gt[:int(0.8*len(gt))]
+            img = img[:int(0.8*len(img))]
+
+            gt = gt[int(0.8*len(gt)):]
+            img = img[int(0.8*len(img)):]
+
+        elif self.stage == Stage.TEST:
+            gt = gt[int(0.8*len(gt)):]
+            img = img[int(0.8*len(img)):]
+
+        return gt, img
