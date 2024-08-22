@@ -5,7 +5,9 @@ import dimod
 import numpy as np
 from scipy.special import expit
 from torch.utils.data import DataLoader
+import torch.nn as nn
 import tqdm
+from typing import Union
 
 
 INITIAL_COEF_SCALE = 0.1
@@ -102,31 +104,64 @@ class RBM:
         rbm.h_bias = h_bias
         return rbm
 
-
+    
 class RBMTrainer:
+    
+    def __init__(
+            self,
+            epochs: int,
+            encoder: nn.Module
+    ):
+        self.epochs = epochs
+        self.encoder = encoder
 
-    def __init__(self, num_steps: int):
-        self.num_steps = num_steps
-        self.losses = []
+        self.train_losses = []
+        self.val_losses = []
 
-    def fit(self, rbm: RBM, data_loader: DataLoader, callback=None):
-        self.losses.clear()
-        
-        for i, (_idx, (batch, target)) in enumerate(pbar := tqdm.tqdm(islice(
-                infinite_dataloader_generator(data_loader),
-                self.num_steps
-        ), total=self.num_steps)):
-            batch = batch.detach().cpu().numpy().squeeze()
-            self.training_step(rbm, batch)
-            loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
-            self.losses.append(loss)
-            pbar.set_postfix(loss=loss)
-            if callback is not None:
-                callback(i, rbm, loss)
+    def fit(
+            self,
+            rbm: RBM,
+            encoder,
+            train_data_loader: DataLoader,
+            val_data_loader: Union[DataLoader, None] = None,
+    ):
+        self.train_losses.clear()
+        self.val_losses.clear()
+
+        for epoch in range(self.epochs):
+
+            pbar = tqdm.tqdm(train_data_loader, desc=f'Epoch {epoch+1}/{self.epochs}')
+
+            for batch, _ in pbar:
+                batch = self.encoder(batch)[0].detach().cpu().numpy().squeeze()
+                self.training_step(rbm, batch)
+                train_loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
+                self.train_losses.append(train_loss)
+
+                if val_data_loader is not None:
+                    val_loss = self.validation_step(rbm, encoder, val_data_loader)
+                    self.val_losses.append(val_loss)
+
+                pbar.set_postfix(train_loss=train_loss, val_loss=val_loss)
 
     @abc.abstractmethod
     def training_step(self, rbm: RBM, batch):
         pass
+
+    def validation_step(
+            self, 
+            rbm: RBM, 
+            encoder: nn.Module, 
+            val_data_loader: DataLoader
+        ):
+            val_losses = []
+
+            for val_batch, _ in val_data_loader:
+                val_batch = encoder(val_batch)[0].detach().cpu().numpy().squeeze()
+                val_loss = ((val_batch - rbm.reconstruct(val_batch)) ** 2).sum() / val_batch.shape[0] / val_batch.shape[1]
+                val_losses.append(val_loss)
+                
+            return np.mean(val_losses)
 
 
 class AnnealingRBMTrainer(RBMTrainer):
