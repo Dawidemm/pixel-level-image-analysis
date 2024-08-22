@@ -23,7 +23,6 @@ class LBAE(pl.LightningModule):
     def forward(self, x):
         z, quant_err = self.encoder(x, self.epoch)
         x_reconstructed = self.decoder(z)
-        self.log('quant_error', quant_err)
 
         return x_reconstructed
 
