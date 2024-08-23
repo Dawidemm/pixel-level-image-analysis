@@ -85,7 +85,7 @@ class BloodIterableDataset(IterableDataset):
     ):  
         '''
         PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
-        The dataset provides an iterable over pixel-label pairs, supporting different processing stages (TRAIN, VALIDATE, TEST),
+        The dataset provides an iterable over pixel-label pairs, supporting different processing stages (TRAIN, VALIDATION, TEST),
         with options for background removal, noisy band filtering, and dataset shuffling.
 
         Parameters:
