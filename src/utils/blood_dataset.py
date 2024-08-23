@@ -14,7 +14,7 @@ BACKGROUND_VALUE = 0
 
 class Stage(Enum):
     TRAIN = 'train'
-    VALIDATE = 'validate'
+    VAL = 'val'
     TEST = 'test'
 
 
@@ -84,36 +84,33 @@ class BloodIterableDataset(IterableDataset):
             random_seed: int = 42
     ):  
         '''
-        A PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data. 
-        The dataset provides an iterable over pixel-label pairs, supporting different processing stages (TRAIN, VALIDATE, TEST)
-        and optional background removal and shuffling.
+        PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
+        The dataset provides an iterable over pixel-label pairs, supporting different processing stages (TRAIN, VALIDATE, TEST),
+        with options for background removal, noisy band filtering, and dataset shuffling.
 
         Parameters:
         - hyperspectral_data_path (str): Path to the folder containing hyperspectral image files (.hdr and .float format).
         - ground_truth_data_path (str): Path to the folder containing ground truth data files (.npz format).
         - load_specific_images (Union[List[str], None], optional): List of specific images to load (without extension).
         If None, all available images will be loaded. Default is None.
-        - remove_noisy_bands (bool, optional): Flag indicating whether noisy spectral bands should be removed. Default is True.
-        - remove_background (bool, optional): If True, pixels corresponding to background in the ground truth are excluded.
-        Default is False.
-        - stage (Stage, optional): Specifies the processing stage (TRAIN, VALIDATE, or TEST), which determines how the data is split.
-        Default is Stage.TRAIN.
-        - shuffle (bool, optional): Flag indicating whether to shuffle the dataset. Default is False.
+        - remove_noisy_bands (bool, optional): Whether to remove noisy spectral bands from the hyperspectral data. Default is True.
+        - remove_background (bool, optional): Whether to exclude background pixels (value 0 in ground truth) from the dataset. Default is False.
+        - stage (Stage, optional): The processing stage (TRAIN, VAL, or TEST), determining how the data is split.
+        - shuffle (bool, optional): Whether to shuffle the dataset before splitting. Default is True.
+        - random_seed (int, optional): Seed for random shuffling. Default is 42.
 
         Attributes:
-        - pixel_max_value (float): Maximum pixel value from hyperspectral data used for normalization.
-        - classes (int): The number of unique classes in the ground truth data for one-hot encoding.
+        - pixel_max_value (float): Maximum pixel value from the hyperspectral data, used for normalization.
+        - classes (int): The number of unique classes in the ground truth data, used for one-hot encoding.
 
         Methods:
-        - __iter__(): An iterable that yields pairs of normalized pixel data (torch.Tensor) and ground truth labels.
+        - __iter__(): Provides an iterable that yields pairs of normalized pixel data (torch.Tensor) and ground truth labels.
         Labels are one-hot encoded during training and validation, and background pixels can be optionally removed.
         The dataset is shuffled if specified.
         - onehot_encoding(label: torch.TensorType) -> Sequence[int]: Converts a scalar label into a one-hot encoded vector.
-
-        Data Splitting:
-        - Training: The first 75% of the dataset is used for training.
-        - Validation: 15% of the dataset is used for validation (from 75% to 90%).
-        - Test: The remaining 10% of the dataset is used for testing.
+        - shuffle_data(gt: ArrayLike, img: ArrayLike) -> Tuple[ArrayLike, ArrayLike]: Shuffles the ground truth and image data.
+        - train_val_test_split(gt: ArrayLike, img: ArrayLike, stage: Stage) -> Tuple[ArrayLike, ArrayLike]: Splits the data 
+        into training, validation, or test sets based on the specified stage.
         '''
 
         self.hyperspectral_data_path = hyperspectral_data_path
@@ -212,9 +209,14 @@ class BloodIterableDataset(IterableDataset):
                     
                 yield pixel, label
 
-    def onehot_encoding(self, label: torch.TensorType) -> Sequence[int]:
+    def onehot_encoding(
+            self, 
+            label: torch.TensorType
+        ) -> Sequence[int]:
+
         onehot_label = torch.zeros(self.classes)
         onehot_label[label] = 1.0
+
         return onehot_label
     
     def shuffle_data(
