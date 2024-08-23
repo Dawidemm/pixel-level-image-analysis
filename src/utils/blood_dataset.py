@@ -204,7 +204,7 @@ class BloodIterableDataset(IterableDataset):
                 pixel = pixel.reshape(1, pixel.shape[0])
                 label = torch.tensor(gt[i])
 
-                if self.stage == Stage.TRAIN or self.stage == Stage.VALIDATE:
+                if self.stage == Stage.TRAIN or self.stage == Stage.VAL:
                     label = self.onehot_encoding(int(label.item()))
                     
                 yield pixel, label
@@ -248,7 +248,7 @@ class BloodIterableDataset(IterableDataset):
             gt = gt[:int(0.8*len(gt))]
             img = img[:int(0.8*len(img))]
 
-        elif stage == Stage.VALIDATE:
+        elif stage == Stage.VAL:
             gt = gt[:int(0.8*len(gt))]
             img = img[:int(0.8*len(img))]
 
