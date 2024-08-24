@@ -117,6 +117,7 @@ class RBMTrainer:
             rbm: RBM,
             train_data_loader: DataLoader,
             val_data_loader: Union[DataLoader, None] = None,
+            validation_step_after_n_steps: int = 1000
     ):
         self.train_losses.clear()
         self.val_losses.clear()
@@ -125,7 +126,7 @@ class RBMTrainer:
 
             pbar = tqdm.tqdm(train_data_loader, desc=f'Epoch {epoch+1}/{self.epochs}')
 
-            for batch, _ in pbar:
+            for batch_idx, (batch, _) in enumerate(pbar):
                 batch = self.encoder(batch)[0].detach().cpu().numpy().squeeze()
                 self.training_step(rbm, batch)
                 train_loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
@@ -133,9 +134,9 @@ class RBMTrainer:
 
                 pbar.set_postfix(train_loss=train_loss)
 
-            if val_data_loader is not None:
-                val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
-                self.val_losses.append(val_loss)
+                if val_data_loader is not None and batch_idx % validation_step_after_n_steps == 0:
+                    val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
+                    self.val_losses.append((batch_idx, val_loss))
 
     @abc.abstractmethod
     def training_step(self, rbm: RBM, batch):
