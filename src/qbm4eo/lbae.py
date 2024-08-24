@@ -12,7 +12,7 @@ class LBAE(pl.LightningModule):
         self, input_size, out_channels, latent_size, num_layers, learning_rate, quantize, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         
-        self.save_hyperparameters('input_size', 'out_channels', 'latent_size', 'num_layers', 'quantize')
+        self.save_hyperparameters('input_size', 'out_channels', 'latent_size', 'num_layers', 'learning_rate', 'quantize')
 
         self.encoder = LBAEEncoder(input_size, out_channels, latent_size, num_layers, quantize)
         self.decoder = LBAEDecoder(self.encoder.final_conv_size, input_size, latent_size, num_layers)
