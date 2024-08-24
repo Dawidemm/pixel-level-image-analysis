@@ -12,13 +12,12 @@ from torchmetrics.functional.pairwise import pairwise_euclidean_distance
 
 torch.set_float32_matmul_precision('medium')
 
-
+NUM_VISIBLE = 28
 NUM_HIDDEN = 8
 
 AUTOENCODER_EPOCHS = 25
 AUTOENCODER_LEARNING_RATE = [0.01, 0.001, 0.0001]
 BATCH_SIZE = [8, 16, 32]
-NOISY_BANDS = [True, False]
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
@@ -35,107 +34,99 @@ def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,batch_size, learning_rate, noisy_bands, \n')
+        file.write(f'experiment,batch_size,learning_rate\n')
 
     experiment = 0
 
-    for noisy_band in NOISY_BANDS:
-        for learning_rate in AUTOENCODER_LEARNING_RATE:
-            for batch_size in BATCH_SIZE:
+    for learning_rate in AUTOENCODER_LEARNING_RATE:
+        for batch_size in BATCH_SIZE:
         
-                train_dataset = BloodIterableDataset(
-                    hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
-                    ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
-                    load_specific_images=IMAGES,
-                    stage=Stage.TRAIN,
-                    remove_noisy_bands=noisy_band,
-                    remove_background=True,
-                    shuffle=True
-                )
+            train_dataset = BloodIterableDataset(
+                hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
+                ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+                load_specific_images=IMAGES,
+                stage=Stage.TRAIN,
+                remove_noisy_bands=True,
+                remove_background=True,
+                shuffle=True
+            )
 
-                val_dataset = BloodIterableDataset(
-                    hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
-                    ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
-                    load_specific_images=IMAGES,
-                    stage=Stage.VAL,
-                    remove_noisy_bands=noisy_band,
-                    remove_background=True,
-                    shuffle=True
-                )
+            val_dataset = BloodIterableDataset(
+                hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
+                ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+                load_specific_images=IMAGES,
+                stage=Stage.VAL,
+                remove_noisy_bands=True,
+                remove_background=True,
+                shuffle=True
+            )
 
-                test_dataset = BloodIterableDataset(
-                    hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
-                    ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
-                    load_specific_images=IMAGES,
-                    stage=Stage.TEST,
-                    remove_noisy_bands=noisy_band,
-                    remove_background=True,
-                    shuffle=False
-                )
+            test_dataset = BloodIterableDataset(
+                hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
+                ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
+                load_specific_images=IMAGES,
+                stage=Stage.TEST,
+                remove_noisy_bands=True,
+                remove_background=True,
+                shuffle=False
+            )
 
-                train_dataloader = DataLoader(
-                    dataset=train_dataset,
-                    batch_size=batch_size
-                )
+            train_dataloader = DataLoader(
+                dataset=train_dataset,
+                batch_size=batch_size
+            )
 
-                val_dataloader = DataLoader(
-                    dataset=val_dataset,
-                    batch_size=batch_size
-                )
+            val_dataloader = DataLoader(
+                dataset=val_dataset,
+                batch_size=batch_size
+            )
 
-                test_dataloader = DataLoader(
-                    dataset=test_dataset,
-                    batch_size=batch_size
-                )
+            test_dataloader = DataLoader(
+                dataset=test_dataset,
+                batch_size=batch_size
+            )
 
-                if noisy_band == True:
-                    input_size = (1, 112)
-                    num_visible = 28
-                else:
-                    input_size = (1, 128)
-                    num_visible = 32
-
-                lbae = LBAE(
-                    input_size=input_size,
-                    out_channels=8, 
-                    latent_size=num_visible,
-                    learning_rate=learning_rate,
-                    num_layers=2,
-                    quantize=list(range(AUTOENCODER_EPOCHS))
-                )
+            lbae = LBAE(
+                input_size=(1, 112),
+                out_channels=8, 
+                latent_size=NUM_VISIBLE,
+                learning_rate=learning_rate,
+                num_layers=2,
+                quantize=list(range(AUTOENCODER_EPOCHS))
+            )
                 
-                rbm = RBM(num_visible, NUM_HIDDEN)
+            rbm = RBM(NUM_VISIBLE, NUM_HIDDEN)
 
-                pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
+            pipeline = Pipeline(auto_encoder=lbae, rbm=rbm)
 
-                pipeline.fit(
-                    train_data_loader=train_dataloader, 
-                    validation_data_loader=val_dataloader,
-                    autoencoder_epochs=AUTOENCODER_EPOCHS,
-                    skip_rbm=True,
-                    rbm_trainer='cd1',
-                    learnig_curve=True,
-                    experiment_folder_path=EXPERIMENT_FOLDER_PATH,
-                    experiment_number=experiment
-                )
+            pipeline.fit(
+                train_data_loader=train_dataloader, 
+                validation_data_loader=val_dataloader,
+                autoencoder_epochs=AUTOENCODER_EPOCHS,
+                skip_rbm=True,
+                rbm_trainer='cd1',
+                learnig_curve=True,
+                experiment_folder_path=EXPERIMENT_FOLDER_PATH,
+                experiment_number=experiment
+            )
 
-                mean_distances = []
+            mean_distances = []
 
-                with torch.no_grad():
-                    for X, _ in test_dataloader:
-                        prediction = lbae(X)
-                        prediction = prediction.reshape(prediction.shape[0]*prediction.shape[2], 1)
-                        X = X.reshape(X.shape[0]*X.shape[2], 1)
-                        distance = pairwise_euclidean_distance(X, prediction)
-                        mean_distances.append(torch.mean(distance))
+            with torch.no_grad():
+                for X, _ in test_dataloader:
+                    X_reconstructed = lbae(X)
+                    X_reconstructed = X_reconstructed.reshape(X_reconstructed.shape[0]*X_reconstructed.shape[2], 1)
+                    X = X.reshape(X.shape[0]*X.shape[2], 1)
+                    distance = pairwise_euclidean_distance(X, X_reconstructed)
+                    mean_distances.append(torch.mean(distance))
 
 
-                pairwise_euclidean_distance_mean = round(torch.mean(torch.tensor(mean_distances)).item(), 3)
+            pairwise_euclidean_distance_mean = round(torch.mean(torch.tensor(mean_distances)).item(), 3)
 
-                with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-                            file.write(f'{experiment},{batch_size},{learning_rate},noisy_bands={noisy_band},{pairwise_euclidean_distance_mean}\n')
+            with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
+                file.write(f'{experiment},{batch_size},{learning_rate},{pairwise_euclidean_distance_mean}\n')
 
-                experiment += 1
+            experiment += 1
 
 if __name__ == '__main__':
     main()
