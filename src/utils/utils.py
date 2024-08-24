@@ -281,8 +281,8 @@ def plot_loss(
     if len(train_loss_values) != len(validation_loss_values):
         fig.add_trace(
             go.Scatter(
-                x=[(len(train_loss_values)/len(validation_loss_values))*i for i in range(len(validation_loss_values))], 
-                y=validation_loss_values, 
+                x=[validation_loss_values[idx][0] for idx in range(len(validation_loss_values))],
+                y=[validation_loss_values[idx][1] for idx in range(len(validation_loss_values))], 
                 mode='lines', 
                 name='Val Loss'
             )
