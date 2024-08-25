@@ -28,8 +28,8 @@ HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 IMAGES = ['D_1', 'E_1', 'F_1']
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_1/checkpoints/epoch=9-step=72570.ckpt'
-AUTOENCODER_HPARAMS_PATH = 'lightning_logs/version_1/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_4/checkpoints/epoch=14-step=54420.ckpt'
+AUTOENCODER_HPARAMS_PATH = 'lightning_logs/version_4/hparams.yaml'
 
 EXPERIMENT_FOLDER_PATH = './experiments/'
 
@@ -77,17 +77,20 @@ def main():
 
                 train_dataloader = DataLoader(
                     dataset=train_dataset,
-                    batch_size=batch_size
+                    batch_size=batch_size,
+                    drop_last=True
                 )
 
                 val_dataloader = DataLoader(
                     dataset=val_dataset,
-                    batch_size=batch_size
+                    batch_size=batch_size,
+                    drop_last=True
                 )
 
                 test_dataloader = DataLoader(
                     dataset=test_dataset,
-                    batch_size=batch_size
+                    batch_size=1,
+                    drop_last=True
                 )
 
                 lbae = LBAE.load_from_checkpoint(
@@ -113,6 +116,7 @@ def main():
 
                 rbm = RBM(NUM_VISIBLE, num_hidden)
                 rbm.load(file=f'./experiments/exp_{experiment}/rbm.npz')
+
                 threshold_finder = utils.ThresholdFinder(
                     dataloader=test_dataloader,
                     encoder=lbae.encoder,
