@@ -159,6 +159,9 @@ class BloodIterableDataset(IterableDataset):
             ground_truth_files = [image + '.npz' for image in self.load_specific_images]
             number_of_images = len(self.load_specific_images)
 
+        ground_truth_pixels = np.array([])
+        hyperspectral_pixels = []
+
         for i in range(number_of_images):
 
             img = envi.open(f'{self.hyperspectral_data_path}/{hdr_files[i]}', f'{self.hyperspectral_data_path}/{float_files[i]}')
@@ -187,27 +190,32 @@ class BloodIterableDataset(IterableDataset):
                 gt = np.delete(gt, background_indices)
                 img = np.delete(img, background_indices, axis=0)
 
-            if self.shuffle == True:
-                gt, img = self.shuffle_data(
-                    gt=gt,
-                    img=img,
-                )
+            ground_truth_pixels = np.append(ground_truth_pixels, gt)
+            hyperspectral_pixels.append(img)
 
-            gt, img = self.train_val_test_split(
-                gt=gt,
-                img=img,
-                stage=self.stage
+        hyperspectral_pixels = np.vstack(hyperspectral_pixels)
+
+        if self.shuffle == True:
+            ground_truth_pixels, hyperspectral_pixels = self.shuffle_data(
+                gt=ground_truth_pixels,
+                img=hyperspectral_pixels,
             )
 
-            for i in range(len(img)):
-                pixel = torch.tensor(img[i])
-                pixel = pixel.reshape(1, pixel.shape[0])
-                label = torch.tensor(gt[i])
+        ground_truth_pixels, hyperspectral_pixels = self.train_val_test_split(
+            gt=ground_truth_pixels,
+            img=hyperspectral_pixels,
+            stage=self.stage
+        )
 
-                if self.stage == Stage.TRAIN or self.stage == Stage.VAL:
-                    label = self.onehot_encoding(int(label.item()))
+        for i in range(len(hyperspectral_pixels)):
+            pixel = torch.tensor(hyperspectral_pixels[i])
+            pixel = pixel.reshape(1, pixel.shape[0])
+            label = torch.tensor(ground_truth_pixels[i])
+
+            if self.stage == Stage.TRAIN or self.stage == Stage.VAL:
+                label = self.onehot_encoding(int(label.item()))
                     
-                yield pixel, label
+            yield pixel, label
 
     def onehot_encoding(
             self, 
