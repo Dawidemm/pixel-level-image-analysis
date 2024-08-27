@@ -14,8 +14,9 @@ rbm_learning.svg
 autoencoder_learning.svg
 HyperBlood/
 ares*/
-experiments/
+experiments*/
 exp_13/
 count_gini.py
 train_one_autoenc.py
 placeholder/
+src/scripts/blood/check_dataset_seed.py
