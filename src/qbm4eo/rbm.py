@@ -51,11 +51,11 @@ class RBM:
         self,
         num_visible: int,
         num_hidden: int,
-        rng=None
+        random_seed: int = 42
     ):
         self.num_visible = num_visible
         self.num_hidden = num_hidden
-        self.rng = rng if rng is not None else np.random.default_rng()
+        self.rng = np.random.default_rng(seed=random_seed)
 
         self.weights = (
             self.rng.normal(size=(self.num_visible, self.num_hidden)) * INITIAL_COEF_SCALE
