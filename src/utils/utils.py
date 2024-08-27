@@ -134,7 +134,7 @@ def classes_filter(
     
     return filtered_image, filtered_gt
 
-
+    
 class ThresholdFinder:
     def __init__(
             self,
@@ -147,16 +147,6 @@ class ThresholdFinder:
         self.encoder = encoder
 
     def find_threshold(self, thresholds: Union[Sequence, ArrayLike]):
-        '''
-        Finds the best threshold value for binarizing RBM output based on Rand Score.
-
-        Args:
-        - thresholds (list): A list of threshold values to be evaluated.
-
-        Returns:
-        Tuple (best_threshold, best_rand_score, self.best_adjusted_rand_score): A tuple containing the best threshold
-        value and its corresponding Rand Score and Adjusted Rand Score achieved.
-        '''
 
         self.best_threshold = None
         self.adjusted_rand_score = float('-inf')
@@ -189,6 +179,7 @@ class ThresholdFinder:
             y_true = np.array(y_true)
 
             unique_labels = list(unique_labels)
+
             mapped_labels = self.map_to_indices(labels, unique_labels)
             mapped_labels = np.array(mapped_labels)
 
@@ -200,8 +191,9 @@ class ThresholdFinder:
                 self.rand_score = rand_score(y_true, mapped_labels)
                 self.homogenity = homogeneity_score(y_true, mapped_labels)
                 self.completeness = completeness_score(y_true, mapped_labels)
+                self.mapped_labels = mapped_labels
 
-        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, mapped_labels
+        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, self.mapped_labels
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
