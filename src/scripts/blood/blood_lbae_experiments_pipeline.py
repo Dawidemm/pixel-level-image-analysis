@@ -15,9 +15,9 @@ torch.set_float32_matmul_precision('medium')
 NUM_VISIBLE = 28
 NUM_HIDDEN = 8
 
-AUTOENCODER_EPOCHS = 25
-AUTOENCODER_LEARNING_RATE = [0.01, 0.001, 0.0001]
-BATCH_SIZE = [8, 16, 32]
+AUTOENCODER_EPOCHS = 20
+AUTOENCODER_LEARNING_RATE = [0.001]
+BATCH_SIZE = [8]
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
@@ -34,7 +34,7 @@ def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,batch_size,learning_rate\n')
+        file.write(f'experiment,batch_size,learning_rate,pairwise_euclidean_distance\n')
 
     experiment = 0
 
@@ -68,7 +68,7 @@ def main():
                 stage=Stage.TEST,
                 remove_noisy_bands=True,
                 remove_background=True,
-                shuffle=False
+                shuffle=True
             )
 
             train_dataloader = DataLoader(
