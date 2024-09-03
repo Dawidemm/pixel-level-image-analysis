@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import spectral.io.envi as envi
 from torch.utils.data import IterableDataset
-
+from src.utils import utils
 from typing import Sequence, Union, Tuple, List
 from numpy.typing import ArrayLike
 from enum import Enum
@@ -201,6 +201,9 @@ class BloodIterableDataset(IterableDataset):
                 img=hyperspectral_pixels,
             )
 
+        ground_truth_pixels = ground_truth_pixels[:int(0.1*len(ground_truth_pixels))]
+        hyperspectral_pixels = hyperspectral_pixels[:int(0.1*len(hyperspectral_pixels))]
+
         ground_truth_pixels, hyperspectral_pixels = self.train_val_test_split(
             gt=ground_truth_pixels,
             img=hyperspectral_pixels,
@@ -255,16 +258,16 @@ class BloodIterableDataset(IterableDataset):
 
             gt = gt[:int(0.8*len(gt))]
             img = img[:int(0.8*len(img))]
-
+            # print(f'train dataset gini: {utils.gini_index(gt)}')
         elif stage == Stage.VAL:
             gt = gt[:int(0.8*len(gt))]
             img = img[:int(0.8*len(img))]
 
             gt = gt[int(0.8*len(gt)):]
             img = img[int(0.8*len(img)):]
-
+            # print(f'val dataset gini: {utils.gini_index(gt)}')
         elif self.stage == Stage.TEST:
             gt = gt[int(0.8*len(gt)):]
             img = img[int(0.8*len(img)):]
-
+            # print(f'test dataset gini: {utils.gini_index(gt)}')
         return gt, img
