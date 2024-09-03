@@ -16,9 +16,9 @@ torch.manual_seed(10)
 
 NUM_VISIBLE = 28
 
-BATCH_SIZE = [4, 8, 16]
-NUM_HIDDEN = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-RBM_LEARNING_RATE = [0.001, 0.0001]
+BATCH_SIZE = [4]
+NUM_HIDDEN = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+RBM_LEARNING_RATE = [0.001]
 RANDOM_SEEDS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
 THRESHOLDS = np.linspace(1/10, 1, 10)[:-1]
