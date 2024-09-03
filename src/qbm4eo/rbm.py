@@ -117,7 +117,7 @@ class RBMTrainer:
             rbm: RBM,
             train_data_loader: DataLoader,
             val_data_loader: Union[DataLoader, None] = None,
-            validation_step_after_n_steps: int = 1000
+            validation_step_after_n_steps: int = 200
     ):
         self.train_losses.clear()
         self.val_losses.clear()
