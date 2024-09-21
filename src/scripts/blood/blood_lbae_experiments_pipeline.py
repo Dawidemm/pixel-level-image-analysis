@@ -34,7 +34,7 @@ def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,batch_size,learning_rate,pairwise_euclidean_distance\n')
+        file.write(f'experiment,batch_size,learning_rate,pairwise_euclidean_distance,spectral_angle_distance\n')
 
     experiment = 0
 
@@ -110,7 +110,7 @@ def main():
                 experiment_number=experiment
             )
 
-            mean_distances = []
+            mean_euclidean_distances = []
 
             with torch.no_grad():
                 for X, _ in test_dataloader:
@@ -118,10 +118,10 @@ def main():
                     X_reconstructed = X_reconstructed.reshape(X_reconstructed.shape[0]*X_reconstructed.shape[2], 1)
                     X = X.reshape(X.shape[0]*X.shape[2], 1)
                     distance = pairwise_euclidean_distance(X, X_reconstructed)
-                    mean_distances.append(torch.mean(distance))
+                    mean_euclidean_distances.append(torch.mean(distance))
 
 
-            pairwise_euclidean_distance_mean = round(torch.mean(torch.tensor(mean_distances)).item(), 3)
+            pairwise_euclidean_distance_mean = round(torch.mean(torch.tensor(mean_euclidean_distances)).item(), 3)
 
             with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
                 file.write(f'{experiment},{batch_size},{learning_rate},{pairwise_euclidean_distance_mean}\n')
