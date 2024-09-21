@@ -167,12 +167,13 @@ class AnnealingRBMTrainer(RBMTrainer):
     def __init__(
         self,
         num_steps: int,
+        encoder: nn.Module,
         sampler: dimod.Sampler,
         qubo_scale: float = 1.0,
         learning_rate: float = 0.01,
         **sampler_kwargs
     ):
-        super().__init__(num_steps)
+        super().__init__(num_steps, encoder)
         self.sampler = sampler
         self.sampler_kwargs = sampler_kwargs
         self.qubo_scale = qubo_scale
