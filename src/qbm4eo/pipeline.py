@@ -2,6 +2,7 @@ import os
 import torch
 import lightning as pl
 from torch.utils.data import DataLoader
+from dimod import SimulatedAnnealingSampler
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
@@ -81,7 +82,10 @@ class Pipeline:
         else:
             if rbm_trainer == 'cd1':
                 print('RBM training with CD1Trainer.')
-                rbm_trainer = CD1Trainer(rbm_epochs, encoder=encoder, learning_rate=rbm_learning_rate)
+                rbm_trainer = CD1Trainer(
+                    rbm_epochs, 
+                    encoder=encoder, 
+                    learning_rate=rbm_learning_rate)
                 rbm_trainer.fit(
                     rbm=self.rbm,
                     train_data_loader=train_data_loader,
@@ -98,8 +102,24 @@ class Pipeline:
 
             elif rbm_trainer == 'annealing':
                 print('RBM training with AnnealingRBMTrainer.')
-                rbm_trainer = AnnealingRBMTrainer(rbm_epochs, sampler='placeholder', learning_rate=rbm_learning_rate)
-                rbm_trainer.fit(self.rbm, encoded_dataloader(train_data_loader, encoder))
+                rbm_trainer = AnnealingRBMTrainer(
+                    rbm_epochs,
+                    encoder=encoder,
+                    sampler=SimulatedAnnealingSampler(), 
+                    learning_rate=rbm_learning_rate
+                )
+                rbm_trainer.fit(
+                    rbm=self.rbm,
+                    train_data_loader=train_data_loader,
+                    val_data_loader=validation_data_loader
+                )
+                if learnig_curve:
+                    utils.plot_loss(
+                        train_loss_values=rbm_trainer.train_losses,
+                        validation_loss_values=rbm_trainer.val_losses,
+                        plot_title='RBM',
+                        experiment_number=experiment_number
+                    )
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
             
