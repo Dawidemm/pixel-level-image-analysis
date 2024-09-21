@@ -264,7 +264,7 @@ def plot_loss(
         validation_loss_values: Sequence[float],
         plot_title: str,
         save: bool=True,
-        format: str='svg',
+        format: str='pdf',
         experiment_number: Union[int, None]=None
 ):
     fig = go.Figure()
