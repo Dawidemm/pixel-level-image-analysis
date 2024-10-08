@@ -221,6 +221,12 @@ def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
     angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
 
     return angle
+
+def euklidean_distance(vector_a: ArrayLike, vector_b: ArrayLike):
+    vector_a = np.array(vector_a)
+    vector_b = np.array(vector_b)
+    
+    return np.linalg.norm(vector_a - vector_b)
     
 def spectral_angle_distance_matrix(
         objects: ArrayLike, 
@@ -234,13 +240,13 @@ def spectral_angle_distance_matrix(
             if np.array_equal(rbm_labels[i], rbm_labels[j]):
                 distance = 0
             else:
-                distance = spectral_angle(objects[i], objects[j])
+                distance = euklidean_distance(objects[i], objects[j])
 
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
     else:
         for i, j in combinations(range(n), 2):
-            distance = spectral_angle(objects[i], objects[j])
+            distance = euklidean_distance(objects[i], objects[j])
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
 
