@@ -3,6 +3,7 @@ import torch
 import lightning as pl
 from torch.utils.data import DataLoader
 from dimod import SimulatedAnnealingSampler
+from dwave.system import DWaveSampler
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
@@ -105,7 +106,7 @@ class Pipeline:
                 rbm_trainer = AnnealingRBMTrainer(
                     rbm_epochs,
                     encoder=encoder,
-                    sampler=SimulatedAnnealingSampler(), 
+                    sampler=DWaveSampler(), 
                     learning_rate=rbm_learning_rate
                 )
                 rbm_trainer.fit(
