@@ -26,7 +26,8 @@ class HyperspectralDataset(Dataset):
             hyperspectral_data: Union[str, ArrayLike], 
             ground_truth_data: Union[str, ArrayLike],
             stage: Stage,
-            split: float=0.2
+            split: float=0.2,
+            class_filter=False
     ):
         if isinstance(hyperspectral_data, str):
             hyperspectral_image = tifffile.imread(hyperspectral_data)
@@ -46,25 +47,34 @@ class HyperspectralDataset(Dataset):
 
         hyperspectral_image /= hyperspectral_image.max()
 
-        if stage == Stage.IMG_SEG:
+        self.stage = stage
+
+        if self.stage == Stage.IMG_SEG:
             split = 0
 
         dataset = utils.train_test_split(hyperspectral_image, ground_truth_image, split=split)
 
-        if stage == Stage.TRAIN:
+        if self.stage == Stage.TRAIN:
 
             hyperspectral_image = dataset[ImagePartitions.TRAIN_IMAGE]
             ground_truth_image = dataset[ImagePartitions.TRAIN_LABEL]
 
-        elif stage == Stage.TEST:
+        elif self.stage == Stage.TEST:
 
             hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
             ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
 
-        elif stage == Stage.IMG_SEG:
+        elif self.stage == Stage.IMG_SEG:
 
             hyperspectral_image = dataset[ImagePartitions.SEG_IMG]
             ground_truth_image= dataset[ImagePartitions.SEG_LABEL]
+
+        if class_filter:
+            hyperspectral_image, ground_truth_image = utils.classes_filter(
+                hyperspectral_vector=hyperspectral_image,
+                ground_truth_vector=ground_truth_image,
+                classes_to_remove=class_filter
+            )
         
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
@@ -77,5 +87,13 @@ class HyperspectralDataset(Dataset):
         pixel_values = self.hyperspectral_image[index]
         pixel_values = pixel_values.reshape(1, len(pixel_values))
         label = self.ground_truth_image.clone().detach()[index]
+
+        if self.stage == Stage.TRAIN:
+            label = self.onehot_encoding(int(label.item()))
         
         return pixel_values, label
+    
+    def onehot_encoding(self, label: torch.TensorType) -> Sequence[int]:
+        onehot_label = torch.zeros(len(torch.unique(self.ground_truth_image)))
+        onehot_label[label] = 1.0
+        return onehot_label

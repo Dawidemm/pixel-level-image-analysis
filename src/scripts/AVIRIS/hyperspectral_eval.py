@@ -12,15 +12,15 @@ from src.qbm4eo.rbm import RBM
 np.random.seed(10)
 torch.manual_seed(0)
 
-NUM_VISIBLE = 68
-NUM_HIDDEN = 34
+NUM_VISIBLE = 55
+NUM_HIDDEN = 17
 
-THRESHOLDS = np.linspace(1/25, 1, 25)
+THRESHOLDS = np.linspace(1/10, 1, 10)
 
 HYPERSPECTRAL_IMAGE_PATH = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
 GROUND_TRUTH_IMAGE_PATH = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
 
-AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=24-step=13150.ckpt'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_0/checkpoints/epoch=24-step=26300.ckpt'
 AUTOENCODE_HPARAMS_PATH = 'lightning_logs/version_0/hparams.yaml'
 
 RBM_WEIGHTS_PATH = 'rbm.npz'
@@ -47,8 +47,8 @@ def main():
     except FileNotFoundError as e:
         print(f'FileNotFoundError: {e}')
         print("Please make sure to:\n"
-              "\t1.Provide paths to the hyperspectral image and ground truth image files. \n"
-              "\t2.Run the training pipeline before starting the evaluation. \n"
+              "\t1. Provide paths to the hyperspectral image and ground truth image files.\n"
+              "\t2. Run the training pipeline before starting the evaluation.\n"
               "The application will terminate now. ")
         return
 
@@ -70,7 +70,7 @@ def main():
         rbm=rbm
     )
 
-    best_threshold, best_rand_score = threshold_finder.find_threshold(THRESHOLDS)
+    best_threshold, best_rand_score, adjusted_rand_score = threshold_finder.find_threshold(THRESHOLDS)
 
     print(f'\n---------------------------------------------')
     print(f'Autoencoder')
@@ -80,6 +80,7 @@ def main():
     print(f'RBM')
     print(f'Best threshold: {round(best_threshold, 3)}.,')
     print(f'Best rand score: {round(best_rand_score, 3)},.')
+    print(f'Adjusted rand score: {round(adjusted_rand_score, 3)},.')
     print(f'\n')
 
 if __name__ == '__main__':
