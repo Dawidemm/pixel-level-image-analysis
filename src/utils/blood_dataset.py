@@ -16,6 +16,7 @@ class Stage(Enum):
     TRAIN = 'train'
     VAL = 'val'
     TEST = 'test'
+    SEG = 'segmentation'
 
 
 def blood_dataset_params(
@@ -81,7 +82,8 @@ class BloodIterableDataset(IterableDataset):
             remove_background: bool=False,
             stage = Stage,
             shuffle: bool = True,
-            random_seed: int = 42
+            random_seed: int = 42,
+            partition: Union[Tuple[float, float], None] = None
     ):  
         '''
         PyTorch IterableDataset for loading and processing hyperspectral images and their corresponding ground truth data.
@@ -121,6 +123,7 @@ class BloodIterableDataset(IterableDataset):
         self.stage = stage
         self.shuffle = shuffle
         self.random_seed = random_seed
+        self.partition = partition
 
         self.pixel_max_value, self.classes = blood_dataset_params(
             hyperspectral_data_path=hyperspectral_data_path,
@@ -200,10 +203,11 @@ class BloodIterableDataset(IterableDataset):
                 gt=ground_truth_pixels,
                 img=hyperspectral_pixels,
             )
-
-        ground_truth_pixels = ground_truth_pixels[:int(0.1*len(ground_truth_pixels))]
-        hyperspectral_pixels = hyperspectral_pixels[:int(0.1*len(hyperspectral_pixels))]
-
+        
+        if self.partition != None:
+            ground_truth_pixels = ground_truth_pixels[self.partition[0]:self.partition[1]]
+            hyperspectral_pixels = hyperspectral_pixels[self.partition[0]:self.partition[1]]
+        
         ground_truth_pixels, hyperspectral_pixels = self.train_val_test_split(
             gt=ground_truth_pixels,
             img=hyperspectral_pixels,
@@ -270,4 +274,8 @@ class BloodIterableDataset(IterableDataset):
             gt = gt[int(0.8*len(gt)):]
             img = img[int(0.8*len(img)):]
             # print(f'test dataset gini: {utils.gini_index(gt)}')
+
+        elif self.stage == Stage.SEG:
+            pass
+
         return gt, img

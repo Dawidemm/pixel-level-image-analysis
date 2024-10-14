@@ -5,6 +5,7 @@ from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score,
 import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
+from tqdm import tqdm
 
 from itertools import combinations
 from typing import Union, Sequence, Tuple, Optional
@@ -236,7 +237,7 @@ def spectral_angle_distance_matrix(
     distance_matrix = np.zeros((n, n))
 
     if rbm_labels != None:
-        for i, j in combinations(range(n), 2):
+        for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
             if np.array_equal(rbm_labels[i], rbm_labels[j]):
                 distance = 0
             else:
@@ -245,7 +246,7 @@ def spectral_angle_distance_matrix(
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
     else:
-        for i, j in combinations(range(n), 2):
+        for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
             distance = euklidean_distance(objects[i], objects[j])
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
