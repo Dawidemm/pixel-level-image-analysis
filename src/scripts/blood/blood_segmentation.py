@@ -29,7 +29,7 @@ GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
 
 AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=19-step=290280.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
-RBM_MODEL_PATH = 'experiments_nh_26_best/exp_6/rbm.npz'
+RBM_MODEL_PATH = 'model/rbm_best.npz'
 
 # IMAGES = ['D_1', 'E_1', 'F_1']
 IMAGES = ['D_1']
