@@ -1,11 +1,12 @@
 import os
 import numpy as np
 import torch
-from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score
+from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score, v_measure_score
 import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
 from tqdm import tqdm
+import psutil
 
 from itertools import combinations
 from typing import Union, Sequence, Tuple, Optional
@@ -147,7 +148,7 @@ class ThresholdFinder:
         self.rbm = rbm
         self.encoder = encoder
 
-    def find_threshold(self, thresholds: Union[Sequence, ArrayLike]):
+    def find_threshold(self, thresholds: Union[Sequence, ArrayLike], with_v_measure: bool = False):
 
         self.best_threshold = None
         self.adjusted_rand_score = float('-inf')
@@ -193,8 +194,14 @@ class ThresholdFinder:
                 self.homogenity = homogeneity_score(y_true, mapped_labels)
                 self.completeness = completeness_score(y_true, mapped_labels)
                 self.mapped_labels = mapped_labels
+                self.v_measure_scores = []
 
-        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, self.mapped_labels
+                if with_v_measure == True:
+                    for i in range(100):
+                        v_measure = v_measure_score(y_true, mapped_labels, beta=i/100)
+                        self.v_measure_scores.append(v_measure)
+
+        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, self.v_measure_scores, self.mapped_labels
 
     @staticmethod
     def map_to_indices(values_to_map: list, target_list: list):
@@ -229,7 +236,7 @@ def euklidean_distance(vector_a: ArrayLike, vector_b: ArrayLike):
     
     return np.linalg.norm(vector_a - vector_b)
     
-def spectral_angle_distance_matrix(
+def compute_distance_matrix(
         objects: ArrayLike, 
         rbm_labels: Optional[ArrayLike]=None
 ):
@@ -237,14 +244,19 @@ def spectral_angle_distance_matrix(
     distance_matrix = np.zeros((n, n))
 
     if rbm_labels != None:
-        for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
-            if np.array_equal(rbm_labels[i], rbm_labels[j]):
-                distance = 0
-            else:
-                distance = euklidean_distance(objects[i], objects[j])
+        with tqdm(total=100, desc='cpu%', position=1) as cpubar, tqdm(total=100, desc='ram%', position=0) as rambar:
+            for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
+                if not np.array_equal(rbm_labels[i], rbm_labels[j]):
+                    distance = euklidean_distance(objects[i], objects[j])
 
-            distance_matrix[i, j] = distance
-            distance_matrix[j, i] = distance
+                    distance_matrix[i, j] = distance
+                    distance_matrix[j, i] = distance
+
+                    rambar.n=psutil.virtual_memory().percent
+                    cpubar.n=psutil.cpu_percent()
+                    rambar.refresh()
+                    cpubar.refresh()
+
     else:
         for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
             distance = euklidean_distance(objects[i], objects[j])
