@@ -17,7 +17,7 @@ torch.manual_seed(10)
 NUM_VISIBLE = 28
 
 BATCH_SIZE = [8]
-NUM_HIDDEN = [26]
+NUM_HIDDEN = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
 RBM_LEARNING_RATE = [0.001]
 RANDOM_SEEDS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
@@ -36,7 +36,7 @@ def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,batch_size,learning_rate,num_hidden,random_state,threshold,ari,rand_score,homogeneity,completeness\n')
+        file.write(f'experiment,batch_size,learning_rate,num_hidden,random_state,threshold,labels,ari,rand_score,homogeneity,completeness,v_measure_mean,v_measure_scores\n')
 
     experiment = 0
 
@@ -102,6 +102,9 @@ def main():
                         random_seed=random_seed
                     )
 
+                    # np.savez('rbm_init_weights.npz', weights=rbm.weights)
+                    init_w = rbm.weights
+
                     pipeline = Pipeline(
                         auto_encoder=lbae, 
                         rbm=rbm
@@ -111,13 +114,15 @@ def main():
                         train_data_loader=train_dataloader,
                         validation_data_loader=val_dataloader,
                         skip_autoencoder=True,
-                        rbm_trainer='annealing',
+                        rbm_trainer='cd1',
                         rbm_learning_rate=learning_rate,
                         rbm_epochs=1,
                         learnig_curve=True,
                         experiment_folder_path=EXPERIMENT_FOLDER_PATH,
                         experiment_number=experiment
                     )
+                    w_from_trainer = pipeline.trainer_weights
+                    after_train_w = rbm.weights
 
                     rbm = RBM(
                         num_visible=NUM_VISIBLE,
@@ -125,7 +130,19 @@ def main():
                         random_seed=random_seed
                     )
 
-                    rbm.load(file=f'./experiments/exp_{experiment}/rbm.npz')
+                    init_w = rbm.weights
+
+                    rbm = rbm.load(file=f'./experiments/exp_{experiment}/rbm.npz')
+                    loaded_w = rbm.weights
+
+                    # print(f'init_w, loaded_w: {np.array_equal(init_w, loaded_w)}')
+                    # print(f'init_w, w_from_trainer: {np.array_equal(init_w, w_from_trainer)}')
+                    # print(f'init_w, after_train_w: {np.array_equal(init_w, after_train_w)}')
+                    # print(f'---------------------------------------------------------------------')
+                    # print(f'after_train_w, loaded_w: {np.array_equal(after_train_w, loaded_w)}')
+                    # print(f'after_train_w, w_from_trainer: {np.array_equal(after_train_w, w_from_trainer)}')
+                    # print(f'loaded_w, w_from_trainer: {np.array_equal(loaded_w, w_from_trainer)}')
+
 
                     threshold_finder = utils.ThresholdFinder(
                         dataloader=test_dataloader,
@@ -133,10 +150,12 @@ def main():
                         rbm=rbm
                     )
 
-                    threshold, ari, rand_score, homogeneity, completeness, _ = threshold_finder.find_threshold(THRESHOLDS)
+                    threshold, ari, rand_score, homogeneity, completeness, v_measure_scores, labels = threshold_finder.find_threshold(THRESHOLDS)
+                    labels = len(np.unique(labels))
+                    v_measure_mean = np.mean(v_measure_scores)
 
                     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-                        file.write(f'{experiment},{batch_size},{learning_rate},{num_hidden},{random_seed},{threshold},{ari},{rand_score},{homogeneity},{completeness}\n')
+                        file.write(f'{experiment},{batch_size},{learning_rate},{num_hidden},{random_seed},{threshold},{labels},{ari},{rand_score},{homogeneity},{completeness},{v_measure_mean},{v_measure_scores}\n')
 
                     experiment += 1
 
