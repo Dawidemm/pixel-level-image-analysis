@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import tqdm
 from typing import Union
+import time
 
 
 INITIAL_COEF_SCALE = 0.1
@@ -117,7 +118,7 @@ class RBMTrainer:
             rbm: RBM,
             train_data_loader: DataLoader,
             val_data_loader: Union[DataLoader, None] = None,
-            validation_step_after_n_steps: int = 200
+            validation_step_after_n_steps: int = 150
     ):
         self.train_losses.clear()
         self.val_losses.clear()
@@ -188,14 +189,11 @@ class AnnealingRBMTrainer(RBMTrainer):
         # that in dimod this operation has to be done in place.
         bqm.scale(self.qubo_scale)
         # Take a sample of the same size as batch, extract only visible and hidden variables
-        if "num_reads" in self.sampler.parameters:
-            sample = self.sampler.sample(
-                bqm, num_reads=len(batch), **self.sampler_kwargs
-            ).record["sample"]
-        else:
-            sample = dimod.concatenate(
-                [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
-            ).record["sample"]
+        sample = [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+
+        sample = dimod.concatenate(sample)
+        sample = sample.record["sample"]
+
         # Split, remembering that first variables correspond to hidden layer
         sample_v = sample[:, :rbm.num_visible]
         sample_h = sample[:, rbm.num_visible:]
