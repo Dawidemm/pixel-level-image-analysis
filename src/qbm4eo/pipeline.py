@@ -1,9 +1,10 @@
 import os
 import torch
+import numpy as np
 import lightning as pl
 from torch.utils.data import DataLoader
 from dimod import SimulatedAnnealingSampler
-from dwave.system import DWaveSampler
+from dwave.system import DWaveSampler, EmbeddingComposite
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
@@ -92,7 +93,6 @@ class Pipeline:
                     train_data_loader=train_data_loader,
                     val_data_loader=validation_data_loader
                 )
-
                 if learnig_curve:
                     utils.plot_loss(
                         train_loss_values=rbm_trainer.train_losses,
@@ -106,7 +106,13 @@ class Pipeline:
                 rbm_trainer = AnnealingRBMTrainer(
                     rbm_epochs,
                     encoder=encoder,
-                    sampler=DWaveSampler(), 
+                    sampler=EmbeddingComposite(
+                        DWaveSampler(
+                            profile="europe", 
+                            compress_qpu_problem_date=False,
+                            solver=dict(topology__type='pegasus')
+                            )
+                        ), 
                     learning_rate=rbm_learning_rate
                 )
                 rbm_trainer.fit(
@@ -114,6 +120,7 @@ class Pipeline:
                     train_data_loader=train_data_loader,
                     val_data_loader=validation_data_loader
                 )
+                # np.savez(f'sample_time.npzs', sample_time=rbm_trainer.sample_time)
                 if learnig_curve:
                     utils.plot_loss(
                         train_loss_values=rbm_trainer.train_losses,
