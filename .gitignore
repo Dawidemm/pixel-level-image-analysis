@@ -20,3 +20,7 @@ count_gini.py
 train_one_autoenc.py
 placeholder/
 src/scripts/blood/check_dataset_seed.py
+analiza.py
+check_labels.py
+kmeans_exp.py
+plot_labels.py
