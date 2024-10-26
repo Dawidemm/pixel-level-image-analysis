@@ -97,3 +97,73 @@ class HyperspectralDataset(Dataset):
         onehot_label = torch.zeros(len(torch.unique(self.ground_truth_image)))
         onehot_label[label] = 1.0
         return onehot_label
+    
+
+class AVIRISDataset():
+    def __init__(
+            self,
+            hyperspectral_data: Union[str, ArrayLike], 
+            ground_truth_data: Union[str, ArrayLike],
+    ):
+        self.hyperspectral_image = tifffile.imread(hyperspectral_data)
+        self.ground_truth_image = tifffile.imread(ground_truth_data)
+
+        self.ground_truth_image = self.ground_truth_image.flatten()
+
+        bands, rows, cols = self.hyperspectral_image.shape
+        self.hyperspectral_image = self.hyperspectral_image.reshape(rows*cols, bands)
+
+        background_indices = np.where(self.ground_truth_image == 0)[0]
+                
+        self.ground_truth_image = np.delete(self.ground_truth_image, background_indices)
+        self.hyperspectral_image = np.delete(self.hyperspectral_image, background_indices, axis=0)
+
+        self.hyperspectral_image = self.hyperspectral_image.astype(np.float32)
+        self.ground_truth_image = self.ground_truth_image.astype(np.float32)
+
+        self.hyperspectral_image /= self.hyperspectral_image.max()
+
+        self.hyperspectral_image = torch.tensor(self.hyperspectral_image)
+        self.ground_truth_image = torch.tensor(self.ground_truth_image)
+
+    def  __len__(self):
+        return len(self.hyperspectral_image)
+        
+    def __getitem__(self, index: int) -> Tuple[Sequence, int]:
+
+        pixel_values = self.hyperspectral_image[index]
+        pixel_values = pixel_values.reshape(1, len(pixel_values))
+        label = self.ground_truth_image.clone().detach()[index]
+
+        # if self.stage == Stage.TRAIN:
+        #     label = self.onehot_encoding(int(label.item()))
+        
+        return pixel_values, label
+
+
+# import matplotlib.pyplot as plt
+# from torch.utils.data import DataLoader
+
+
+# gt_path = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
+# himg_path = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
+
+# ground_truth_image = tifffile.imread(gt_path)
+# plt.imshow(ground_truth_image)
+# plt.show()
+
+# print(np.unique(ground_truth_image))
+
+# dataset = AVIRISDataset(
+#     hyperspectral_data='dataset/indian_pine/220x145x145/hyperspectral_image.tif',
+#     ground_truth_data='dataset/indian_pine/220x145x145/ground_truth_image.tif'
+# )
+
+# dataloader = DataLoader(dataset=dataset, batch_size=8)
+
+# for i, (X, y) in enumerate(dataloader):
+
+#     print(X)
+
+#     if i ==2:
+#         break
