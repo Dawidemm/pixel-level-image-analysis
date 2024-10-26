@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
 from tqdm import tqdm
-import psutil
 
 from itertools import combinations
 from typing import Union, Sequence, Tuple, Optional
