@@ -243,19 +243,12 @@ def compute_distance_matrix(
     distance_matrix = np.zeros((n, n))
 
     if rbm_labels != None:
-        with tqdm(total=100, desc='cpu%', position=1) as cpubar, tqdm(total=100, desc='ram%', position=0) as rambar:
             for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
                 if not np.array_equal(rbm_labels[i], rbm_labels[j]):
                     distance = euklidean_distance(objects[i], objects[j])
 
                     distance_matrix[i, j] = distance
                     distance_matrix[j, i] = distance
-
-                    rambar.n=psutil.virtual_memory().percent
-                    cpubar.n=psutil.cpu_percent()
-                    rambar.refresh()
-                    cpubar.refresh()
-
     else:
         for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
             distance = euklidean_distance(objects[i], objects[j])
