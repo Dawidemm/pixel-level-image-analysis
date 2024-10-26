@@ -106,13 +106,14 @@ class Pipeline:
                 rbm_trainer = AnnealingRBMTrainer(
                     rbm_epochs,
                     encoder=encoder,
-                    sampler=EmbeddingComposite(
-                        DWaveSampler(
-                            profile="europe", 
-                            compress_qpu_problem_date=False,
-                            solver=dict(topology__type='pegasus')
-                            )
-                        ), 
+                    # sampler=EmbeddingComposite(
+                    #     DWaveSampler(
+                    #         profile="europe", 
+                    #         compress_qpu_problem_date=False,
+                    #         solver=dict(topology__type='pegasus')
+                    #         )
+                    #     ), 
+                    sampler=SimulatedAnnealingSampler(),
                     learning_rate=rbm_learning_rate
                 )
                 rbm_trainer.fit(

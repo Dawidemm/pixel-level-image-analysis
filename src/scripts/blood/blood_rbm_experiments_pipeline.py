@@ -17,7 +17,7 @@ torch.manual_seed(10)
 NUM_VISIBLE = 28
 
 BATCH_SIZE = [8]
-NUM_HIDDEN = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+NUM_HIDDEN = [9]
 RBM_LEARNING_RATE = [0.001]
 RANDOM_SEEDS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
@@ -114,7 +114,7 @@ def main():
                         train_data_loader=train_dataloader,
                         validation_data_loader=val_dataloader,
                         skip_autoencoder=True,
-                        rbm_trainer='cd1',
+                        rbm_trainer='annealing',
                         rbm_learning_rate=learning_rate,
                         rbm_epochs=1,
                         learnig_curve=True,
