@@ -17,7 +17,7 @@ torch.manual_seed(10)
 NUM_VISIBLE = 28
 
 BATCH_SIZE = [8]
-NUM_HIDDEN = [9]
+NUM_HIDDEN = [19]
 RBM_LEARNING_RATE = [0.001]
 RANDOM_SEEDS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
@@ -102,9 +102,6 @@ def main():
                         random_seed=random_seed
                     )
 
-                    # np.savez('rbm_init_weights.npz', weights=rbm.weights)
-                    init_w = rbm.weights
-
                     pipeline = Pipeline(
                         auto_encoder=lbae, 
                         rbm=rbm
@@ -121,28 +118,13 @@ def main():
                         experiment_folder_path=EXPERIMENT_FOLDER_PATH,
                         experiment_number=experiment
                     )
-                    w_from_trainer = pipeline.trainer_weights
-                    after_train_w = rbm.weights
 
                     rbm = RBM(
                         num_visible=NUM_VISIBLE,
                         num_hidden=num_hidden,
                         random_seed=random_seed
                     )
-
-                    init_w = rbm.weights
-
                     rbm = rbm.load(file=f'./experiments/exp_{experiment}/rbm.npz')
-                    loaded_w = rbm.weights
-
-                    # print(f'init_w, loaded_w: {np.array_equal(init_w, loaded_w)}')
-                    # print(f'init_w, w_from_trainer: {np.array_equal(init_w, w_from_trainer)}')
-                    # print(f'init_w, after_train_w: {np.array_equal(init_w, after_train_w)}')
-                    # print(f'---------------------------------------------------------------------')
-                    # print(f'after_train_w, loaded_w: {np.array_equal(after_train_w, loaded_w)}')
-                    # print(f'after_train_w, w_from_trainer: {np.array_equal(after_train_w, w_from_trainer)}')
-                    # print(f'loaded_w, w_from_trainer: {np.array_equal(loaded_w, w_from_trainer)}')
-
 
                     threshold_finder = utils.ThresholdFinder(
                         dataloader=test_dataloader,
