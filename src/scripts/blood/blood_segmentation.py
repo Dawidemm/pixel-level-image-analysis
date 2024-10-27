@@ -169,7 +169,7 @@ np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 28
-NUM_HIDDEN = 23
+NUM_HIDDEN = 19
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
@@ -179,7 +179,6 @@ RBM_MODELS_DIR = 'model/rbms'
 SEGMENTATION_OUTPUT_DIR = 'segmentation_results'
 MODELS_LIST = sorted(os.listdir(RBM_MODELS_DIR))
 
-# THRESHOLDS = np.linspace(1/10, 1, 10)[:-1]
 THRESHOLDS = [0.6, 0.5, 0.8, 0.2, 0.4, 0.8, 0.3, 0.8, 0.9, 0.4]
 
 IMAGES = ['E_7']
@@ -247,6 +246,7 @@ def main():
             ahc = AgglomerativeClustering(n_clusters=6, linkage='single')
             print('Start agglomerative clustering...')
             labels = ahc.fit_predict(distance_matrix)
+            labels = labels+1
 
             ahc_homogenity = homogeneity_score(y_true, labels)
             ahc_completeness = completeness_score(y_true, labels)
@@ -256,14 +256,14 @@ def main():
             
             metrics_path = os.path.join(model_result_dir, 'metrics.txt')
             with open(metrics_path, 'w') as f:
-                f.write(f"After RBM pre-clustering:")
+                f.write(f"After RBM pre-clustering:\n")
                 f.write(f"RBM's homogeneity: {rbm_homogenity}\n")
                 f.write(f"RBM's completeness: {rbm_completeness}\n")
                 f.write(f"RBM's v-measure: {np.mean(rbm_v_measure_scores)}\n")
                 f.write(f"RBM's ari: {rbm_ari}\n")
-                f.write(f"RBM's rand score: {rbm_rand_score}")
+                f.write(f"RBM's rand score: {rbm_rand_score}\n")
 
-                f.write(f"After AHC clustering:")
+                f.write(f"After AHC clustering:\n")
                 f.write(f"RBM's homogeneity: {ahc_homogenity}\n")
                 f.write(f"RBM's completeness: {ahc_completeness}\n")
                 f.write(f"RBM's v-measure: {ahc_v_measure}\n")
