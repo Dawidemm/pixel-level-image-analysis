@@ -106,14 +106,14 @@ class Pipeline:
                 rbm_trainer = AnnealingRBMTrainer(
                     rbm_epochs,
                     encoder=encoder,
-                    # sampler=EmbeddingComposite(
-                    #     DWaveSampler(
-                    #         profile="europe", 
-                    #         compress_qpu_problem_date=False,
-                    #         solver=dict(topology__type='pegasus')
-                    #         )
-                    #     ), 
-                    sampler=SimulatedAnnealingSampler(),
+                    sampler=EmbeddingComposite(
+                        DWaveSampler(
+                            profile="europe", 
+                            compress_qpu_problem_date=False,
+                            solver=dict(topology__type='pegasus')
+                            )
+                        ), 
+                    # sampler=SimulatedAnnealingSampler(),
                     learning_rate=rbm_learning_rate
                 )
                 rbm_trainer.fit(
@@ -121,13 +121,26 @@ class Pipeline:
                     train_data_loader=train_data_loader,
                     val_data_loader=validation_data_loader
                 )
-                # np.savez(f'sample_time.npzs', sample_time=rbm_trainer.sample_time)
                 if learnig_curve:
                     utils.plot_loss(
                         train_loss_values=rbm_trainer.train_losses,
                         validation_loss_values=rbm_trainer.val_losses,
                         plot_title='RBM',
                         experiment_number=experiment_number
+                    )
+                if experiment_number != None:
+                    experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
+                    os.makedirs(experiment_path, exist_ok=True)
+                    self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
+                    np.savez(
+                        os.path.join(experiment_path, 'time_stats.npz'), 
+                        train_step_time=rbm_trainer.train_step_time, 
+                        sample_time = rbm_trainer.sample_time
+                    )
+                    np.savez(
+                        os.path.join(experiment_path, 'losses.npz'), 
+                        train_step_time=rbm_trainer.train_losses, 
+                        sample_time = rbm_trainer.val_losses
                     )
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
