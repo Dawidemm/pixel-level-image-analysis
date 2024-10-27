@@ -242,18 +242,18 @@ def compute_distance_matrix(
     n = len(objects)
     distance_matrix = np.zeros((n, n))
 
-    if rbm_labels != None:
-            for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
-                if not np.array_equal(rbm_labels[i], rbm_labels[j]):
-                    distance = euklidean_distance(objects[i], objects[j])
-
-                    distance_matrix[i, j] = distance
-                    distance_matrix[j, i] = distance
-    else:
-        for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
+    # if rbm_labels != None:
+    for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
+        if not np.array_equal(rbm_labels[i], rbm_labels[j]):
             distance = euklidean_distance(objects[i], objects[j])
+
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
+    # else:
+    #     for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
+    #         distance = euklidean_distance(objects[i], objects[j])
+    #         distance_matrix[i, j] = distance
+    #         distance_matrix[j, i] = distance
 
     return distance_matrix
     
