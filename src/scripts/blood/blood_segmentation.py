@@ -157,6 +157,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from sklearn.metrics import completeness_score, homogeneity_score, v_measure_score, adjusted_rand_score, rand_score
+from sklearn.cluster import AgglomerativeClustering
 
 from src.utils.blood_dataset import BloodIterableDataset, Stage
 from src.utils import utils
@@ -176,17 +177,18 @@ AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=19-step=290280.ckpt'
 AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
 RBM_MODELS_DIR = 'model/rbms'
 SEGMENTATION_OUTPUT_DIR = 'segmentation_results'
+MODELS_LIST = sorted(os.listdir(RBM_MODELS_DIR))
 
 # THRESHOLDS = np.linspace(1/10, 1, 10)[:-1]
 THRESHOLDS = [0.6, 0.5, 0.8, 0.2, 0.4, 0.8, 0.3, 0.8, 0.9, 0.4]
 
-IMAGES = ['F_1']
+IMAGES = ['E_7']
 
 def main():
     os.makedirs(SEGMENTATION_OUTPUT_DIR, exist_ok=True)
 
     # Iteracja przez modele RBM
-    for rbm_file in os.listdir(RBM_MODELS_DIR):
+    for rbm_file in MODELS_LIST:
         for threshold in THRESHOLDS:
             rbm_path = os.path.join(RBM_MODELS_DIR, rbm_file)
             
@@ -194,7 +196,7 @@ def main():
             os.makedirs(model_result_dir, exist_ok=True)
 
             rbm = RBM(num_visible=NUM_VISIBLE, num_hidden=NUM_HIDDEN)
-            rbm.load(file=rbm_path)
+            rbm = rbm.load(file=rbm_path)
 
             seg_dataset = BloodIterableDataset(
                 hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
@@ -217,6 +219,7 @@ def main():
 
             hidden_representations = []
             y_true = []
+            rbm_labels = []
             
             with torch.no_grad():
                 for idx, (X, y) in enumerate(seg_dataloader):
@@ -227,15 +230,23 @@ def main():
                     hidden_representations.append(hidden_representation)
                     y_true.append(y)
 
+                    rbm_label = rbm.binarized_rbm_output(hidden_representation, threshold=threshold)
+                    rbm_labels.append(rbm_label)
+
             hidden_representations = np.concatenate(hidden_representations)
             y_true = np.concatenate(y_true)
-
+            rbm_labels = np.concatenate(rbm_labels)
 
             th_finder = utils.ThresholdFinder(dataloader=seg_dataloader, rbm=rbm, encoder=lbae.encoder)
             threshold, rbm_ari, rbm_rand_score, rbm_homogenity, rbm_completeness, rbm_v_measure_scores, rbm_mapped_labels = th_finder.find_threshold(thresholds=[threshold])
 
-            ahc = AgglomerativeHierarchicalClustering(n_clusters=7, linkage="single")
-            labels = ahc.fit(X=hidden_representations, initial_labels=rbm_mapped_labels)
+            # ahc = AgglomerativeHierarchicalClustering(n_clusters=6, linkage="single")
+            # labels = ahc.fit(X=hidden_representations, initial_labels=rbm_mapped_labels)
+
+            distance_matrix = utils.compute_distance_matrix(hidden_representations, rbm_labels=rbm_labels)
+            ahc = AgglomerativeClustering(n_clusters=6, linkage='single')
+            print('Start agglomerative clustering...')
+            labels = ahc.fit_predict(distance_matrix)
 
             ahc_homogenity = homogeneity_score(y_true, labels)
             ahc_completeness = completeness_score(y_true, labels)
