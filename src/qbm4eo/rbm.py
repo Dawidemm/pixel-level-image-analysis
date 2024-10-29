@@ -119,7 +119,7 @@ class RBMTrainer:
             rbm: RBM,
             train_data_loader: DataLoader,
             val_data_loader: Union[DataLoader, None] = None,
-            validation_step_after_n_steps: int = 150
+            validation_step_after_n_steps: int = 50
     ):
         self.train_losses.clear()
         self.val_losses.clear()
@@ -143,6 +143,9 @@ class RBMTrainer:
                 if val_data_loader is not None and batch_idx % validation_step_after_n_steps == 0:
                     val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
                     self.val_losses.append((batch_idx, val_loss))
+
+        val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
+        self.val_losses.append((batch_idx+1, val_loss))
 
     @abc.abstractmethod
     def training_step(self, rbm: RBM, batch):
