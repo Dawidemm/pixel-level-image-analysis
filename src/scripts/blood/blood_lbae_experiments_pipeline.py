@@ -9,6 +9,7 @@ from src.qbm4eo.pipeline import Pipeline
 from src.qbm4eo.rbm import RBM
 
 from torchmetrics.functional.pairwise import pairwise_euclidean_distance
+from src.utils import utils
 
 torch.set_float32_matmul_precision('medium')
 
@@ -16,11 +17,12 @@ NUM_VISIBLE = 28
 NUM_HIDDEN = 8
 
 AUTOENCODER_EPOCHS = 20
-AUTOENCODER_LEARNING_RATE = [0.001]
-BATCH_SIZE = [8]
+AUTOENCODER_LEARNING_RATE = [0.01, 0.001, 0.0001]
+BATCH_SIZE = [4, 8, 16]
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
+
 IMAGES = ['D_1', 'E_1', 'F_1']
 
 RANDOM_SEED = 10
@@ -34,7 +36,7 @@ def main():
 
     os.makedirs(EXPERIMENT_FOLDER_PATH, exist_ok=True)
     with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-        file.write(f'experiment,batch_size,learning_rate,pairwise_euclidean_distance,spectral_angle_distance\n')
+        file.write(f'experiment,batch_size,learning_rate,pairwise_euclidean_distance,spectral_distances\n')
 
     experiment = 0
 
@@ -68,7 +70,7 @@ def main():
                 stage=Stage.TEST,
                 remove_noisy_bands=True,
                 remove_background=True,
-                shuffle=True
+                shuffle=False
             )
 
             train_dataloader = DataLoader(
@@ -111,6 +113,7 @@ def main():
             )
 
             mean_euclidean_distances = []
+            spectral_distances = []
 
             with torch.no_grad():
                 for X, _ in test_dataloader:
@@ -120,11 +123,14 @@ def main():
                     distance = pairwise_euclidean_distance(X, X_reconstructed)
                     mean_euclidean_distances.append(torch.mean(distance))
 
+                    spectral_angle_distance = utils.spectral_angle_distance(X, X_reconstructed)
+                    spectral_distances.append(spectral_angle_distance)
 
-            pairwise_euclidean_distance_mean = round(torch.mean(torch.tensor(mean_euclidean_distances)).item(), 3)
+            pairwise_euclidean_distance_mean = torch.mean(torch.tensor(mean_euclidean_distances)).item()
+            spectral_distances = np.mean(spectral_distances)
 
             with open(EXPERIMENT_FOLDER_PATH+'experiments_raport.csv', 'a+') as file:
-                file.write(f'{experiment},{batch_size},{learning_rate},{pairwise_euclidean_distance_mean}\n')
+                file.write(f'{experiment},{batch_size},{learning_rate},{pairwise_euclidean_distance_mean},{spectral_distances}\n')
 
             experiment += 1
 
