@@ -2,6 +2,7 @@ import os
 import numpy as np
 import torch
 from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score, v_measure_score
+import pandas as pd
 import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
@@ -10,6 +11,8 @@ from tqdm import tqdm
 from itertools import combinations
 from typing import Union, Sequence, Tuple, Optional
 from numpy.typing import ArrayLike
+
+import matplotlib.pyplot as plt
 
 np.random.seed(10)
 
@@ -141,95 +144,69 @@ class ThresholdFinder:
             self,
             dataloader,
             rbm,
-            encoder=None
+            encoder
     ):
         self.dataloader = dataloader
         self.rbm = rbm
         self.encoder = encoder
 
-    def find_threshold(self, thresholds: Union[Sequence, ArrayLike], with_v_measure: bool = False):
+    def find_threshold(
+            self, 
+            thresholds: Union[Sequence, ArrayLike]
+        ):
 
-        self.best_threshold = None
-        self.adjusted_rand_score = float('-inf')
+        self.ars = []
+        self.rs = []
+        self.homogeneity = []
+        self.completeness = []
+        self.num_unique_labels = []
 
         for threshold in thresholds:
 
-            unique_labels = set()
-            labels = []
             y_true = []
+            y_pred = []
 
             for X, y in self.dataloader:
 
-                if self.encoder is None:
-                    rbm_input = X.detach().numpy()[0]
-                else:
-                    encoder_output, _ = self.encoder.forward(X, epoch=1)
-                    rbm_input = encoder_output.detach().numpy()
+                encoder_output, _ = self.encoder.forward(X, epoch=1)
+                rbm_input = encoder_output.detach().numpy()
+
+                unique_rbm_input_elements = np.unique(rbm_input)
+                assert set(unique_rbm_input_elements).issubset({-1, 1})
 
                 label = self.rbm.binarized_rbm_output(rbm_input, threshold)
+                label = label.flatten()
+                unique_label_elements = np.unique(label)
+                assert set(unique_label_elements).issubset({0, 1})
 
-                unique_label = tuple(map(tuple, label))
-                unique_labels.add(unique_label)
+                label = int("".join((str(d) for d in label.flatten())), 2)
 
-                label = tuple(map(tuple, label))
-                labels.append(label)
+                y_pred.append(label)
+                y_true.append(int(y.item()))
 
-                y_true.append(y)
-            
-            y_true = torch.cat(y_true, dim=0)
             y_true = np.array(y_true)
+            y_pred = np.array(y_pred)
 
-            unique_labels = list(unique_labels)
+            self.num_unique_labels.append(len(np.unique(y_pred)))
 
-            mapped_labels = self.map_to_indices(labels, unique_labels)
-            mapped_labels = np.array(mapped_labels)
+            self.ars.append(adjusted_rand_score(y_true, y_pred))
+            self.rs.append(rand_score(y_true, y_pred))
+            self.homogeneity.append(homogeneity_score(y_true, y_pred))
+            self.completeness.append(completeness_score(y_true, y_pred))
 
-            adj_rand_score_value = adjusted_rand_score(y_true, mapped_labels)
-
-            if adj_rand_score_value > self.adjusted_rand_score:
-                self.best_threshold = threshold
-                self.adjusted_rand_score = adj_rand_score_value
-                self.rand_score = rand_score(y_true, mapped_labels)
-                self.homogenity = homogeneity_score(y_true, mapped_labels)
-                self.completeness = completeness_score(y_true, mapped_labels)
-                self.mapped_labels = mapped_labels
-                self.v_measure_scores = []
-
-                if with_v_measure == True:
-                    for i in range(100):
-                        v_measure = v_measure_score(y_true, mapped_labels, beta=i/100)
-                        self.v_measure_scores.append(v_measure)
-
-        return self.best_threshold, self.adjusted_rand_score, self.rand_score, self.homogenity, self.completeness, self.v_measure_scores, self.mapped_labels
-
-    @staticmethod
-    def map_to_indices(values_to_map: list, target_list: list):
-        '''
-        Maps a list of values to their corresponding indices in another list.
-
-        Args:
-        - values_to_map (list): A list of values to be mapped to indices.
-        - target_list (list): The list containing the elements to be mapped to.
-
-        Returns:
-        List of indices: A list containing the indices of the values in the provided list.
-        '''
-
-        indices = [target_list.index(value) for value in values_to_map]
-
-        return indices
+        return self.ars, self.rs, self.homogeneity, self.completeness, self.num_unique_labels
     
-def spectral_angle(vector_a: ArrayLike, vector_b: ArrayLike):
+def spectral_angle_distance(vector_a: ArrayLike, vector_b: ArrayLike):
     dot_product = np.dot(np.squeeze(vector_a), np.squeeze(vector_b))
     norm_a = np.linalg.norm(vector_a)
     norm_b = np.linalg.norm(vector_b)
 
     cos_theta = dot_product/(norm_a * norm_b)
-    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    angle_distance = np.arccos(np.clip(cos_theta, -1.0, 1.0))
 
-    return angle
+    return angle_distance
 
-def euklidean_distance(vector_a: ArrayLike, vector_b: ArrayLike):
+def euclidean_distance(vector_a: ArrayLike, vector_b: ArrayLike):
     vector_a = np.array(vector_a)
     vector_b = np.array(vector_b)
     
@@ -242,18 +219,12 @@ def compute_distance_matrix(
     n = len(objects)
     distance_matrix = np.zeros((n, n))
 
-    # if rbm_labels != None:
     for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
         if not np.array_equal(rbm_labels[i], rbm_labels[j]):
-            distance = euklidean_distance(objects[i], objects[j])
+            distance = euclidean_distance(objects[i], objects[j])
 
             distance_matrix[i, j] = distance
             distance_matrix[j, i] = distance
-    # else:
-    #     for i, j in tqdm(combinations(range(n), 2), total=(n*(n-1))//2, desc="Computing distance matrix with RBM labels"):
-    #         distance = euklidean_distance(objects[i], objects[j])
-    #         distance_matrix[i, j] = distance
-    #         distance_matrix[j, i] = distance
 
     return distance_matrix
     
@@ -410,3 +381,49 @@ def gini_index(x: ArrayLike) -> float:
     num_elements = len(x)
 
     return round(((np.sum((2 * index - num_elements - 1) * x)) / (num_elements * np.sum(x))), 3)
+
+
+def plot_losses(
+        train_loss_values: Sequence[float],
+        validation_loss_values: Sequence[float],
+        model: str,
+        save: bool = True,
+        experiment_number: Union[int, None] = None
+):
+    plt.figure(figsize=(14, 8))
+    plt.plot(
+        list(range(len(train_loss_values))),
+        train_loss_values,
+        label='Train Loss',
+        color='steelblue',
+        linestyle='-',
+        linewidth=1.5
+    )
+    if model == 'lbae':
+        plt.plot(
+            list(range(len(validation_loss_values))),
+            validation_loss_values,
+            label='Validation Loss',
+            color='crimson',
+            linestyle='-',
+            linewidth=1.5
+        )    
+    if model == 'rbm':
+        plt.plot(
+            [validation_loss_values[idx][0] for idx in range(len(validation_loss_values))],
+            [validation_loss_values[idx][1] for idx in range(len(validation_loss_values))],
+            label='Validation Loss',
+            color='crimson',
+            linestyle='-',
+            linewidth=1.5
+        )
+    plt.ylabel('Loss', fontsize=12)
+    plt.xlabel('Epoch', fontsize=12)
+    plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgrey')
+    plt.legend(fontsize=12, loc='best')
+    plt.tight_layout()
+    
+    if save:
+        experiment_path = f'./experiments/exp_{experiment_number}/'
+        os.makedirs(experiment_path, exist_ok=True)
+        plt.savefig(experiment_path+'plot_loss.pdf', format='pdf', dpi=300)
