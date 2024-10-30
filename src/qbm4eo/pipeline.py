@@ -41,6 +41,8 @@ class Pipeline:
         experiment_folder_path: Union[str, None]=None,
         experiment_number: Union[int, None]=None
     ):
+        experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
+        os.makedirs(experiment_path, exist_ok=True)
         # Adjust flags for skipping training components. If given component
         # is None, we train it anyway, otherwise whole process does not make sense.
         skip_autoencoder = skip_autoencoder or self.auto_encoder is None
@@ -66,13 +68,20 @@ class Pipeline:
                 train_dataloaders=train_data_loader,
                 val_dataloaders=validation_data_loader
             )
-
             if learnig_curve:
-                utils.plot_loss(
+                utils.plot_losses(
                     train_loss_values=loss_logs.train_losses,
                     validation_loss_values=loss_logs.validation_losses,
-                    plot_title='Autoencoder',
+                    model='lbae',
                     experiment_number=experiment_number
+                )
+            if experiment_number != None:
+                experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
+                os.makedirs(experiment_path, exist_ok=True)
+                np.savez(
+                    os.path.join(experiment_path, 'losses.npz'), 
+                    train_losses=loss_logs.train_losses, 
+                    val_losses=loss_logs.validation_losses
                 )
 
         encoder = self.auto_encoder.encoder
@@ -87,19 +96,26 @@ class Pipeline:
                 rbm_trainer = CD1Trainer(
                     rbm_epochs, 
                     encoder=encoder, 
-                    learning_rate=rbm_learning_rate)
+                    learning_rate=rbm_learning_rate
+                )
                 rbm_trainer.fit(
                     rbm=self.rbm,
                     train_data_loader=train_data_loader,
-                    val_data_loader=validation_data_loader
+                    val_data_loader=validation_data_loader,
+                    experiment_path=experiment_path
                 )
                 if learnig_curve:
-                    utils.plot_loss(
+                    utils.plot_losses(
                         train_loss_values=rbm_trainer.train_losses,
                         validation_loss_values=rbm_trainer.val_losses,
-                        plot_title='RBM',
+                        model='rbm',
                         experiment_number=experiment_number
                     )
+                np.savez(
+                    os.path.join(experiment_path, 'losses.npz'), 
+                    train_losses=rbm_trainer.train_losses, 
+                    val_losses=rbm_trainer.val_losses
+                )
 
             elif rbm_trainer == 'annealing':
                 print('RBM training with AnnealingRBMTrainer.')
@@ -122,32 +138,28 @@ class Pipeline:
                     val_data_loader=validation_data_loader
                 )
                 if learnig_curve:
-                    utils.plot_loss(
+                    utils.plot_losses(
                         train_loss_values=rbm_trainer.train_losses,
                         validation_loss_values=rbm_trainer.val_losses,
-                        plot_title='RBM',
+                        model='rbm',
                         experiment_number=experiment_number
                     )
-                if experiment_number != None:
-                    experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
-                    os.makedirs(experiment_path, exist_ok=True)
-                    self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
-                    np.savez(
-                        os.path.join(experiment_path, 'time_stats.npz'), 
-                        train_step_time=rbm_trainer.train_step_time, 
-                        sample_time = rbm_trainer.sample_time
-                    )
-                    np.savez(
-                        os.path.join(experiment_path, 'losses.npz'), 
-                        train_step_time=rbm_trainer.train_losses, 
-                        sample_time = rbm_trainer.val_losses
-                    )
+                np.savez(
+                    os.path.join(experiment_path, 'time_stats.npz'), 
+                    train_step_time=rbm_trainer.train_step_time, 
+                    sample_time=rbm_trainer.sample_time
+                )
+                np.savez(
+                    os.path.join(experiment_path, 'losses.npz'), 
+                    train_losses=rbm_trainer.train_losses, 
+                    val_losses=rbm_trainer.val_losses
+                )
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
             
-        if experiment_number != None:
-            experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
-            os.makedirs(experiment_path, exist_ok=True)
-            self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
-        else:
-            self.rbm.save(f'rbm.npz')
+        # if experiment_number != None:
+        #     experiment_path = f'{experiment_folder_path}/exp_{experiment_number}/'
+        #     os.makedirs(experiment_path, exist_ok=True)
+        #     self.rbm.save(os.path.join(experiment_path, 'rbm.npz'))
+        # else:
+        #     self.rbm.save(f'rbm.npz')

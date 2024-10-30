@@ -1,5 +1,6 @@
 import abc
 from itertools import islice
+import os
 
 import dimod
 import numpy as np
@@ -56,7 +57,8 @@ class RBM:
     ):
         self.num_visible = num_visible
         self.num_hidden = num_hidden
-        self.rng = np.random.default_rng(seed=random_seed)
+        self.random_seed = random_seed
+        self.rng = np.random.default_rng(seed=self.random_seed)
 
         self.weights = (
             self.rng.normal(size=(self.num_visible, self.num_hidden)) * INITIAL_COEF_SCALE
@@ -118,7 +120,8 @@ class RBMTrainer:
             self,
             rbm: RBM,
             train_data_loader: DataLoader,
-            val_data_loader: Union[DataLoader, None] = None,
+            val_data_loader: Union[DataLoader, None],
+            experiment_path: str,
             validation_step_after_n_steps: int = 50
     ):
         self.train_losses.clear()
@@ -143,6 +146,10 @@ class RBMTrainer:
                 if val_data_loader is not None and batch_idx % validation_step_after_n_steps == 0:
                     val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
                     self.val_losses.append((batch_idx, val_loss))
+
+                if batch_idx+1 in [100*(i+1) for i in range(10)]:
+                    rbm.save(os.path.join(experiment_path, f'rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz'))
+                    print(f'\nSaved model: rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz')
 
         val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
         self.val_losses.append((batch_idx+1, val_loss))
