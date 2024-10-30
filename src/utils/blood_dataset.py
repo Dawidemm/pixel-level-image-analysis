@@ -22,10 +22,12 @@ class Stage(Enum):
 def blood_dataset_params(
         hyperspectral_data_path: str,
         ground_truth_data_path: str,
-        remove_noisy_bands: bool=True
+        remove_noisy_bands: bool=True,
+        remove_background: bool=False
 ):
     pixel_max_value = 0
     classes = 0
+    hyperspectral_data = []
 
     hyperspectral_data_files = os.listdir(hyperspectral_data_path)
 
@@ -59,17 +61,34 @@ def blood_dataset_params(
         if remove_noisy_bands:
             img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
 
-        if img.max() >= pixel_max_value:
-            pixel_max_value = img.max()
-
         gt = np.load(f'{ground_truth_data_path}/{ground_truth_files[i]}')
         gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
         gt[gt > 7] = 0
 
+        rows, cols, bands = img.shape
+
+        gt = gt.flatten()
+        img = img.reshape(rows*cols, bands)
+
+        if remove_background:
+            background_indices = np.where(gt == BACKGROUND_VALUE)[0]
+            
+            gt = np.delete(gt, background_indices)
+            img = np.delete(img, background_indices, axis=0)
+
+        if img.max() >= pixel_max_value:
+            pixel_max_value = img.max()
+
+        hyperspectral_data.append(img.flatten())
+
         if len(np.unique(gt)) >= classes:
             classes = len(np.unique(gt))
 
-    return pixel_max_value, classes    
+    hyperspectral_data = np.concatenate(hyperspectral_data)
+    hyperspectral_std = np.std(hyperspectral_data)
+    hyperspectral_mean = np.mean(hyperspectral_data)
+
+    return pixel_max_value, classes, hyperspectral_std, hyperspectral_mean
 
 
 class BloodIterableDataset(IterableDataset):
@@ -123,10 +142,11 @@ class BloodIterableDataset(IterableDataset):
         self.shuffle = shuffle
         self.random_seed = random_seed
 
-        self.pixel_max_value, self.classes = blood_dataset_params(
+        self.pixel_max_value, self.classes, self.std, self.mean = blood_dataset_params(
             hyperspectral_data_path=hyperspectral_data_path,
             ground_truth_data_path=ground_truth_data_path,
-            remove_noisy_bands=self.remove_noisy_bands
+            remove_noisy_bands=self.remove_noisy_bands,
+            remove_background=self.remove_background
         )
 
     def __iter__(self):
@@ -172,6 +192,8 @@ class BloodIterableDataset(IterableDataset):
             if self.remove_noisy_bands:
                 img = np.delete(img, NOISY_BANDS_INDICES, axis=2)
 
+            # img = (img - self.mean) / self.std
+
             gt = np.load(f'{self.ground_truth_data_path}/{ground_truth_files[i]}')
             gt = np.asarray(gt['gt'][:,:], dtype=np.float32)
             gt[gt > 7] = 0
@@ -190,7 +212,8 @@ class BloodIterableDataset(IterableDataset):
                 
                 gt = np.delete(gt, background_indices)
                 img = np.delete(img, background_indices, axis=0)
-
+            
+            gt = gt - 1
             ground_truth_pixels = np.append(ground_truth_pixels, gt)
             hyperspectral_pixels.append(img)
 
@@ -203,8 +226,8 @@ class BloodIterableDataset(IterableDataset):
             )
         
         if self.stage is not Stage.SEG:
-            ground_truth_pixels = ground_truth_pixels[:int(0.1*len(ground_truth_pixels))]
-            hyperspectral_pixels = hyperspectral_pixels[:int(0.1*len(hyperspectral_pixels))]
+            ground_truth_pixels = ground_truth_pixels[:12500]
+            hyperspectral_pixels = hyperspectral_pixels[:12500]
         
         ground_truth_pixels, hyperspectral_pixels = self.train_val_test_split(
             gt=ground_truth_pixels,
