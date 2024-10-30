@@ -419,6 +419,8 @@ def plot_losses(
         )
     plt.ylabel('Loss', fontsize=12)
     plt.xlabel('Epoch', fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=12)
     plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgrey')
     plt.legend(fontsize=12, loc='best')
     plt.tight_layout()
