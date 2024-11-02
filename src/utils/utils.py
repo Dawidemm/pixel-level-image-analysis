@@ -1,9 +1,6 @@
 import os
 import numpy as np
-import torch
 from sklearn.metrics import rand_score, adjusted_rand_score, completeness_score, homogeneity_score, v_measure_score
-import pandas as pd
-import plotly.graph_objects as go
 import lightning
 from sklearn.datasets import make_blobs
 from tqdm import tqdm
@@ -175,14 +172,15 @@ class ThresholdFinder:
                 assert set(unique_rbm_input_elements).issubset({-1, 1})
 
                 label = self.rbm.binarized_rbm_output(rbm_input, threshold)
-                label = label.flatten()
-                unique_label_elements = np.unique(label)
-                assert set(unique_label_elements).issubset({0, 1})
 
-                label = int("".join((str(d) for d in label.flatten())), 2)
+                for i in range(len(label)):
+                    unique_label_elements = np.unique(label[i])
+                    assert set(unique_label_elements).issubset({0, 1})
 
-                y_pred.append(label)
-                y_true.append(int(y.item()))
+                    label_predicted = int("".join((str(d) for d in label[i].flatten())), 2)
+
+                    y_pred.append(label_predicted)
+                    y_true.append(int(y[i].item()))
 
             y_true = np.array(y_true)
             y_pred = np.array(y_pred)
@@ -194,7 +192,16 @@ class ThresholdFinder:
             self.homogeneity.append(homogeneity_score(y_true, y_pred))
             self.completeness.append(completeness_score(y_true, y_pred))
 
-        return self.ars, self.rs, self.homogeneity, self.completeness, self.num_unique_labels
+        max_ars_idx = np.argmax(self.ars)
+        self.ars = self.ars[max_ars_idx]
+        self.rs = self.rs[max_ars_idx]
+        self.homogeneity = self.homogeneity[max_ars_idx]
+        self.completeness = self.completeness[max_ars_idx]
+        self.num_unique_labels = self.num_unique_labels[max_ars_idx]
+
+        self.threshold = thresholds[max_ars_idx]
+
+        return self.threshold, self.ars, self.rs, self.homogeneity, self.completeness, self.num_unique_labels
     
 def spectral_angle_distance(vector_a: ArrayLike, vector_b: ArrayLike):
     dot_product = np.dot(np.squeeze(vector_a), np.squeeze(vector_b))
@@ -240,60 +247,6 @@ class LossLoggerCallback(lightning.Callback):
 
         val_loss = trainer.logged_metrics['val_loss']
         self.validation_losses.append(val_loss)
-    
-def plot_loss(
-        train_loss_values: Sequence[float],
-        validation_loss_values: Sequence[float],
-        plot_title: str,
-        save: bool=True,
-        format: str='pdf',
-        experiment_number: Union[int, None]=None
-):
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=list(range(len(train_loss_values))), y=train_loss_values, mode='lines', name='Train Loss'))
-
-    if len(train_loss_values) != len(validation_loss_values):
-        fig.add_trace(
-            go.Scatter(
-                x=[validation_loss_values[idx][0] for idx in range(len(validation_loss_values))],
-                y=[validation_loss_values[idx][1] for idx in range(len(validation_loss_values))], 
-                mode='lines', 
-                name='Val Loss'
-            )
-        )
-    else:
-        fig.add_trace(
-            go.Scatter(
-                x=list(range(len(validation_loss_values))), 
-                y=validation_loss_values, 
-                mode='lines', 
-                name='Val Loss'
-            )
-        )
-
-    fig.update_layout(
-        title=plot_title,
-        xaxis_title='Epoch',
-        yaxis_title='Loss',
-        plot_bgcolor='rgba(0,0,0,0)'
-    )
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
-    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
-    
-    if save:
-        if experiment_number != None:
-            experiment_path = f'./experiments/exp_{experiment_number}/'
-            os.makedirs(experiment_path, exist_ok=True)
-            plot_loss_path = os.path.join(experiment_path, f'{plot_title.lower()}_learning.{format}')
-        else:
-            plot_loss_path = f'{plot_title.lower()}_learning.{format}'
-
-        fig.write_image(
-            plot_loss_path,
-            width=800,
-            height=600,
-            scale=1
-        )
 
 class SyntheticDataGenerator():
     def __init__(
