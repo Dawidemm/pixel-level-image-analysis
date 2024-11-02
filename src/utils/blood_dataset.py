@@ -213,7 +213,7 @@ class BloodIterableDataset(IterableDataset):
                 gt = np.delete(gt, background_indices)
                 img = np.delete(img, background_indices, axis=0)
             
-            gt = gt - 1
+            
             ground_truth_pixels = np.append(ground_truth_pixels, gt)
             hyperspectral_pixels.append(img)
 
@@ -239,22 +239,9 @@ class BloodIterableDataset(IterableDataset):
             pixel = torch.tensor(hyperspectral_pixels[i])
             pixel = pixel.reshape(1, pixel.shape[0])
             label = torch.tensor(ground_truth_pixels[i])
-
-            if self.stage == Stage.TRAIN or self.stage == Stage.VAL:
-                label = self.onehot_encoding(int(label.item()))
                     
             yield pixel, label
 
-    def onehot_encoding(
-            self, 
-            label: torch.TensorType
-        ) -> Sequence[int]:
-
-        onehot_label = torch.zeros(self.classes)
-        onehot_label[label] = 1.0
-
-        return onehot_label
-    
     def shuffle_data(
             self,
             gt: ArrayLike,
