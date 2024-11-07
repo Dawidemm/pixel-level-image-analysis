@@ -343,7 +343,7 @@ def plot_losses(
         save: bool = True,
         experiment_number: Union[int, None] = None
 ):
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(6, 4))
     plt.plot(
         list(range(len(train_loss_values))),
         train_loss_values,
@@ -360,7 +360,7 @@ def plot_losses(
             color='crimson',
             linestyle='-',
             linewidth=1.5
-        )    
+        )
     if model == 'rbm':
         plt.plot(
             [validation_loss_values[idx][0] for idx in range(len(validation_loss_values))],
@@ -370,12 +370,12 @@ def plot_losses(
             linestyle='-',
             linewidth=1.5
         )
-    plt.ylabel('Loss', fontsize=12)
-    plt.xlabel('Epoch', fontsize=12)
-    plt.yticks(fontsize=12)
-    plt.xticks(fontsize=12)
+
+    plt.ylabel('Loss', fontsize=12, fontname="Times New Roman")
+    plt.xlabel('Epoch', fontsize=12, fontname="Times New Roman")
+    plt.yticks(fontsize=12, fontname="Times New Roman")
     plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgrey')
-    plt.legend(fontsize=12, loc='best')
+    plt.legend(prop={'family': 'Times New Roman', 'size': 12}, loc='upper right')
     plt.tight_layout()
     
     if save:
