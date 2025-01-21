@@ -24,3 +24,6 @@ analiza.py
 check_labels.py
 kmeans_exp.py
 plot_labels.py
+sanity_check.py
+previous_exp
+compute_distance_matrix.py
