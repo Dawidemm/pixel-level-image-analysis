@@ -1,156 +1,3 @@
-# import os
-# import torch
-# import numpy as np
-# from torch.utils.data import DataLoader
-# from sklearn.metrics import completeness_score, homogeneity_score, v_measure_score, adjusted_rand_score, rand_score
-
-# from src.utils.blood_dataset import BloodIterableDataset, Stage
-
-# from src.utils import utils
-
-# from src.qbm4eo.lbae import LBAE
-# from src.qbm4eo.rbm import RBM
-# from src.qbm4eo.ahc import AgglomerativeHierarchicalClustering
-
-# from src.utils import utils
-
-# import matplotlib.pyplot as plt
-
-# np.random.seed(10)
-# torch.manual_seed(0)
-
-# NUM_VISIBLE = 28
-# NUM_HIDDEN = 23
-# RANDOM_SEEDS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-
-
-# HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
-# GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
-
-# AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=19-step=290280.ckpt'
-# AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
-# RBM_MODEL_PATH = 'experiments/exp_203/rbm.npz'
-
-# IMAGES = ['F_1']
-
-# def main():
-
-#     test_labels = np.array([])
-
-#     seg_dataset = BloodIterableDataset(
-#         hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
-#         ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
-#         load_specific_images=IMAGES,
-#         stage=Stage.SEG,
-#         remove_noisy_bands=True,
-#         remove_background=True,
-#         shuffle=False
-#     )
-
-#     seg_dataloader = DataLoader(
-#             dataset=seg_dataset,
-#             batch_size=1,
-#             drop_last=False
-#         )
-
-#     lbae = LBAE.load_from_checkpoint(
-#         checkpoint_path=AUTOENCODER_CHECKPOINT_PATH, 
-#         hparams_file=AUTOENCODER_HPARAMS_PATH,
-#         map_location=torch.device('cpu')
-#     )
-
-#     lbae.eval()
-
-#     rbm = RBM(
-#         num_visible=NUM_VISIBLE,
-#         num_hidden=NUM_HIDDEN,
-#         random_seed=RANDOM_SEED
-#     )
-
-#     rbm.load(file=RBM_MODEL_PATH)
-
-#     y_true = []
-#     hidden_representations = []
-#     rbm_labels = []
-
-#     print('Collectrring data')
-#     with torch.no_grad():
-#         for idx, (X, y) in enumerate(seg_dataloader):
-#             if y == 0:
-#                 continue
-#             else:
-#                 hidden_representation, _ = lbae.encoder(X, epoch=1)
-#                 hidden_representation = hidden_representation.detach().numpy()
-#                 rbm_label = rbm.binarized_rbm_output(hidden_representation, threshold=0.4)
-            
-#                 hidden_representations.append(hidden_representation)
-#                 rbm_labels.append(rbm_label)
-
-#                 y_true.append(y)
-
-#     hidden_representations = np.concatenate(hidden_representations)
-#     y_true = np.concatenate(y_true)
-
-#     print('Computing RBM labels...')
-#     th_finder = utils.ThresholdFinder(
-#         dataloader=seg_dataloader,
-#         rbm=rbm,
-#         encoder=lbae.encoder
-#     )
-#     _, _, _, _, _, _, mapped_rbm_labels = th_finder.find_threshold(thresholds=[0.7])
-
-#     print('Strat agglomerative clustering...')
-#     ahc = AgglomerativeHierarchicalClustering(n_clusters=7, linkage="single")
-#     labels = ahc.fit(X=hidden_representations, initial_labels=mapped_rbm_labels)
-
-#     test_labels = np.append(test_labels, labels)
-
-#     homogenity = homogeneity_score(y_true, test_labels)
-#     completeness = completeness_score(y_true, test_labels)
-
-#     print(f'Homogenity: {round(homogenity, 3)}')
-#     print(f'Completeness: {round(completeness, 3)}')
-
-#     seg_dataset = BloodIterableDataset(
-#             hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
-#             ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
-#             load_specific_images=IMAGES,
-#             stage=Stage.SEG,
-#             remove_noisy_bands=True,
-#             remove_background=False,
-#             shuffle=False
-#         )
-    
-#     seg_dataloader = DataLoader(
-#                 dataset=seg_dataset,
-#                 batch_size=1,
-#                 drop_last=False
-#             )
-
-#     segmented_img = []
-#     counter = 0
-
-#     for idx, (X, y) in enumerate(seg_dataloader):
-#         if y.item() == 0:
-#             segmented_img.append(y.item())
-#         else:
-#             segmented_img.append(test_labels[counter])
-#             counter += 1
-
-#     segmented_img = np.array(segmented_img)
-#     segmented_img = np.reshape(segmented_img, ((520, 696)))
-#     np.save('ahc', segmented_img)
-
-#     plt.figure(figsize=(4, 3))
-#     plt.imshow(segmented_img)
-#     plt.axis('off')
-#     plt.tight_layout()
-#     plt.savefig('ahc.png', dpi=300)
-
-
-# if __name__ == '__main__':
-#     main()
-
 import os
 import torch
 import numpy as np
@@ -163,30 +10,32 @@ from src.utils.blood_dataset import BloodIterableDataset, Stage
 from src.utils import utils
 from src.qbm4eo.lbae import LBAE
 from src.qbm4eo.rbm import RBM
-from src.qbm4eo.ahc import AgglomerativeHierarchicalClustering
 
 np.random.seed(10)
 torch.manual_seed(0)
 
 NUM_VISIBLE = 28
-NUM_HIDDEN = 19
+NUM_HIDDEN = 23
 
 HYPERSPECTRAL_DATA_PATH = 'HyperBlood/data'
 GROUND_TRUTH_DATA_PATH = 'HyperBlood/anno'
-AUTOENCODER_CHECKPOINT_PATH = 'model/epoch=19-step=290280.ckpt'
-AUTOENCODER_HPARAMS_PATH = 'model/hparams.yaml'
+AUTOENCODER_CHECKPOINT_PATH = 'lightning_logs/version_3/checkpoints/epoch=19-step=40000.ckpt'
+AUTOENCODER_HPARAMS_PATH = 'lightning_logs/version_3/hparams.yaml'
 
-SEGMENTATION_OUTPUT_DIR = 'segmentation_results'
 
-MODEL = 'model/rbms/rbm_nh_19_rs_0.npz'
-THRESHOLDS = [0.6, 0.5, 0.8, 0.2, 0.4, 0.8, 0.3, 0.8, 0.9, 0.4]
+# MODEL = 'experiments_SA/exp_5/rbm_nh=23_seed=50_epoch=200.npz'
+MODEL = 'experiments_QA/exp_1/rbm_nh=23_seed=10_epoch=300.npz'
 
 IMAGES = ['E_7']
 
-def main():
-    # os.makedirs('segmentation_results2', exist_ok=True)
+LINKAGE = ['single', 'complete', 'average']
 
-    rbm = RBM(num_visible=NUM_VISIBLE, num_hidden=NUM_HIDDEN)
+THRESHOLDS = np.linspace(1/25, 1, 25)[:-1]
+
+
+def main():
+
+    rbm = RBM(num_visible=NUM_VISIBLE, num_hidden=NUM_HIDDEN, random_seed=70)
     rbm = rbm.load(file=MODEL)
 
     seg_dataset = BloodIterableDataset(
@@ -199,7 +48,7 @@ def main():
         shuffle=False
     )
 
-    seg_dataloader = DataLoader(dataset=seg_dataset, batch_size=1, drop_last=False)
+    seg_dataloader = DataLoader(dataset=seg_dataset, batch_size=256, drop_last=False)
 
     lbae = LBAE.load_from_checkpoint(
         checkpoint_path=AUTOENCODER_CHECKPOINT_PATH, 
@@ -208,62 +57,93 @@ def main():
     )
     lbae.eval()
 
+    threshold_finder = utils.ThresholdFinder(
+                dataloader=seg_dataloader,
+                rbm=rbm,
+                encoder=lbae.encoder
+            )
+
+    threshold, rbm_ars, rbm_rand_score, rbm_homogeneity, rbm_completeness, num_unique_labels = threshold_finder.find_threshold(THRESHOLDS)
+
     hidden_representations = []
     y_true = []
     X_true = []
     rbm_labels = []
+
+    seg_dataloader = DataLoader(dataset=seg_dataset, batch_size=1, drop_last=False)
     
     with torch.no_grad():
         for idx, (X, y) in enumerate(seg_dataloader):
-            if y == 0:
-                continue
             hidden_representation, _ = lbae.encoder(X, epoch=1)
             hidden_representation = hidden_representation.detach().numpy()
             hidden_representations.append(hidden_representation)
+
+            rbm_label = rbm.binarized_rbm_output(hidden_representation, threshold=threshold)
+            rbm_labels.append(rbm_label)
+
             y_true.append(y)
             X_true.append(X)
-
-            rbm_label = rbm.binarized_rbm_output(hidden_representation, threshold=[0.6])
-            rbm_labels.append(rbm_label)
 
     hidden_representations = np.concatenate(hidden_representations)
     y_true = np.concatenate(y_true)
     X_true = np.concatenate(X_true)
     X_true = np.reshape(X_true, (X_true.shape[0], X_true.shape[2]))
     rbm_labels = np.concatenate(rbm_labels)
+    
+    # data = np.load('distance_matrices/RBM_nh23_rs70_E_7_dist_matrix.npz')
+    # distance_matrix = data['arr_0']
 
-    th_finder = utils.ThresholdFinder(dataloader=seg_dataloader, rbm=rbm, encoder=lbae.encoder)
-    threshold, rbm_ari, rbm_rand_score, rbm_homogenity, rbm_completeness, rbm_v_measure_scores, rbm_mapped_labels = th_finder.find_threshold(thresholds=[0.6], with_v_measure=True)
+    # distance_matrix = utils.compute_distance_matrix(hidden_representations, rbm_labels)
 
-    distance_matrix = utils.compute_distance_matrix(hidden_representations, rbm_labels=rbm_labels)
-    np.savez('RBM_nh19_rs0_E_7_dist_matrix.npz')
-    ahc = AgglomerativeClustering(n_clusters=6, metric='precomputed', linkage='single')
-    print('Start agglomerative clustering...')
-    labels = ahc.fit_predict(distance_matrix)
-    labels = labels+1
+    kmeas = KMeans(n_clusters=6)
+    labels = kmeas.fit_predict(X_true)
+
+    # for link in LINKAGE:
+
+    #     ahc = AgglomerativeClustering(n_clusters=6, metric='precomputed', linkage=link)
+    #     print('Start agglomerative clustering...')
+    #     labels = ahc.fit_predict(distance_matrix)
+    #     labels = labels+1
+
+    #     ahc_homogenity = homogeneity_score(y_true, labels)
+    #     ahc_completeness = completeness_score(y_true, labels)
+    #     ahc_v_measure = v_measure_score(y_true, labels)
+    #     ahc_ari = adjusted_rand_score(y_true, labels)
+    #     ahc_rand_score = rand_score(y_true, labels)
+
+    #     with open('metrics_'+link+'.txt', 'w') as f:
+    #         f.write(f"After RBM pre-clustering:\n")
+    #         f.write(f"Homogeneity: {rbm_homogeneity}\n")
+    #         f.write(f"Completeness: {rbm_completeness}\n")
+    #         f.write(f"ARI: {rbm_ars}\n")
+    #         f.write(f"Rand Score: {rbm_rand_score}\n")
+
+    #         f.write(f"After AHC clustering:\n")
+    #         f.write(f"Homogeneity: {ahc_homogenity}\n")
+    #         f.write(f"Completeness: {ahc_completeness}\n")
+    #         f.write(f"ARI: {ahc_ari}\n")
+    #         f.write(f"Rand Score: {ahc_rand_score}")
 
     ahc_homogenity = homogeneity_score(y_true, labels)
     ahc_completeness = completeness_score(y_true, labels)
     ahc_v_measure = v_measure_score(y_true, labels)
     ahc_ari = adjusted_rand_score(y_true, labels)
     ahc_rand_score = rand_score(y_true, labels)
-    
-    with open('metrics.txr', 'w') as f:
-        f.write(f"After RBM pre-clustering:\n")
-        f.write(f"Homogeneity: {rbm_homogenity}\n")
-        f.write(f"Completeness: {rbm_completeness}\n")
-        f.write(f"V-measure: {np.mean(rbm_v_measure_scores)}\n")
-        f.write(f"ARI: {rbm_ari}\n")
-        f.write(f"Rand Score: {rbm_rand_score}\n")
 
-        f.write(f"After AHC clustering:\n")
-        f.write(f"RBM's homogeneity: {ahc_homogenity}\n")
-        f.write(f"RBM's completeness: {ahc_completeness}\n")
-        f.write(f"RBM's v-measure: {ahc_v_measure}\n")
-        f.write(f"RBM's ari: {ahc_ari}\n")
-        f.write(f"RBM's rand score: {ahc_rand_score}")
+    # with open('enc_data_metrics_kmease_seg.txt', 'w') as f:
+    #     f.write(f"After RBM pre-clustering:\n")
+    #     f.write(f"Homogeneity: {rbm_homogeneity}\n")
+    #     f.write(f"Completeness: {rbm_completeness}\n")
+    #     f.write(f"ARI: {rbm_ars}\n")
+    #     f.write(f"Rand Score: {rbm_rand_score}\n")
 
-    seg_dataset = BloodIterableDataset(
+    #     f.write(f"Kmeans clustering:\n")
+    #     f.write(f"Homogeneity: {ahc_homogenity}\n")
+    #     f.write(f"Completeness: {ahc_completeness}\n")
+    #     f.write(f"ARI: {ahc_ari}\n")
+    #     f.write(f"Rand Score: {ahc_rand_score}")
+
+    img_dataset = BloodIterableDataset(
         hyperspectral_data_path=HYPERSPECTRAL_DATA_PATH,
         ground_truth_data_path=GROUND_TRUTH_DATA_PATH,
         load_specific_images=IMAGES,
@@ -273,16 +153,17 @@ def main():
         shuffle=False
     )
 
-    seg_dataloader = DataLoader(dataset=seg_dataset, batch_size=1, drop_last=False)
+    img_dataloader = DataLoader(dataset=img_dataset, batch_size=1, drop_last=False)
 
     segmented_img = []
-    counter = 0
-    for idx, (X, y) in enumerate(seg_dataloader):
+    label_index = 0
+
+    for idx, (X, y) in enumerate(img_dataloader):
         if y.item() == 0:
-            segmented_img.append(y.item())
+            segmented_img.append(0)
         else:
-            segmented_img.append(labels[counter])
-            counter += 1
+            segmented_img.append(labels[label_index])
+            label_index += 1
 
     segmented_img = np.array(segmented_img)
     segmented_img = np.reshape(segmented_img, (520, 696))
@@ -291,7 +172,8 @@ def main():
     plt.imshow(segmented_img)
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig('E_7_seg_rbm_rs_0.pdf', format='pdf', dpi=300)
+    # plt.savefig('rbm_nh=23_seed=10_epoch=300_link='+link+'.pdf', format='pdf', dpi=300)
+    plt.savefig('raw_kmeans.pdf', format='pdf', dpi=300)
     plt.close()
 
 if __name__ == '__main__':
