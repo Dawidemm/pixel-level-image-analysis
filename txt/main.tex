@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{report}
+\documentclass[a4paper,12pt]{article}
 \usepackage{calc,amsmath,amssymb,amsfonts}
 \usepackage[LGR,T1]{fontenc}
 \usepackage[english, polish]{babel}
@@ -25,12 +25,12 @@
 \author{Dawid Mazur}
 \date{2024-09-16}
 
-\geometry{
-    left=3cm, right=2cm, top=2cm, bottom=2cm,
-    includehead, includefoot,
-    twoside
-}
-\setstretch{1.25}
+% \geometry{
+%     left=3cm, right=2cm, top=2cm, bottom=2cm,
+%     includehead, includefoot,
+%     twoside
+% }
+% \setstretch{1.25}
 
 \begin{document}
 
@@ -39,7 +39,7 @@
 \tableofcontents
 
 \newpage
-\chapter{Introduction}\label{introduction}
+\section{Introduction}\label{introduction}
 Technological advancements in the XX century contributed to development of computer science, and the digital era has emerged. One of the modern advancements that we witness is the rapid growth of artificial intelligence, especially in the field of generative models, particularly introducing Generative Adversarial Networks in 2014 \cite{Goodfellow2014}, and Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey E. Hinton. The motivation for the prize was as follows: ``for foundational discoveries and inventions that enable machine learning with artificial neural networks''. There are more generative-based models than those two mentioned, and this work will explore the application of other models.
 
 The Restricted Boltzmann Machines (RBM), initially introduced in 1986 under the name Harmonium \cite{Smolensky1986}, fall into the generative models category due to their ability to learn a probabilistic distribution over its set of inputs. RBM is a widely used machine learning technique for unsupervised \cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}. We will use RBM as an unsupervised learning model in a pixel-level image segmentation context \cite{Wang2019, Agn2016}.
@@ -54,7 +54,7 @@ D-Wave Systems Inc. is a Canadian company that has pioneered the commercial appl
 
 The goal of this work is to explore the possibility of using Restricted Boltzmann Machines for pixel-level analysis of multispectral images and segmentation of those images. We also aim to use the D-Wave's quantum annealer and compare the segmentation results with the classical RBM training method.
 
-\chapter{Image Segmentation}\label{segmentation}
+\section{Image Segmentation}\label{segmentation}
 Image segmentation is an important area of research and application in the field of computer vision. It has wide applications in many fields, such as medicine \cite{Ma2024}, remote sensing \cite{Kemker2018}, and vision systems in autonomous vehicles \cite{Cakir2022}. It is the process of dividing an image into homogeneous regions. Formally, image segmentation can be defined as follows \cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to \{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that \cite{Pal1993}:
 
 \begin{equation}\label{segmentation_eq}
@@ -88,7 +88,7 @@ Clustering is an unsupervised machine learning class of algorithms that allows m
 
 The following chapters will also discuss clustering using deep learning models, as the neural network architecture presented in this dissertation derives from deep learning.
 
-\chapter{Unsupervised Learning}\label{unsupervised_learning}
+\section{Unsupervised Learning}\label{unsupervised_learning}
 
 Artificial intelligence is a technology at the intersection of mathematics and computer science. It includes a wide spectrum of methods and algorithms that enable machines to learn, resulting in a wide range of applications \cite{raschka2019, Goodfellow2016}. The origins of artificial intelligence are considered to be the Perceptron model presented conceptually in \cite{Mcculloch1943} and developed in \cite{Rosenblatt1958}. Literature \cite{raschka2019} proposes the following division of artificial intelligence algorithms:
 
@@ -103,7 +103,7 @@ Unsupervised learning is a fundamental approach in machine learning that allows 
 
 In the context of this work, we will use several unsupervised learning algorithms, one to enable sufficient representation learning and dimensionality reduction and other clustering algorithms to perform image segmentation.
 
-\section{Latent Bernoulli Autoencoder}\label{lbae_section}
+\subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
 
 Autoencoders are artificial neural networks used for unsupervised representation learning. Representation learning or feature learning is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data.
 
@@ -136,7 +136,7 @@ Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, 
 
 \noindent where $\mathbf{z}_i$ is the input data transformed by the encoder. The importance of this property will be highlighted in the methodology section of this work.
 
-\section{Restricted Boltzmann Machines}\label{rbm_section}
+\subsection{Restricted Boltzmann Machines}\label{rbm_section}
 In contrast to traditional approaches in machine learning and deep learning, structured probabilistic models offer a different paradigm. These models focus on representing probability distributions through graph-based structures, defined as:
 
 \begin{equation}
@@ -272,7 +272,7 @@ RBM training is based on maximizing the log-likelihood of the training data. The
 
 Negative-phase $\nabla_{\theta} (-E(\mathbf{v}, \mathbf{h}))$ is hard to compute but its approximation can be obtained using the Monte Carlo Markov Chain methods (MCMC) \cite{Goodfellow2016}. One of the MCMC algorithms family is the contrastive divergence (CD) algorithm. CD uses the dependencies described in the Equations \eqref{p_hj_1_mid_v} and \eqref{p_vi_1_mid_h}. Alternatively, the negative-phase can be calculated using samples drawn from a quantum annealer \cite{Dixit2021RBM_DWave}. The use of annealing can lead to more efficient sampling than MCMC algorithms, which can struggle to correctly approximate the negative phase of the gradient \cite{Goodfellow2016}. While CD relies on limited Gibbs sampling steps and can get stuck in local minima, annealing explores more global configurations, improving sampling accuracy and learning dynamics in challenging scenarios.
 
-\section{Cluster Analysis}\label{cluster_analysis_section}
+\subsection{Cluster Analysis}\label{cluster_analysis_section}
 
 Cluster analysis is a category of unsupervised learning algorithms that seek to divide a given set of objects into homogeneous clusters \cite{Bratchell1989}. In the context of image segmentation, cluster analysis divides an image into regions with similar properties.
 
@@ -288,7 +288,7 @@ Clustering algorithms are divided into \cite{Bindra2017}:
 
 The following chapters of this work will be devoted to an algorithm based on partial clustering, which is $k$-means, and a hierarchical clustering algorithm, which is Agglomerative Hierarchical Clustering (AHC).
 
-\chapter{Quantum Computing}\label{quantum_computing}
+\section{Quantum Computing}\label{quantum_computing}
 
 Quantum computing is a domain that has gained immense interest in recent years in both the scientific and industrial sectors \cite{Flother2023, Ahmed2024, Orus2019, Phillipson2024}. Taking advantage of the unique properties of quantum mechanics, such as superposition and entanglement, quantum computers promise a breakthrough in information processing, offering computational capabilities unavailable to classical computers.
 
@@ -302,7 +302,7 @@ A quantum system evolves according to the Schr\"odinger equation \cite{schuld202
 
 \noindent where $\ket{\psi}$ is the quantum state of the system at the time $t$ and $H(t)$ is the time-dependent Hamiltonian of a given system. $\hbar$ is Planck’s constant. Hamiltonian operator corresponds to the total energy of the system. The possible energies the system can have are the eigenvalues of the $H$ operator \cite{schuld2021, McMahon2008}.
 
-\section{Ising Model and Quadratic Unconstrained Binary Optimization}\label{inig_qubo_section}
+\subsection{Ising Model and Quadratic Unconstrained Binary Optimization}\label{inig_qubo_section}
 
 Ising model classically refers to disordered magnetic alloys containing strongly interacting ions immersed in a weakly interacting substrate [7]. We can interpret such an arrangement as randomly interacting spins up $(\uparrow)$ or down $(\downarrow)$ placed on lattice nodes. We can denote such an arrangement by an undirected graph $G=(V,E)$ \cite{Jałowiecki2023}. For each vertex, we assign a spin variable $s_i$ and a local magnetic field  $h_i$. To each edge, we assign an interaction strength $J_{ij}$. For such a system we can define a Hamiltonian:
 
@@ -351,7 +351,7 @@ f_Q(q)=\sum _ia_iq_i+\sum _{i<j}b_{ij}q_iq_j,
 
 \noindent which differs from \eqref{isingH} by a constant value, although it is irrelevant to the optimization process \cite{Jałowiecki2023}.
 
-\section{Adiabatic Quantum Computation and Quantum Annealing}\label{aqc_qa_section}
+\subsection{Adiabatic Quantum Computation and Quantum Annealing}\label{aqc_qa_section}
 
 The core concept of Adiabatic Quantum Computing (AQC) relies on the adiabatic theorem \cite{Farhi2000}, which states that if a quantum system begins in the ground state of its initial Hamiltonian and the Hamiltonian changes slowly enough, the system will remain in its ground state throughout the evolution. 
 
@@ -371,7 +371,7 @@ Quantum annealing (QA) is an extension of the idea of simulated annealing that u
 
 Quantum annealing has the potential to be used for data clustering by transforming the optimization problem of the clustering cost function into the form of a quadratic binary optimization problem. QA makes it possible to search the solution space more efficiently and deal better with local minima compared to classical methods such as k-means \cite{Kumar2018}.
 
-\section{D–Wave's Quantum Processing Units}\label{dwave_qpu_section}
+\subsection{D–Wave's Quantum Processing Units}\label{dwave_qpu_section}
 
 D-Wave uses various architectures in its processors. The basic topology is Chimera and its architecture is designed to provide flexibility in mapping optimization problems onto a physical quantum system \cite{schuld2021}. However, the graph structure, like that of Chimera, introduces some limitations, \textit{e.g.}, not all qubits are directly connected to each other. 
 
@@ -406,18 +406,17 @@ $H_{\mathrm{init}}$ and $H_{\mathrm{final}}$:
 
 \noindent  $A(s)$ represents the tunneling energy, and $B(s)$ refers to the Hamiltonian energy of the problem in a given time step $s$.
 
-\newpage
-\chapter{Methodology}\label{methodology}
+\section{Methodology}\label{methodology}
 This chapter will present a detailed concept of a neural network model designed for the segmentation of multispectral images. In what follows, we discuss image data preprocessing, implementation details of the model's components, their integration, and methods of their evaluation, especially in the context of multispectral image segmentation.
 
-\section{Data Preprocessing}\label{data_preprocessing_section}
+\subsection{Data Preprocessing}\label{data_preprocessing_section}
 The preparation of spectral data for processing by the neural network model proposed later in this work included transformations that are standard in the field of machine learning.
 
 The documentation of the dataset \cite{Romaszewski2021} describes some of the hyperspectral channels as “noisy”, and we decided that the indicated spectral bands should be removed from further processing. We also decided to remove from hyperspectral images pixels whose position $(x,y)$ corresponded to the label ``0'' (which is the background) in the ground truth image; by such action, we wanted to achieve better clustering results because the background in the studied dataset is not homogeneous --- the neural network model would try to assign background pixels to different classes.
 
 The following data transformations were to perform normalization, shuffle the data, and divide the data into training, validation, and test sets. Scaling to the interval $\langle 0, 1 \rangle$ was chosen as a standard normalization method in machine learning \cite{raschka2019} but was also used for processing hyperspectral images \cite{Głomb2023}. Data shuffling was used to reduce the influence of sequential pixel order. Data partitioning was done according to the Pareto principle: first, the data were divided into a training set and a test set in a ratio of $0.8:0.2$, and then the training set was further split into a training and validation set, also in a ratio of $0.8:0.2$.
 
-\section{Proposed Model}\label{proposed_model_section}
+\subsection{Proposed Model}\label{proposed_model_section}
 Our proposed model, shown in Figure \ref{fig:proposed_model_pipeline}, accepts preprocessed input data as described above section of this work. Our proposed model consists of two main parts. The part, that this work aim to study is the Restricted Boltzmann Machines (RBM) part, and the second one is the Latent Bernoulli Autoencoder (LBAE) part. RBM requires binary data as input, so the data must be encoded into binary form. In our model, LBAE's encoder will be used for this task as it is proven to work well in similar task \cite{QBM4EO}. The data flow starts with LBAE, so we will start describing our proposed model with it.
 
 \begin{figure}[h]
@@ -428,7 +427,7 @@ Our proposed model, shown in Figure \ref{fig:proposed_model_pipeline}, accepts p
     \label{fig:proposed_model_pipeline}
 \end{figure}
 
-\subsection{Data Processing Module --- LBAE}\label{lbae_implementation}
+\subsubsection{Data Processing Module --- LBAE}\label{lbae_implementation}
 LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented in \cite{QBM4EO}. It contains convolutional layers in both encoding and decoding parts. Our approach relies on the work done in the \cite{QBM4EO}. However, our approach explores the possibility of pixel-level analysis in the context of hyperspectral images, so we had to adjust \cite{QBM4EO} implementation of the LBAE. This adjustment consisted of changing the convolution layers from two to one-dimensional. The rest of the network and its layers will stay the same as in \cite{QBM4EO} as this project obtained satisfactory performance. LBAE will be trained using techniques such as back-propagation and gradient descent as described in Section \ref{lbae_section}. Our LBAE transforms the spectral (already preprocessed) data into a binary representation. Input data is a 112-element vector, which will be transformed through convolutional layers. Due to the undercomplete architecture of this autoencoder, the dimension of this vector shrinks accordingly to each convolution layer as it is described by a given formula \cite{PyTorchDocumentation}:
 
 \begin{equation}
@@ -453,7 +452,7 @@ LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented 
 
 The vector that we aim to obtain, which is a vector in the latent space of our autoencoder, has 28 binary elements. We postulate that if the values of both metrics, which we will observe, the Euclidean distance and the spectral angle distance computed between the input spectral vector and reconstructed spectral vector, are low, the hidden representation in the latent space is good. This binary representation will serve as an input to the RBM. 
 
-\subsection{Data Clustering Module --- RBM}\label{rbm_implementation}
+\subsubsection{Data Clustering Module --- RBM}\label{rbm_implementation}
 RBM is a neural network that accepts binary data as its input, and by the LBAE encoding part, we can obtain a binary representation of the original data. The number of neurons in the visible layer of our RBM is determined by input data dimension and LBAE encoder convolutional layers; in the case of our experiments, that would be 28 neurons. 
 
 We will conduct experiments to train the RBM model with a fixed number of neurons in its visible layer and a changing number of neurons in its hidden layer $h_i \in \{3, 4, \ldots, 28\}$ using CD-$1$ algorithm. Our approach is to take RBM's hidden layer neurons activation probabilities calculated with Equation \eqref{p_hj_1_mid_v} and binarize those probabilities, and then the obtained binary vector is a label. The binarization threshold will be selected as follows: for each $th_i \in \{0.1, 0.2, \ldots, 0.9\}$, we will compute adjusted rand score (ARS) between true labels and predicted labels. Then we will check for which threshold we obtained the highest ARS, and for this threshold, we compute other metrics. Then, while having trained RBM models, we proceed to determine the best one by comparing them via V-measure, a meta metric whose value depends on homogeneity, completeness, and an additional $\beta$ parameter. Authors of \cite{Rosenberg2007} do not suggest how to choose $\beta$ value, however it is said by them that $\beta \in [0,1]$ promotes homogeneity. We will conduct an experiment that explores, for which model we obtained, the highest value of V-measure for $\beta_i \in \{0, 0.01, \ldots, 1\}$. The RBM architecture that most frequently obtains the highest V-measure scores will be selected as the best one, and we will proceed to experiments with simulated annealing (SA) and quantum annealing (QA) on this architecture.
@@ -466,10 +465,10 @@ Our approach based on binarized values of neuron activation probability in RBM's
 
 Having the RBM models trained by CD-$1$, SA, and QA and identified which are the best in the context of the observable metrics, as the last step, we proceed to create segmentation images using these three RBM models and AHC.
 
-\chapter{Experiments and results}\label{experiments_and_results}
+\section{Experiments and results}\label{experiments_and_results}
 This chapter reports on the experiments and results obtained for the segmentation of multispectral images using the proposed neural network models. Model training was carried out using different approaches: the traditional contrastive divergence (CD-$1$) algorithm and an approach based on simulated annealing (SA) and quantum annealing (QA) to improve optimization efficiency. The following subsections cover an analysis of the comparative performance of the both methods in the context of multispectral image segmentation.
 
-\section{Dataset}\label{dataset_section}
+\subsection{Dataset}\label{dataset_section}
 In this work, we will focus on the HyperBlood dataset \cite{Romaszewski2021}. The dataset consists of fourteen multispectral images showing a mock-up of a scene with blood and visually similar to human eye substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and each image is annotated with class labels indicating the presence of blood and other substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint. Figure \ref{fig:dataset_img} shows an overview of the classes present in the HyperBlood dataset. Figure \ref{fig:dataset_d1_f1} shows an example of selected bands from two multispectral images from the studied dataset.
 
 \begin{figure}[h!]
@@ -480,8 +479,7 @@ In this work, we will focus on the HyperBlood dataset \cite{Romaszewski2021}. Th
     }
 \end{figure}
 
-\newpage
-\section{Classical Model Training and Evaluation}
+\subsection{Classical Model Training and Evaluation}
 Throughout this section, we will present training hyperparameters and resulting loss curves for each trained model containing LBAE and RBM models, which were trained with the CD-$1$ algorithm, simulated annealing, and quantum annealing. We will also present the evaluation metrics that we have obtained that justify proceeding further with the model, which we consider superior to other models. Obtained segmentation images and metrics computed for those images will be presented in the next section of this work.
 
 At first, we will begin with training Latent Bernoulli Autoencoder (LBAE). As mentioned in Chapter \ref{methodology}, our approach relies on the work done in \cite{QBM4EO}. Since we changed only convolutional layers from two to one-dimensional, we will keep fixed hyperparameters of these layers as they were in \cite{QBM4EO}. Our experiments focused on studying the influence of changing batch size and learning rate.
@@ -509,7 +507,7 @@ For the segmentation images that we will create, we want to refer to a reliable 
 
 After obtaining baseline segmentation, we proceeded to create segmentation images using our network, which consists of an LBAE encoder, RBM, and AHC. These images are presented in Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}.
 
-\section{Quantum Model Training and Evaluation}
+\subsection{Quantum Model Training and Evaluation}
 With the RBM hyperparameters determined, the next step of the project was to test the implemented training algorithm using a simulation annealer. For this task, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics. Obtained clusterization metrics and their results are shown in Figures \ref{fig:sa_rbm_homogeneity}--\ref{fig:sa_rbm_ari}.
 
 Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_sa_learning_annealer}.
@@ -518,7 +516,7 @@ At this point, both RBM models have been trained with CD-$1$ and simulated annea
 
 As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_qa_learning_annealer}.
 
-\section{Segmentation Results}
+\subsection{Segmentation Results}
 In this section we will present all obtained segmentations, for the image illustrated in Figure \ref{fig:dataset_e1} and evaluation metrics computed on those segmentations. We will start showing our experiments results with our baseline segmentation obtained by using $k$-means algorithm on the Figure \ref{fig:kmeans_segmentation} and ground truth image on the Figure \ref{fig:ground_truth_image}. Next, we will present segmentations obtained by using our proposed model trained with contrastive divergence (CD-$1$) and followed by AHC using both linkage methods --- complete and average, those will be respectively Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}. Similarly we will present segmentations for models trained with simulated annealing (SA) and quantum annealing (QA). For simulated annealing obtained images are Figure \ref{fig:sa_rbm_ahc_complete_seg} and Figure \ref{fig:sa_rbm_ahc_average_seg}, and for quantum annealing obtained images are Figure \ref{fig:qa_rbm_ahc_complete_seg} and Figure \ref{fig:qa_rbm_ahc_average_seg}.
 
 \begin{figure}[h]
@@ -582,7 +580,6 @@ In this section we will present all obtained segmentations, for the image illust
     \label{fig:comparison_seg}
 \end{figure}
 
-\newpage
 \noindent A summary of the computed evaluation metrics such as homogeneity, completeness, adjusted rand score (ARS) and rand score (RS) for each segmentation obtained is presented collectively in Table \ref{tab:segmentation_metrics_comparison}.
 
 \begin{table}
@@ -616,16 +613,15 @@ In this section we will present all obtained segmentations, for the image illust
     \label{tab:segmentation_metrics_comparison}
 \end{table}
 
-\section{Conclusions}
+\subsection{Conclusions}
 Analyzing obtained metrics on the segmentation images, we notice that almost all metrics improve their value for RBM trained with QA, and if they are not improved, they are close to the best-obtained value. For a model that does not use AHC, we note the consistent improvement of the metrics while changing the RBM training algorithm from CD-1 through SA to QA. For the metrics homogeneity and ARS, the RBM model trained with QA surpassed the baseline value, which was set by the $k$-means algorithm. The use of the AHC algorithm in combination with RBM affects clustering characteristics. First, AHC improves the completeness metric, especially when using the RBM version trained with Quantum Annealing. At the same time, adding AHC reduces the clusters' homogeneity. 
 
-\chapter{Summary}\label{summary}
+\section{Summary}\label{summary}
 This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for multispectral image segmentation. Firstly, the LBAE's encoder part is utilized for dimensionality reduction and encoding spectral data to a binary representation, which is necessary for RBM. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models for the segmentation of multispectral images since we achieved better segmentations, in terms of observed metrics than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
 
-\newpage
-\addcontentsline{toc}{chapter}{Bibliography}
+\addcontentsline{toc}{section}{Bibliography}
 \printbibliography
 
 \end{document}
