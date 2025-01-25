@@ -1,7 +1,6 @@
 \documentclass[a4paper,12pt]{article}
 \usepackage{calc,amsmath,amssymb,amsfonts}
-\usepackage[LGR,T1]{fontenc}
-\usepackage[english, polish]{babel}
+\usepackage[english]{babel}
 \usepackage[style=ieee,backend=bibtex]{biblatex}
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -18,35 +17,29 @@
 \newtheorem{definition}{Definition}
 \usepackage[hidelinks]{hyperref}
 \usepackage{todonotes}
-
+\usepackage{csquotes}
 
 \addbibresource{bibliography.bib}
 
-\author{Dawid Mazur}
-\date{2024-09-16}
+\title{Multispectral image segmentation with a machine learning model trained using quantum annealer}
 
-% \geometry{
-%     left=3cm, right=2cm, top=2cm, bottom=2cm,
-%     includehead, includefoot,
-%     twoside
-% }
-% \setstretch{1.25}
+\author{Dawid Mazur \and Tomasz Rybotycki \and Piotr Gawron}
 
 \begin{document}
 
-\selectlanguage{english}
-\newpage
-\tableofcontents
+\maketitle
 
-\newpage
+\begin{abstract}
+	aaa
+\end{abstract}
+
 \section{Introduction}\label{introduction}
-Technological advancements in the XX century contributed to development of computer science, and the digital era has emerged. One of the modern advancements that we witness is the rapid growth of artificial intelligence, especially in the field of generative models, particularly introducing Generative Adversarial Networks in 2014 \cite{Goodfellow2014}, and Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey E. Hinton. The motivation for the prize was as follows: ``for foundational discoveries and inventions that enable machine learning with artificial neural networks''. There are more generative-based models than those two mentioned, and this work will explore the application of other models.
 
-The Restricted Boltzmann Machines (RBM), initially introduced in 1986 under the name Harmonium \cite{Smolensky1986}, fall into the generative models category due to their ability to learn a probabilistic distribution over its set of inputs. RBM is a widely used machine learning technique for unsupervised \cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}. We will use RBM as an unsupervised learning model in a pixel-level image segmentation context \cite{Wang2019, Agn2016}.
+Technological advancements in the XX century contributed to development of computer science, and the digital era has emerged. One of the modern advancements that we witness is the rapid growth of artificial intelligence, especially in the field of generative models, particularly introducing Generative Adversarial Networks in 2014 \cite{Goodfellow2014}, and Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey E. Hinton. The motivation for the prize was as follows: ``for foundational discoveries and inventions that enable machine learning with artificial neural networks''. One of such ANN models are Restricted Boltzmann Machines (RBM), initially introduced in 1986 under the name Harmonium \cite{Smolensky1986}, fall into the generative models category due to their ability to learn a probabilistic distribution over its set of inputs. RBM is a widely used machine learning technique for unsupervised \cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}.
 
 Segmentation is a core task in computer vision. It partitions an image into regions representing different objects or materials. Segmentation makes it possible to analyze image's structure accurately, and it has applications in many fields, such as medicine \cite{Wang2022} or satellite image analysis \cite{fajtl2020}.
 
-In this work, we will focus on the segmentation of multispectral images. Multispectral images differ from ordinary images in that they capture information in multiple electromagnetic spectrum wavelengths \cite{Mengu2023}, not just the visible range. It allows for a deeper analysis of the properties of imaged objects, as each pixel contains spectral information in different bands \cite{Sifnaios2024}. Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
+In this work, we focus on the segmentation of multispectral images. Multispectral images differ from ordinary ones in that they capture information in multiple electromagnetic spectrum wavelengths \cite{Mengu2023}, not just the visible range. It allows for a deeper analysis of the properties of imaged objects, as each pixel contains spectral information in different bands \cite{Sifnaios2024}. Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
 
 Quantum computing is a multidisciplinary field that includes computer science, physics, and mathematics. Quantum computing leverages the principles of quantum mechanics to solve complex problems. One possible approach to using quantum computing, alongside the gate model \cite{Pereira2023}, is Adiabatic Quantum Computing (AQC) \cite{Kadowaki1998} and closely related quantum annealing. An interesting possibility is the use of quantum computing, both gate-based and AQC, in machine learning models \cite{schuld2021}. 
 
@@ -55,9 +48,11 @@ D-Wave Systems Inc. is a Canadian company that has pioneered the commercial appl
 The goal of this work is to explore the possibility of using Restricted Boltzmann Machines for pixel-level analysis of multispectral images and segmentation of those images. We also aim to use the D-Wave's quantum annealer and compare the segmentation results with the classical RBM training method.
 
 \section{Image Segmentation}\label{segmentation}
+
 Image segmentation is an important area of research and application in the field of computer vision. It has wide applications in many fields, such as medicine \cite{Ma2024}, remote sensing \cite{Kemker2018}, and vision systems in autonomous vehicles \cite{Cakir2022}. It is the process of dividing an image into homogeneous regions. Formally, image segmentation can be defined as follows \cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to \{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that \cite{Pal1993}:
 
-\begin{equation}\label{segmentation_eq}
+\begin{equation}
+	\label{segmentation_eq}
     \bigcup_{i=1}^{n} S_{i}=F \quad \text{with} \quad S_{i} \cap S_{j} = \emptyset, i \neq j.
 \end{equation}
 
@@ -75,14 +70,7 @@ Image segmentation is an important area of research and application in the field
 
 \noindent where $B$ is a band dimension. The Equation \eqref{digital_image_extended} represents the hyperspectral or multispectral image on which we intend to perform segmentation.
 
-The task of image segmentation can be approached with a variety of algorithms, including both classical methods \cite{Chen2017} and those based on deep learning \cite{Badrinarayanan2017}. Among classical algorithms that are often used for segmentation are approaches like \cite{Chen2017}:
-
-\begin{itemize}
-    \item thresholding,
-    \item region-based,
-    \item edge-detection,
-    \item clustering.
-\end{itemize}
+The task of image segmentation can be approached with a variety of algorithms, including both classical methods \cite{Chen2017} and those based on deep learning \cite{Badrinarayanan2017}. Among classical algorithms that are often used for segmentation are approaches like \cite{Chen2017}: thresholding, region-based, edge-detection, clustering.
 
 Clustering is an unsupervised machine learning class of algorithms that allows models to learn patterns in data without explicit labels. Segmentation with the classical clustering algorithm can be be implemented using \textit{e.g.}, $k$-means \cite{Dhanachandra2015} or Agglomerative Hierarchical Clustering \cite{Mohanta2002}. Both of these algorithms will be discussed in the following chapters, as they will be used to set a baseline for our model to exceed and to recognize the higher hierarchy of clusters returned by our model.
 
@@ -90,24 +78,17 @@ The following chapters will also discuss clustering using deep learning models, 
 
 \section{Unsupervised Learning}\label{unsupervised_learning}
 
-Artificial intelligence is a technology at the intersection of mathematics and computer science. It includes a wide spectrum of methods and algorithms that enable machines to learn, resulting in a wide range of applications \cite{raschka2019, Goodfellow2016}. The origins of artificial intelligence are considered to be the Perceptron model presented conceptually in \cite{Mcculloch1943} and developed in \cite{Rosenblatt1958}. Literature \cite{raschka2019} proposes the following division of artificial intelligence algorithms:
-
-\begin{itemize}
-\item supervised learning,
-\item unsupervised learning,
-\item reinforcement learning.
-\end{itemize}
-
+Artificial intelligence is a technology at the intersection of mathematics and computer science. It includes a wide spectrum of methods and algorithms that enable machines to learn, resulting in a wide range of applications \cite{raschka2019, Goodfellow2016}. The origins of artificial intelligence are considered to be the Perceptron model presented conceptually in \cite{Mcculloch1943} and developed in \cite{Rosenblatt1958}. 
 
 Unsupervised learning is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. The classic problems in which unsupervised learning is applied are clustering and dimensionality reduction. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}, but autoencoders have also proven to be highly effective for this task \cite{Wang2014}. 
 
-In the context of this work, we will use several unsupervised learning algorithms, one to enable sufficient representation learning and dimensionality reduction and other clustering algorithms to perform image segmentation.
+In the context of this work, we will use several unsupervised learning algorithms, for representation learning and dimensionality reduction and other clustering algorithms to perform image segmentation.
 
 \subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
 
 Autoencoders are artificial neural networks used for unsupervised representation learning. Representation learning or feature learning is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data.
 
-The autoencoder architecture is built from two separate networks. The first network, referred to as the encoder, executes the encoding operation $h = f(x)$, while the second one, known as the decoder, carries out the decoding operation $r = g(h)$. An autoencoder whose latent space  $h$ dimension is lower than the input data dimension is called undercomplete \cite{Goodfellow2016}. Learning an undercomplete representation forces the autoencoder to capture the most significant features of the training data.
+The autoencoder architecture is built from two separate networks. The first network, referred to as the encoder, executes the encoding operation $h = f(x)$, while the second one, known as the decoder, carries out the decoding operation $r = g(h)$. An autoencoder whose latent space  $h$ dimension is lower than the input data one is called undercomplete \cite{Goodfellow2016}. Learning an undercomplete representation forces the autoencoder to capture the most significant features of the training data.
 When the encoder and decoder are linear and the loss function is the mean squared error, an undercomplete autoencoder learns to capture the same subspace as PCA. In this scenario, an autoencoder trained to reconstruct its input ends up learning the principal subspace of the training data as a byproduct. Autoencoders with nonlinear encoder transformation $f$ and nonlinear decoder transformation $g$ can therefore learn a more flexible and powerful nonlinear extension of PCA \cite{Goodfellow2016}. 
 
 Autoencoder networks may be viewed as special cases of feed-forward networks and can be trained similarly, especially using gradient descent and back-propagation techniques. The learning process in an autoencoder involves minimizing a loss function, denoted by $L$, which quantifies the difference between the input and the reconstructed output \cite{Goodfellow2016}. A loss function is generally defined as:
@@ -145,14 +126,7 @@ In contrast to traditional approaches in machine learning and deep learning, str
 
 \noindent where $V$ represents vertices and $E$ represents edges in a given graph $G$. Each vertex represents a random variable, and each edge represents direct interaction between random variables \cite{Goodfellow2016}. The type of connection between vertices defines whether the model is directed or undirected.
 
-Restricted Boltzmann Machines are undirected graphical, energy-based models that contain a layer of observable variables and a layer of latent variables. Referring to the layer of observable variables, we will speak of the visible layer marked as $\mathbf{v}$, and referring to the layer of latent variables, we will speak of the hidden layer marked as $\mathbf{h}$ \cite{Goodfellow2016}\cite{Tieleman2008}.
-
-\begin{figure}[h]
-    \centering
-    {\includegraphics[width=0.35\textwidth]{figures/unsupervised_learning/rbm.pdf}}
-    \caption[The general architecture of the RBM graph.]{The general architecture of the RBM graph. Here, $v_i \in \{1, 2, \ldots, 5\}$ denote vertices --- neurons in visible layer $\mathbf{v}$ and $h_i \in \{1, 2, 3, 4\}$ denote neurons in hidden layer $\mathbf{h}$. Each vertex connects through edges to all vertices in the other set but to none in its own set.}
-    \label{fig:general_rbm}
-\end{figure}
+Restricted Boltzmann Machines are undirected graphical, energy-based models that contain a layer of observable variables and a layer of latent variables. Referring to the layer of observable variables, we will speak of the visible layer marked as $\mathbf{v}$, and referring to the layer of latent variables, we will speak of the hidden layer marked as $\mathbf{h}$ \cite{Goodfellow2016, Tieleman2008}.
 
 Based on \cite{Goodfellow2016, Dixit2021RBM_DWave}, we can define the joint probability distribution of the RBM as follows:
 
@@ -274,19 +248,7 @@ Negative-phase $\nabla_{\theta} (-E(\mathbf{v}, \mathbf{h}))$ is hard to compute
 
 \subsection{Cluster Analysis}\label{cluster_analysis_section}
 
-Cluster analysis is a category of unsupervised learning algorithms that seek to divide a given set of objects into homogeneous clusters \cite{Bratchell1989}. In the context of image segmentation, cluster analysis divides an image into regions with similar properties.
-
-Clustering algorithms are divided into \cite{Bindra2017}:
-
-\begin{itemize}
-    \item partitional clustering,
-    \item hierarchical clustering,
-    \item density-based clustering.
-\end{itemize}
-
-\noindent Each of these approaches offers unique advantages in dealing with different underlying data structure. Partitional clustering methods, attempt to directly partition a dataset into k distinct clusters. Hierarchical clustering methods construct a hierarchy of clusters by successively merging smaller clusters (agglomerative approach) or splitting larger clusters (divisive approach). Density-based methods define clusters based on high-density regions, effectively identifying clusters of arbitrary shapes and distinguishing noise or outliers \cite{Bindra2017}.
-
-The following chapters of this work will be devoted to an algorithm based on partial clustering, which is $k$-means, and a hierarchical clustering algorithm, which is Agglomerative Hierarchical Clustering (AHC).
+Cluster analysis is a category of unsupervised learning algorithms that seek to divide a given set of objects into homogeneous clusters \cite{Bratchell1989}. In the context of image segmentation, cluster analysis divides an image into regions with similar properties. The following chapters of this work will be devoted to an algorithm based on partial clustering, which is $k$-means, and a hierarchical clustering algorithm, which is Agglomerative Hierarchical Clustering (AHC).
 
 \section{Quantum Computing}\label{quantum_computing}
 
@@ -310,14 +272,7 @@ Ising model classically refers to disordered magnetic alloys containing strongly
     H_{\mathrm{ising}}\left(s\right)=-\sum _{\left\langle i\right.,\left.j\right\rangle }J_{ij}s_is_j-\sum _ih_is_i,
 \end{equation}
 
-\noindent where $s_i{\in}\{-1,1\}$, $J_{ij}{\in}\mathbb{R}$, $h_i{\in}\mathbb{R}$. An Ising model with fixed coefficients is used to find the given system's ground state, it's lower energy state of a system's Hamiltonian. However, the Ising model is not the only tool to find the given system's ground state; the other one is Quadratic Unconstrained Binary Optimization (QUBO).
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.8\linewidth]{figures/quantum_computing/ising_spinglass.pdf}
-    \caption[Symbolic representation of Ising model.]{Symbolic representation of Ising model defined on the graph with $N=16$ vertices. $J_{i,j}$ denotes coupling strength associated with an edge between $i$-th and $j$-th node, and $h_i$ denotes qubit bias associated with $i$-th node.}
-    \label{fig:symbolic_ising}
-\end{figure}
+\noindent where $s_i{\in}\{-1,1\}$, $J_{ij}{\in}\mathbb{R}$, $h_i{\in}\mathbb{R}$. An Ising model with fixed coefficients is used to find the given system's ground state, it's lower energy state of a system's Hamiltonian. However, the Ising model is not the only tool to find the given system's ground state; the other one is Quadratic Unconstrained Binary Optimization (QUBO). 
 
 What distinguishes QUBO from the Ising model is that QUBO uses binary variables $q_i{\in}\mathbb{B}=\{0,1\}$, instead of $s_i{\in}\{-1,1\}$ spin variables. QUBO problem can be defined as minimizing the objective function:
 
@@ -622,9 +577,9 @@ We will start showing our experiments results with our baseline segmentation obt
 \end{table}
 
 \subsection{Conclusions}
+
 Analyzing obtained metrics on the segmentation images, we notice that almost all metrics improve their value for RBM trained with QA, and if they are not improved, they are close to the best-obtained value. For a model that does not use AHC, we note the consistent improvement of the metrics while changing the RBM training algorithm from CD-1 through SA to QA. For the metrics homogeneity and ARS, the RBM model trained with QA surpassed the baseline value, which was set by the $k$-means algorithm. The use of the AHC algorithm in combination with RBM affects clustering characteristics. First, AHC improves the completeness metric, especially when using the RBM version trained with Quantum Annealing. At the same time, adding AHC reduces the clusters' homogeneity. 
 
-\section{Summary}\label{summary}
 This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for multispectral image segmentation. Firstly, the LBAE's encoder part is utilized for dimensionality reduction and encoding spectral data to a binary representation, which is necessary for RBM. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models for the segmentation of multispectral images since we achieved better segmentations, in terms of observed metrics than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
