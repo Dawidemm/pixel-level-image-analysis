@@ -27,3 +27,13 @@ plot_labels.py
 sanity_check.py
 previous_exp
 compute_distance_matrix.py
+# Article txt
+txt/RBM4MSIS-blx.bib
+txt/RBM4MSIS.aux
+txt/RBM4MSIS.bbl
+txt/RBM4MSIS.blg
+txt/RBM4MSIS.log
+txt/RBM4MSIS.out
+txt/RBM4MSIS.pdf
+txt/RBM4MSIS.run.xml
+txt/RBM4MSIS.synctex.gz

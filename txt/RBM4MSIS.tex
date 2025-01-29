@@ -43,8 +43,6 @@ In this work, we focus on the segmentation of multispectral images. Multispectra
 
 Quantum computing is a multidisciplinary field that includes computer science, physics, and mathematics. Quantum computing leverages the principles of quantum mechanics to solve complex problems. One possible approach to using quantum computing, alongside the gate model \cite{Pereira2023}, is Adiabatic Quantum Computing (AQC) \cite{Kadowaki1998} and closely related quantum annealing. An interesting possibility is the use of quantum computing, both gate-based and AQC, in machine learning models \cite{schuld2021}. 
 
-D-Wave Systems Inc. is a Canadian company that has pioneered the commercial application of quantum computing. This company has developed several generations of quantum processing units (QPU) based on various architectures known as Chimera, Pegasus, and Zephyr \cite{DWaveDocumentation}.
-
 The goal of this work is to explore the possibility of using Restricted Boltzmann Machines for pixel-level analysis of multispectral images and segmentation of those images. We also aim to use the D-Wave's quantum annealer and compare the segmentation results with the classical RBM training method.
 
 \section{Image Segmentation}\label{segmentation}
@@ -105,7 +103,7 @@ Autoencoder networks may be viewed as special cases of feed-forward networks and
 
 \noindent where $\mathbf{x}_i$ is an input data --- a vector of features and $\hat{\mathbf{x}}_i$ is the $\mathbf{x}_i$ reconstruction, which is obtained as an autoencoder output \cite{Goodfellow2016}.
 
-Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, and its idea is based on a class of autoencoders called Variational Autoencoders (VAE) \cite{fajtl2020}. The interesting LBAE property is that the hidden layer is binarized by \cite{fajtl2020}:
+Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, and its idea is based on a class of autoencoders called Variational Autoencoders \cite{fajtl2020}. The interesting LBAE property is that the hidden layer is binarized by \cite{fajtl2020}:
 
 \begin{equation}\label{lbae_latent_space}
     h_{i} = 
@@ -330,8 +328,6 @@ Quantum annealing has the potential to be used for data clustering by transformi
 
 D-Wave uses various architectures in its processors. The basic topology is Chimera and its architecture is designed to provide flexibility in mapping optimization problems onto a physical quantum system \cite{schuld2021}. However, the graph structure, like that of Chimera, introduces some limitations, \textit{e.g.}, not all qubits are directly connected to each other. 
 
-Qubits in the Chimera topology are placed on a square grid of unit cells. Each cell includes two groups of four qubits and each qubit is connected to four qubits from the opposite group forming $K_{4,4}$ complete bipartite graph, illustrated in the Figure \ref{fig:unitcell}. 
-
 \noindent Such cells are then combined into a two-dimensional grid, allowing the system to scale to a larger number of qubits and enable more complex interactions. Chimera layout is denoted by $C_n$, where $n$ is the width and the height of the grid and in such configuration, each qubit is connected to a maximum of 6 qubits, the total number of qubits is $8n^2$ and the total number of couplers is $16n^2 + 8(n - 1)^n$ \cite{Jałowiecki2023}. The couplers connecting qubits in the same unit cell are called internal and the couplers connecting qubits belonging to different cells are called external. An example of Chimera topology is shown in the Figure~\ref{fig:chimera_graph}.
 
 The Pegasus $P_3$ architecture, illustrated in Figure \ref{fig:pegasus_graph}, represents the next generation of the Chimera topology. This topology introduces some upgrades to qubit connectivity. Firstly, the internal couplers not only connect qubits within the same unit cell but also link qubits in adjacent unit cells. Secondly, a new type of connection, referred to as odd couplers, is introduced within the unit cells. Each Pegasus unit cell consists of 24 qubits organized into three Chimera unit cells. The Pegasus topology, denoted by $P_n$, features $n$ rows and $n$ columns of unit cells and contains a total of $24n(n - 1)$ qubits \cite{Jałowiecki2023}.
@@ -408,6 +404,7 @@ LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented 
 The vector that we aim to obtain, which is a vector in the latent space of our autoencoder, has 28 binary elements. We postulate that if the values of both metrics, which we will observe, the Euclidean distance and the spectral angle distance computed between the input spectral vector and reconstructed spectral vector, are low, the hidden representation in the latent space is good. This binary representation will serve as an input to the RBM. 
 
 \subsubsection{Data Clustering Module --- RBM}\label{rbm_implementation}
+
 RBM is a neural network that accepts binary data as its input, and by the LBAE encoding part, we can obtain a binary representation of the original data. The number of neurons in the visible layer of our RBM is determined by input data dimension and LBAE encoder convolutional layers; in the case of our experiments, that would be 28 neurons. 
 
 We will conduct experiments to train the RBM model with a fixed number of neurons in its visible layer and a changing number of neurons in its hidden layer $h_i \in \{3, 4, \ldots, 28\}$ using CD-$1$ algorithm. Our approach is to take RBM's hidden layer neurons activation probabilities calculated with Equation \eqref{p_hj_1_mid_v} and binarize those probabilities, and then the obtained binary vector is a label. The binarization threshold will be selected as follows: for each $th_i \in \{0.1, 0.2, \ldots, 0.9\}$, we will compute adjusted rand score (ARS) between true labels and predicted labels. Then we will check for which threshold we obtained the highest ARS, and for this threshold, we compute other metrics. Then, while having trained RBM models, we proceed to determine the best one by comparing them via V-measure, a meta metric whose value depends on homogeneity, completeness, and an additional $\beta$ parameter. Authors of \cite{Rosenberg2007} do not suggest how to choose $\beta$ value, however it is said by them that $\beta \in [0,1]$ promotes homogeneity. We will conduct an experiment that explores, for which model we obtained, the highest value of V-measure for $\beta_i \in \{0, 0.01, \ldots, 1\}$. The RBM architecture that most frequently obtains the highest V-measure scores will be selected as the best one, and we will proceed to experiments with simulated annealing (SA) and quantum annealing (QA) on this architecture.
@@ -421,23 +418,28 @@ Our approach based on binarized values of neuron activation probability in RBM's
 Having the RBM models trained by CD-$1$, SA, and QA and identified which are the best in the context of the observable metrics, as the last step, we proceed to create segmentation images using these three RBM models and AHC.
 
 \section{Experiments and results}\label{experiments_and_results}
-This chapter reports on the experiments and results obtained for the segmentation of multispectral images using the proposed neural network models. Model training was carried out using different approaches: the traditional contrastive divergence (CD-$1$) algorithm and an approach based on simulated annealing (SA) and quantum annealing (QA) to improve optimization efficiency. The following subsections cover an analysis of the comparative performance of the both methods in the context of multispectral image segmentation.
+
+ The following subsections cover an analysis of the comparative performance of the both methods in the context of multispectral image segmentation.
 
 \subsection{Dataset}\label{dataset_section}
-In this work, we will focus on the HyperBlood dataset \cite{Romaszewski2021}. The dataset consists of fourteen multispectral images showing a mock-up of a scene with blood and visually similar to human eye substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and each image is annotated with class labels indicating the presence of blood and other substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
+
+We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
 
 \begin{figure}[h!]
     \centering
     {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
-    \caption[Dataset classes overview.]{An image from the dataset documentation showing an overview of the classes present in the dataset \cite{Romaszewski2021}.}
+    \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
     \label{fig:dataset_img}
     }
 \end{figure}
 
 \subsection{Classical Model Training and Evaluation}
+
+We trained the model using three different approaches: the traditional contrastive divergence (CD-$1$) algorithm and an approach based on simulated annealing (SA) and quantum annealing (QA) to improve optimization efficiency.
+
 Throughout this section, we will present training hyperparameters and resulting loss curves for each trained model containing LBAE and RBM models, which were trained with the CD-$1$ algorithm, simulated annealing, and quantum annealing. We will also present the evaluation metrics that we have obtained that justify proceeding further with the model, which we consider superior to other models. Obtained segmentation images and metrics computed for those images will be presented in the next section of this work.
 
-At first, we will begin with training Latent Bernoulli Autoencoder (LBAE). As mentioned in Chapter \ref{methodology}, our approach relies on the work done in \cite{QBM4EO}. Since we changed only convolutional layers from two to one-dimensional, we will keep fixed hyperparameters of these layers as they were in \cite{QBM4EO}. Our experiments focused on studying the influence of changing batch size and learning rate.
+At first, we begin with LBAE training. Our approach relies on the work done in \cite{QBM4EO}. Since we changed only convolutional layers from two to one-dimensional, we will keep fixed hyperparameters of these layers as they were in \cite{QBM4EO}. Our experiments focused on studying the influence of changing batch size and learning rate.
 
 The following values of batch size $b_i \in \{4, 8, 16\}$ and learning rate $\eta_i \in \{10^{-2}$, $10^{-3}$, $10^{-4}\}$ were chosen as a standard values \cite{raschka2019}. For each combination of these parameters, LBAE training was conducted, ultimately yielding nine trained models. Each model's performance was evaluated on a test dataset using Euclidean distance and spectral angle distance (SAD) metrics.
 
@@ -463,6 +465,7 @@ For the segmentation images that we will create, we want to refer to a reliable 
 After obtaining baseline segmentation, we proceeded to create segmentation images using our network, which consists of an LBAE encoder, RBM, and AHC. These images are presented in Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}.
 
 \subsection{Quantum Model Training and Evaluation}
+
 With the RBM hyperparameters determined, the next step of the project was to test the implemented training algorithm using a simulation annealer. For this task, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics.
 
 Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_sa_learning_annealer}.
@@ -480,6 +483,7 @@ As before, we repeat the procedure using the V-measure to obtain the model with 
 \end{figure}
 
 \subsection{Segmentation Results}
+
 We will start showing our experiments results with our baseline segmentation obtained by using $k$-means algorithm on the Figure \ref{fig:kmeans_segmentation} and ground truth image on the Figure \ref{fig:ground_truth_image}. Next, we will present segmentations obtained by using our proposed model trained with contrastive divergence (CD-$1$) and followed by AHC using both linkage methods --- complete and average, those will be respectively Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}. Similarly we will present segmentations for models trained with simulated annealing (SA) and quantum annealing (QA). For simulated annealing obtained images are Figure \ref{fig:sa_rbm_ahc_complete_seg} and Figure \ref{fig:sa_rbm_ahc_average_seg}, and for quantum annealing obtained images are Figure \ref{fig:qa_rbm_ahc_complete_seg} and Figure \ref{fig:qa_rbm_ahc_average_seg}.
 
 \begin{figure}[h]
