@@ -1,8 +1,11 @@
-\documentclass[a4paper,12pt]{article}
+% LLCS Class for http://qcw2025.agh.edu.pl/
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+% Rest of the 
 \usepackage{calc,amsmath,amssymb,amsfonts}
 \usepackage[english]{babel}
 \usepackage[style=ieee,backend=bibtex]{biblatex}
-\usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{geometry}
 \usepackage{setspace}
@@ -14,7 +17,6 @@
 \usepackage{physics}
 \usepackage{array}
 \usepackage{booktabs}
-\newtheorem{definition}{Definition}
 \usepackage[hidelinks]{hyperref}
 \usepackage{todonotes}
 \usepackage{csquotes}
@@ -23,27 +25,150 @@
 
 \title{Multispectral image segmentation with a machine learning model trained using quantum annealer}
 
-\author{Dawid Mazur \and Tomasz Rybotycki \and Piotr Gawron}
+\author{
+	Dawid~Mazur\inst{1}
+	\and 
+	Tomasz~Rybotycki\inst{2, 3, 4}\orcidID{0000-0003-2493-0459}
+	\and Piotr~Gawron\inst{3, 4}\orcidID{0000-0001-7476-9160}
+}
+
+\authorrunning{D. Mazur et al.}
+
+\institute{\todo[inline]{Dawid, uzupelnij prosze.}
+	\and
+	Systems Research Institute, Polish Academy of Sciences, 6 Newelska Street,
+	PL01-447 Warsaw, Poland
+	\and
+	Nicolaus Copernicus Astronomical Center, Polish Academy of Sciences, 18 Bartycka Street, PL00-716 Warsaw, Poland
+	\and
+	Center of Excellence in Artificial Intelligence, AGH University,
+	30 Mickiewicza Lane, PL30-059 Cracow, Poland
+}
 
 \begin{document}
 
 \maketitle
-
+\todo{DM, PG: Uzupelnijcie / sprawdzcie dane, prosze.}
+\todo[inline]{TR: Widzialem pare nieuzupelnionych referencji, zarowno do prac jak i figur. Trzeba na to rzucic okiem.}
 \begin{abstract}
-	aaa
+	
+	Quantum computing and machine learning are currently at the peak of
+	computer scientists' attention. It comes as no surprise that their
+	natural intersection --- quantum machine learning  (QML) ---  also
+	is. Quantum, or more often hybrid quantum-classical, models consists
+	of so-called quantum layers. Those kind of layers, coming in various
+	shapes and sizes, describes the quantum computational part of the model
+	data processing pipeline. However, hybrid models are only one branch
+	of QML --- the other are quantum methods of learning. In this work,
+	following the results of QBM4EO team, we propose a classical machine 
+	leaning model, partially trained using quantum annealer, for
+	multi-spectral image segmentation. We show that the model trained using
+	quantum annealer are better or at least comparable with alternative
+	training algorithms, according to the selected metrics. Our results
+	suggest that QML may provide useful tools for multispectral image
+	processing.
+	
 \end{abstract}
 
 \section{Introduction}\label{introduction}
 
-Technological advancements in the XX century contributed to development of computer science, and the digital era has emerged. One of the modern advancements that we witness is the rapid growth of artificial intelligence, especially in the field of generative models, particularly introducing Generative Adversarial Networks in 2014 \cite{Goodfellow2014}, and Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey E. Hinton. The motivation for the prize was as follows: ``for foundational discoveries and inventions that enable machine learning with artificial neural networks''. One of such ANN models are Restricted Boltzmann Machines (RBM), initially introduced in 1986 under the name Harmonium \cite{Smolensky1986}, fall into the generative models category due to their ability to learn a probabilistic distribution over its set of inputs. RBM is a widely used machine learning technique for unsupervised \cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}.
+Technological advancements in the XX century contributed to development of
+computer science, and the digital era has emerged. One of the modern
+advancements that we witness is the rapid growth of artificial intelligence,
+especially in the field of generative model \cite{Goodfellow2014}, and
+Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth
+mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey
+E. Hinton. The motivation for the prize was as follows: ``for foundational
+discoveries and inventions that enable machine learning with artificial neural
+networks''. One of such ANN models are Restricted Boltzmann Machines (RBM),
+initially introduced in 1986 under the name Harmonium \cite{Smolensky1986},
+which fall into the generative models category due to their ability to learn a
+probabilistic distribution over its set of inputs. RBM is a widely used machine
+learning technique for unsupervised \cite{Decelle2023} and supervised tasks
+\cite{Dixit2021RBM_DWave}.
 
-Segmentation is a core task in computer vision. It partitions an image into regions representing different objects or materials. Segmentation makes it possible to analyze image's structure accurately, and it has applications in many fields, such as medicine \cite{Wang2022} or satellite image analysis \cite{fajtl2020}.
+Among others, RBMs have been used in computer vision, as a part of an
+image processing system. Specifically, the authors of QBM4EO devised a
+ML model for multi-label land-use classification \cite{QBM4EO}. Their model
+was designed to process multispectral data from the Sentinel-2 images dataset,
+hence we were able to ascertain the model capabilities to process similar data.
+However, instead of multi-label classification, we looked into a different
+computer vision task, namely image segmentation.
 
-In this work, we focus on the segmentation of multispectral images. Multispectral images differ from ordinary ones in that they capture information in multiple electromagnetic spectrum wavelengths \cite{Mengu2023}, not just the visible range. It allows for a deeper analysis of the properties of imaged objects, as each pixel contains spectral information in different bands \cite{Sifnaios2024}. Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
+Segmentation is a core task in computer vision. It's goal is to partition an
+image into regions representing different objects or materials. Segmentation
+makes it possible to analyze image's structure accurately, and it has
+applications in many fields, such as medicine \cite{Wang2022} or satellite
+image analysis \cite{fajtl2020}. In this work, we focus on the segmentation of
+multispectral images. Such images differ from ordinary ones in that they
+capture information in broader electromagnetic wavelength spectrum
+\cite{Mengu2023}, not just in the visible range. Such data allow for a deeper
+analysis of the imaged object properties~\cite{Sifnaios2024}. 
 
-Quantum computing is a multidisciplinary field that includes computer science, physics, and mathematics. Quantum computing leverages the principles of quantum mechanics to solve complex problems. One possible approach to using quantum computing, alongside the gate model \cite{Pereira2023}, is Adiabatic Quantum Computing (AQC) \cite{Kadowaki1998} and closely related quantum annealing. An interesting possibility is the use of quantum computing, both gate-based and AQC, in machine learning models \cite{schuld2021}. 
+What we strove to investigate, was how accurately a model similar to the
+one proposed by \cite{QBM4EO} can handle pixel-level multispectral image
+segmentation task. Since the \cite{QBM4EO} model was trained using quantum
+annealers (QA), the problem is essentially a quantum machine learning (QML)
+one. QML is an intersection of quantum computing (QC) and machine learning
+(ML). It leverages the principles of quantum mechanics to solve complex ML
+problems. In our case, the problem is RBM training. Since RBMs were trained
+far before first QAs became available, another research question arise. Are
+quantum training techniques better than their classical counterparts, at least
+in this limited context? We tackled that issue in our investigations.
 
-The goal of this work is to explore the possibility of using Restricted Boltzmann Machines for pixel-level analysis of multispectral images and segmentation of those images. We also aim to use the D-Wave's quantum annealer and compare the segmentation results with the classical RBM training method.
+This paper is organized as follows. We begin with the problem formulation,
+where we formally describe introduce the idea of multispectral images and
+image segmentation. Moreover, we discuss the proposed solutions to the
+problem therein. In the next section, we discuss quantum machine learning,
+focusing especially on the building block of the model we propose. Here,
+we also describe how quantum annealers can be used to train specific ML models.
+Then, we start with describing the experiment. We review the dataset we use
+and introduce our model. We then discuss the our experiments in great detail
+and conclude this section with results analysis. The finish this paper 
+with conclusions, insights and directions for future research.
+
+\section{Problem formulation}
+\label{sec:problem}
+
+% Image segmentation
+% + multispectral images
+
+% literature overview, solutions and shortcomings
+
+Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
+
+\section{Machine Learning and Quantum Machine Learning} 
+\label{sec:qml}
+
+% Unsupervised learning
+% LBAE
+% RBM
+% AHC
+
+% RBM training as QUBO
+% QUBO on QA
+
+\section{Experiments and results}
+\label{sec:exp}
+
+% Dataset
+% Model
+
+% Experiments
+% - baseline 
+% - metrics
+% - parameters
+% - pipeline
+
+% Results
+% - training
+% - segmentation 
+
+\section{Conclusions}
+
+% 
+
+
 
 \section{Image Segmentation}\label{segmentation}
 
@@ -587,6 +712,13 @@ Analyzing obtained metrics on the segmentation images, we notice that almost all
 This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for multispectral image segmentation. Firstly, the LBAE's encoder part is utilized for dimensionality reduction and encoding spectral data to a binary representation, which is necessary for RBM. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models for the segmentation of multispectral images since we achieved better segmentations, in terms of observed metrics than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
+
+\section*{Acknowledgments}\label{acknowledgments}
+\addcontentsline{toc}{chapter}{Acknowledgments}
+\sloppy
+We gratefully acknowledge Poland's high-performance Infrastructure PLGrid ACK Cyfronet AGH for providing computer facilities and support within computational grant no. PLG/2024/017155 through and no. PLG/2024/017550.
+
+The authors would like to thank Etos sp. z o.o. and the QBM4EO team for providing the QBM4EO code. We gratefully acknowledge the funding support by program “Excellence Initiative — Research University” for the AGH University of Kraków as well as the ARTIQ project ARTIQ/0004/2021.
 
 \addcontentsline{toc}{section}{Bibliography}
 \printbibliography
