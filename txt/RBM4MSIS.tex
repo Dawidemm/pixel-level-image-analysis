@@ -132,45 +132,8 @@ with conclusions, insights and directions for future research.
 
 % Image segmentation
 % + multispectral images
-
-% literature overview, solutions and shortcomings
-
-Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
-
-\section{Machine Learning and Quantum Machine Learning} 
-\label{sec:qml}
-
-% Unsupervised learning
-% LBAE
-% RBM
-% AHC
-
-% RBM training as QUBO
-% QUBO on QA
-
-\section{Experiments and results}
-\label{sec:exp}
-
-% Dataset
-% Model
-
-% Experiments
-% - baseline 
-% - metrics
-% - parameters
-% - pipeline
-
-% Results
-% - training
-% - segmentation 
-
-\section{Conclusions}
-
-% 
-
-
-
-\section{Image Segmentation}\label{segmentation}
+\section{Image Segmentation}
+\label{sec:img_seg}
 
 Image segmentation is an important area of research and application in the field of computer vision. It has wide applications in many fields, such as medicine \cite{Ma2024}, remote sensing \cite{Kemker2018}, and vision systems in autonomous vehicles \cite{Cakir2022}. It is the process of dividing an image into homogeneous regions. Formally, image segmentation can be defined as follows \cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to \{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that \cite{Pal1993}:
 
@@ -199,6 +162,14 @@ Clustering is an unsupervised machine learning class of algorithms that allows m
 
 The following chapters will also discuss clustering using deep learning models, as the neural network architecture presented in this dissertation derives from deep learning.
 
+% literature overview, solutions and shortcomings
+
+Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
+
+\section{Machine Learning and Quantum Machine Learning} 
+\label{sec:qml}
+
+% Unsupervised learning
 \section{Unsupervised Learning}\label{unsupervised_learning}
 
 Artificial intelligence is a technology at the intersection of mathematics and computer science. It includes a wide spectrum of methods and algorithms that enable machines to learn, resulting in a wide range of applications \cite{raschka2019, Goodfellow2016}. The origins of artificial intelligence are considered to be the Perceptron model presented conceptually in \cite{Mcculloch1943} and developed in \cite{Rosenblatt1958}. 
@@ -207,6 +178,7 @@ Unsupervised learning is a fundamental approach in machine learning that allows 
 
 In the context of this work, we will use several unsupervised learning algorithms, for representation learning and dimensionality reduction and other clustering algorithms to perform image segmentation.
 
+% LBAE
 \subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
 
 Autoencoders are artificial neural networks used for unsupervised representation learning. Representation learning or feature learning is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data.
@@ -239,7 +211,7 @@ Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, 
 \end{equation}
 
 \noindent where $\mathbf{z}_i$ is the input data transformed by the encoder. The importance of this property will be highlighted in the methodology section of this work.
-
+% RBM
 \subsection{Restricted Boltzmann Machines}\label{rbm_section}
 In contrast to traditional approaches in machine learning and deep learning, structured probabilistic models offer a different paradigm. These models focus on representing probability distributions through graph-based structures, defined as:
 
@@ -287,7 +259,7 @@ Based on \cite{Goodfellow2016, Dixit2021RBM_DWave}, we can define the joint prob
     P(\mathbf{v}) = \frac{\sum_\mathbf{h} e^{-E(\mathbf{v},\mathbf{h})}}{Z}.
 \end{equation}
 
-\noindent By substituting values from equations \eqref{rbm_joint_prob_dist}, \eqref{partition_function}, \eqref{p_v} into \eqref{p_h_cond_v} we receive:
+\noindent By substituting values from equations \eqref{rbm_joint_prob_dist}, \eqref{rbm_partition_function}, \eqref{p_v} into \eqref{p_h_cond_v} we receive:
 
 \begin{equation}
     P(\mathbf{h} \mid \mathbf{v}) = \frac{e^{\sum_j c_j h_j + \sum_j (\mathbf{v}^T \mathbf{W})_j \mathbf{h}_j}}{Z'},
@@ -369,122 +341,63 @@ RBM training is based on maximizing the log-likelihood of the training data. The
 
 Negative-phase $\nabla_{\theta} (-E(\mathbf{v}, \mathbf{h}))$ is hard to compute but its approximation can be obtained using the Monte Carlo Markov Chain methods (MCMC) \cite{Goodfellow2016}. One of the MCMC algorithms family is the contrastive divergence (CD) algorithm. CD uses the dependencies described in the Equations \eqref{p_hj_1_mid_v} and \eqref{p_vi_1_mid_h}. Alternatively, the negative-phase can be calculated using samples drawn from a quantum annealer \cite{Dixit2021RBM_DWave}. The use of annealing can lead to more efficient sampling than MCMC algorithms, which can struggle to correctly approximate the negative phase of the gradient \cite{Goodfellow2016}. While CD relies on limited Gibbs sampling steps and can get stuck in local minima, annealing explores more global configurations, improving sampling accuracy and learning dynamics in challenging scenarios.
 
+% AHC
 \subsection{Cluster Analysis}\label{cluster_analysis_section}
 
 Cluster analysis is a category of unsupervised learning algorithms that seek to divide a given set of objects into homogeneous clusters \cite{Bratchell1989}. In the context of image segmentation, cluster analysis divides an image into regions with similar properties. The following chapters of this work will be devoted to an algorithm based on partial clustering, which is $k$-means, and a hierarchical clustering algorithm, which is Agglomerative Hierarchical Clustering (AHC).
 
-\section{Quantum Computing}\label{quantum_computing}
+\subsection{Agglomerative Hierarchical Clustering}\label{ahc_section}
 
-Quantum computing is a domain that has gained immense interest in recent years in both the scientific and industrial sectors \cite{Flother2023, Ahmed2024, Orus2019, Phillipson2024}. Taking advantage of the unique properties of quantum mechanics, such as superposition and entanglement, quantum computers promise a breakthrough in information processing, offering computational capabilities unavailable to classical computers.
+The AHC algorithm relies on a bottom-up approach. It starts the clustering process by treating each data point as an individual cluster and then iteratively merging the most similar clusters based on a selected distance metric. The process continues until all data points are combined into a single cluster or the desired number of clusters is reached. The result of such clustering is a hierarchical tree — a dendrogram depicting the merging of data points into larger and larger clusters \cite{Bindra2017}.
 
-Traditional computers operate on bits, which can take the value of 0 or 1. In contrast, quantum computers operate on qubits (quantum bits), which, due to the phenomenon of superposition can exist in a state that is a linear combination of states ``0'' and ``1'', enabling quantum computers to process information in different ways compared to classical computers. In addition, quantum entanglement allows the states of qubits to be non-locally connected, leading to performing some computational tasks exponentially faster than classical algorithms \cite{Datta2005}.
+The AHC  algorithm requires specifying a linkage criterion, which determines how clusters are merged based on the distance between them. Standard linkage methods include single linkage, complete linkage, and average linkage. This work will use the complete linkage and the average linkage criterion to measure the distances between clusters during the merging process. Average linkage defines the distance between two clusters as the average of all pairwise distances between points in the two clusters \cite{Müllner2011, Bratchell1989}. Formally, for two clusters $C_i$ and $C_j$, the average linkage distance is given by the formula:
 
-A quantum system evolves according to the Schr\"odinger equation \cite{schuld2021}:
-
-\begin{equation}\label{shrodinger}
-    i \hbar \frac{d}{dt} \ket{\psi(t)} = H(t) \ket{\psi(t)},
+\begin{equation}\label{avg_link}
+    d_{\text{avg}}(C_i, C_j) = \frac{1}{|C_i||C_j|} \sum_{x \in C_i} \sum_{y \in C_j} d(x, y),
 \end{equation}
 
-\noindent where $\ket{\psi}$ is the quantum state of the system at the time $t$ and $H(t)$ is the time-dependent Hamiltonian of a given system. $\hbar$ is Planck’s constant. Hamiltonian operator corresponds to the total energy of the system. The possible energies the system can have are the eigenvalues of the $H$ operator \cite{schuld2021, McMahon2008}.
+\noindent where \( |C_i| \) and \( |C_j| \) are the number of points in clusters \( C_i \) and \( C_j \), respectively, and \( d(x, y) \) represents the distance between points \( x \) and \( y \).
 
-\subsection{Ising Model and Quadratic Unconstrained Binary Optimization}\label{inig_qubo_section}
+Complete linkage defines the distance between two clusters as the maximum distance between any pair of points in the two clusters \cite{Müllner2011}. Formally, for two clusters \( C_i \) and \( C_j \), the complete linkage distance is given by the formula:
 
-Ising model classically refers to disordered magnetic alloys containing strongly interacting ions immersed in a weakly interacting substrate [7]. We can interpret such an arrangement as randomly interacting spins up $(\uparrow)$ or down $(\downarrow)$ placed on lattice nodes. We can denote such an arrangement by an undirected graph $G=(V,E)$ \cite{Jałowiecki2023}. For each vertex, we assign a spin variable $s_i$ and a local magnetic field  $h_i$. To each edge, we assign an interaction strength $J_{ij}$. For such a system we can define a Hamiltonian:
-
-\begin{equation}\label{isingH}
-    H_{\mathrm{ising}}\left(s\right)=-\sum _{\left\langle i\right.,\left.j\right\rangle }J_{ij}s_is_j-\sum _ih_is_i,
+\begin{equation}\label{complete_link}
+    d_{\text{complete}}(C_i, C_j) = \max_{x \in C_i, \, y \in C_j} d(x, y),
 \end{equation}
 
-\noindent where $s_i{\in}\{-1,1\}$, $J_{ij}{\in}\mathbb{R}$, $h_i{\in}\mathbb{R}$. An Ising model with fixed coefficients is used to find the given system's ground state, it's lower energy state of a system's Hamiltonian. However, the Ising model is not the only tool to find the given system's ground state; the other one is Quadratic Unconstrained Binary Optimization (QUBO). 
+\noindent This criterion tends to produce compact clusters by prioritizing the maximum distance, which discourages merging clusters that are widely spread.
 
-What distinguishes QUBO from the Ising model is that QUBO uses binary variables $q_i{\in}\mathbb{B}=\{0,1\}$, instead of $s_i{\in}\{-1,1\}$ spin variables. QUBO problem can be defined as minimizing the objective function:
+The AHC algorithm works on pre-clustered data. In Chapter \ref{methodology}, it will be described why exactly we will use AHC.
 
-\begin{equation}
-    \min_{q{\in}\{0,1\}^n}f_Q(q).
-\end{equation}
+% RBM training as QUBO
+% QUBO on QA
 
-\noindent The objective function $f_Q: \mathbb{B}^n \to \mathbb{R}$ is in the form given by:
+\section{Experiments and results}
+\label{sec:exp}
 
-\begin{equation}
-    f_Q(x)=q^{T}Qq,
-\end{equation}
+% Dataset
+\subsection{Dataset}\label{dataset_section}
 
-\noindent where $Q \in \mathbb{R}^{n \times n}$ is upper triangular matrix, whose entries $Q_{ij}$ define a weight for each pair of indices $i,j \in \{1, 2, \ldots, n\}$. The objective function can be transformed to the following form:
+We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
 
-\begin{equation}
-    f_Q(q)=\sum _iQ_{ii}q_i+\sum _{i<j}Q_{ij}q_iq_j,
-\end{equation}
+\begin{figure}[h!]
+    \centering
+    {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
+    \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
+    \label{fig:dataset_img}
+    }
+\end{figure}
 
-\noindent which makes the QUBO problem and the Ising model essentially equivalent. To express the Ising model as a QUBO problem, we introduce the substitution $s_i=2q_i-1$ and we assign $a_i$ and $b_{ij}$ symbols to denote respectively linear and quadratic QUBO coefficients. Values for $a_i$ and $b_{ij}$ are as follows \cite{Jałowiecki2023}:
+% Model
 
-\begin{equation}\label{a_and_b_qubo}
-    a_i = 4J_{ij}, \quad b_{ij} = 2h_i - 2\sum_{\left\langle i\right.,\left.j\right\rangle}J_{ij},
-\end{equation}
+% Experiments
+% - baseline 
 
-\noindent what results in the following form of $f_Q$:
+% - metrics
+The selection of appropriate evaluation metrics is crucial for an objective analysis of the quality of the machine learning models. We decided to use the Homogeneity Score, the Completeness Score, the Rand Score, and the Adjusted Rand Score, which are commonly used in evaluating clustering tasks \cite{Emmons2016}, \cite{Rosenberg2007}. Additionally, Euclidean distance and Spectral Angle Distance were employed to evaluate the capability of the autoencoder to reconstruct the data.
 
-\begin{equation}
-f_Q(q)=\sum _ia_iq_i+\sum _{i<j}b_{ij}q_iq_j,
-\end{equation}
+% - parameters
 
-\noindent which differs from \eqref{isingH} by a constant value, although it is irrelevant to the optimization process \cite{Jałowiecki2023}.
-
-\subsection{Adiabatic Quantum Computation and Quantum Annealing}\label{aqc_qa_section}
-
-The core concept of Adiabatic Quantum Computing (AQC) relies on the adiabatic theorem \cite{Farhi2000}, which states that if a quantum system begins in the ground state of its initial Hamiltonian and the Hamiltonian changes slowly enough, the system will remain in its ground state throughout the evolution. 
-
-The time-dependent Hamiltonian $H(t)$ is constructed from  $H_{\mathrm{init}}$ and $H_{\mathrm{target}}$. The adiabatic evolution of a state transforms the known ground state of the $H_{\mathrm{init}}$ into the unknown ground state of the $H_{\mathrm{target}}$. $H(s)$ is given by \cite{Kumar2018, Głomb2023}:
-
-\begin{equation}\label{H(s)}
-    H(s) = (1 - s) H_{\mathrm{init}} + s H_{\mathrm{target}},
-\end{equation}
-
-\noindent where $s=\frac{t}{T} \in [0, 1]$ and $T$ is the total evolution time, and it controls the rate at which $H(s)$ or $H(t)$ is varying. In AQC, the slower the evolution process, the better the approximate solution is obtained \cite{Calude2015}; this is why, in practice, the annealing approach is being used.
-
-Annealing is a process in metallurgy that involves slowly cooling metal to achieve a state with the lowest possible internal energy, resulting in greater strength and structural stability \cite{Ferrer2001}. In this process, the metal atoms move freely at high temperatures, and the slow reduction of temperature allows them to gradually arrange themselves in a stable configuration.
-
-Simulated annealing (SA) is an optimization algorithm inspired by this physical process. SA treats the optimization problem as a physical system, with energy representing the objective function value and temperature controlling the probability of accepting inferior solutions. The algorithm starts at a high temperature, where energy-increasing movements are allowed, and then the temperature slowly decreases to find the global minimum of the objective function \cite{Benedetti2021}.
-
-Quantum annealing (QA) is an extension of the idea of simulated annealing that uses quantum effects to search the solution space. Unlike SA, which relies on classical temperature perturbations, QA uses quantum fluctuations to overcome energy barriers. Optimization problems, solvable by QA, are most often represented in terms of an Ising model. Although Quantum Annealing, in principle, follows similar scheme as Adiabatic Quantum Computing, the difference is that system evolution in QA is not necessarily adiabatic \cite{Vinci2017}.
-
-Quantum annealing has the potential to be used for data clustering by transforming the optimization problem of the clustering cost function into the form of a quadratic binary optimization problem. QA makes it possible to search the solution space more efficiently and deal better with local minima compared to classical methods such as k-means \cite{Kumar2018}.
-
-\subsection{D–Wave's Quantum Processing Units}\label{dwave_qpu_section}
-
-D-Wave uses various architectures in its processors. The basic topology is Chimera and its architecture is designed to provide flexibility in mapping optimization problems onto a physical quantum system \cite{schuld2021}. However, the graph structure, like that of Chimera, introduces some limitations, \textit{e.g.}, not all qubits are directly connected to each other. 
-
-\noindent Such cells are then combined into a two-dimensional grid, allowing the system to scale to a larger number of qubits and enable more complex interactions. Chimera layout is denoted by $C_n$, where $n$ is the width and the height of the grid and in such configuration, each qubit is connected to a maximum of 6 qubits, the total number of qubits is $8n^2$ and the total number of couplers is $16n^2 + 8(n - 1)^n$ \cite{Jałowiecki2023}. The couplers connecting qubits in the same unit cell are called internal and the couplers connecting qubits belonging to different cells are called external. An example of Chimera topology is shown in the Figure~\ref{fig:chimera_graph}.
-
-The Pegasus $P_3$ architecture, illustrated in Figure \ref{fig:pegasus_graph}, represents the next generation of the Chimera topology. This topology introduces some upgrades to qubit connectivity. Firstly, the internal couplers not only connect qubits within the same unit cell but also link qubits in adjacent unit cells. Secondly, a new type of connection, referred to as odd couplers, is introduced within the unit cells. Each Pegasus unit cell consists of 24 qubits organized into three Chimera unit cells. The Pegasus topology, denoted by $P_n$, features $n$ rows and $n$ columns of unit cells and contains a total of $24n(n - 1)$ qubits \cite{Jałowiecki2023}.
-
-D–Wave's QPU uses Ising Hamiltonian from Equation \eqref{isingH} in a transformed form~\cite{DWaveDocumentation}:
-
-\begin{equation}\label{dwaveH}
-    H_{\mathrm{ising}}\left(s\right)=\frac{-A\left(s\right)} 2\left(\sum _i\widehat {\sigma
-}_x^{\left(i\right)}\right)+\frac{B(s)} 2\left(\sum _ih_i\widehat {\sigma }_z^{\left(i\right)}+\sum
-_{i>j}J_{i,j}\widehat {\sigma }_z^{\left(i\right)}\widehat {\sigma }_z^{\left(j\right)}\right),
-\end{equation}
-
-\noindent where $\widehat {\sigma }_x^{\left(i\right)}$, $\widehat {\sigma }_z^{\left(i\right)}$, $\widehat {\sigma
-}_z^{\left(j\right)}$ are Pauli matrices on qubit $q_i$, $h_i$ and $J_{i,j}$ are respectively the qubit biases and coupling strengths, $s = \frac{t}{T}$, where $t$ is time, and $T$ is the total time of the anneal. The relative energy of each state depends on the biases of qubits and couplers between them. The $A(s)$ is the tunneling energy, and the $B(s)$ is the problem Hamiltonian energy at $s$. Both are expressed as energies in units of Joules, as is standard for a Hamiltonian. A linear anneal sets $s = \frac{t}{T}$, where $t$ is time, and $T$ is the total time of the anneal. At $t = 0$, $A(0) > B(0)$, which leads to the quantum ground state of the system where each spin is in a delocalized combination of its classical states. As the system is annealed, $A$ decreases and $B$ increases until $T$ when the final state of the qubits represents a low-energy solution to a problem Hamiltonian.
-
-Hamiltonian from Equation \eqref{dwaveH} is composed of two parts: 
-$H_{\mathrm{init}}$ and $H_{\mathrm{final}}$:
-
-\begin{equation}\label{DWaveHinit}
-    H_{\mathrm{init}}=\frac{-A\left(s\right)} 2\left(\sum _i\widehat {\sigma }_x^{\left(i\right)}\right),
-\end{equation}
-
-\begin{equation}\label{DWaveHfinal}
-    H_{\mathrm{final}}=\frac{B(s)} 2\left(\sum _ih_i\widehat {\sigma }_z^{\left(i\right)}+\sum _{i>j}J_{i,j}\widehat
-{\sigma }_z^{\left(i\right)}\widehat {\sigma }_z^{\left(j\right)}\right).
-\end{equation}
-
-\noindent  $A(s)$ represents the tunneling energy, and $B(s)$ refers to the Hamiltonian energy of the problem in a given time step $s$.
-
-\section{Methodology}\label{methodology}
-This chapter will present a detailed concept of a neural network model designed for the segmentation of multispectral images. In what follows, we discuss image data preprocessing, implementation details of the model's components, their integration, and methods of their evaluation, especially in the context of multispectral image segmentation.
-
+% - pipeline
 \subsection{Data Preprocessing}\label{data_preprocessing_section}
 The preparation of spectral data for processing by the neural network model proposed later in this work included transformations that are standard in the field of machine learning.
 
@@ -546,18 +459,20 @@ Having the RBM models trained by CD-$1$, SA, and QA and identified which are the
 
  The following subsections cover an analysis of the comparative performance of the both methods in the context of multispectral image segmentation.
 
-\subsection{Dataset}\label{dataset_section}
+ \subsection{Dataset}\label{dataset_section}
 
-We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
+ We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
+ 
+ \begin{figure}[h!]
+     \centering
+     {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
+     \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
+     \label{fig:dataset_img}
+     }
+ \end{figure}
 
-\begin{figure}[h!]
-    \centering
-    {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
-    \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
-    \label{fig:dataset_img}
-    }
-\end{figure}
-
+% Results
+% - training
 \subsection{Classical Model Training and Evaluation}
 
 We trained the model using three different approaches: the traditional contrastive divergence (CD-$1$) algorithm and an approach based on simulated annealing (SA) and quantum annealing (QA) to improve optimization efficiency.
@@ -595,6 +510,14 @@ With the RBM hyperparameters determined, the next step of the project was to tes
 
 Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_sa_learning_annealer}.
 
+\begin{figure}[H]
+    \centering
+    {\includegraphics[width=0.85\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_sa.pdf}
+    \caption[Learning curve of the RBM from the SA training.]{Learning curve of the RBM from the simulated annealing training. The blue line represents the loss value on the training dataset, and the red line represents the loss value on the validation dataset.}
+    \label{fig:rbm_sa_learning_annealer}
+    }
+\end{figure}
+
 At this point, both RBM models have been trained with CD-$1$ and simulated annealing, so we proceed to train our model using quantum annealing. Again, we use the sampler provided by D-Wave \cite{DWaveDocumentation} and the automatic embedding of our problem into the target QPU Solver—Advantage 5.4. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs.
 
 As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_qa_learning_annealer}.
@@ -607,8 +530,8 @@ As before, we repeat the procedure using the V-measure to obtain the model with 
     }
 \end{figure}
 
+% - segmentation
 \subsection{Segmentation Results}
-
 We will start showing our experiments results with our baseline segmentation obtained by using $k$-means algorithm on the Figure \ref{fig:kmeans_segmentation} and ground truth image on the Figure \ref{fig:ground_truth_image}. Next, we will present segmentations obtained by using our proposed model trained with contrastive divergence (CD-$1$) and followed by AHC using both linkage methods --- complete and average, those will be respectively Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}. Similarly we will present segmentations for models trained with simulated annealing (SA) and quantum annealing (QA). For simulated annealing obtained images are Figure \ref{fig:sa_rbm_ahc_complete_seg} and Figure \ref{fig:sa_rbm_ahc_average_seg}, and for quantum annealing obtained images are Figure \ref{fig:qa_rbm_ahc_complete_seg} and Figure \ref{fig:qa_rbm_ahc_average_seg}.
 
 \begin{figure}[h]
@@ -705,13 +628,124 @@ We will start showing our experiments results with our baseline segmentation obt
     \label{tab:segmentation_metrics_comparison}
 \end{table}
 
-\subsection{Conclusions}
+\section{Conclusions}
 
 Analyzing obtained metrics on the segmentation images, we notice that almost all metrics improve their value for RBM trained with QA, and if they are not improved, they are close to the best-obtained value. For a model that does not use AHC, we note the consistent improvement of the metrics while changing the RBM training algorithm from CD-1 through SA to QA. For the metrics homogeneity and ARS, the RBM model trained with QA surpassed the baseline value, which was set by the $k$-means algorithm. The use of the AHC algorithm in combination with RBM affects clustering characteristics. First, AHC improves the completeness metric, especially when using the RBM version trained with Quantum Annealing. At the same time, adding AHC reduces the clusters' homogeneity. 
 
 This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for multispectral image segmentation. Firstly, the LBAE's encoder part is utilized for dimensionality reduction and encoding spectral data to a binary representation, which is necessary for RBM. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models for the segmentation of multispectral images since we achieved better segmentations, in terms of observed metrics than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
+
+\section{Quantum Computing}\label{quantum_computing}
+
+Quantum computing is a domain that has gained immense interest in recent years in both the scientific and industrial sectors \cite{Flother2023, Ahmed2024, Orus2019, Phillipson2024}. Taking advantage of the unique properties of quantum mechanics, such as superposition and entanglement, quantum computers promise a breakthrough in information processing, offering computational capabilities unavailable to classical computers.
+
+Traditional computers operate on bits, which can take the value of 0 or 1. In contrast, quantum computers operate on qubits (quantum bits), which, due to the phenomenon of superposition can exist in a state that is a linear combination of states ``0'' and ``1'', enabling quantum computers to process information in different ways compared to classical computers. In addition, quantum entanglement allows the states of qubits to be non-locally connected, leading to performing some computational tasks exponentially faster than classical algorithms \cite{Datta2005}.
+
+A quantum system evolves according to the Schr\"odinger equation \cite{schuld2021}:
+
+\begin{equation}\label{shrodinger}
+    i \hbar \frac{d}{dt} \ket{\psi(t)} = H(t) \ket{\psi(t)},
+\end{equation}
+
+\noindent where $\ket{\psi}$ is the quantum state of the system at the time $t$ and $H(t)$ is the time-dependent Hamiltonian of a given system. $\hbar$ is Planck’s constant. Hamiltonian operator corresponds to the total energy of the system. The possible energies the system can have are the eigenvalues of the $H$ operator \cite{schuld2021, McMahon2008}.
+
+\subsection{Ising Model and Quadratic Unconstrained Binary Optimization}\label{inig_qubo_section}
+
+Ising model classically refers to disordered magnetic alloys containing strongly interacting ions immersed in a weakly interacting substrate [7]. We can interpret such an arrangement as randomly interacting spins up $(\uparrow)$ or down $(\downarrow)$ placed on lattice nodes. We can denote such an arrangement by an undirected graph $G=(V,E)$ \cite{Jałowiecki2023}. For each vertex, we assign a spin variable $s_i$ and a local magnetic field  $h_i$. To each edge, we assign an interaction strength $J_{ij}$. For such a system we can define a Hamiltonian:
+
+\begin{equation}\label{isingH}
+    H_{\mathrm{ising}}\left(s\right)=-\sum _{\left\langle i\right.,\left.j\right\rangle }J_{ij}s_is_j-\sum _ih_is_i,
+\end{equation}
+
+\noindent where $s_i{\in}\{-1,1\}$, $J_{ij}{\in}\mathbb{R}$, $h_i{\in}\mathbb{R}$. An Ising model with fixed coefficients is used to find the given system's ground state, it's lower energy state of a system's Hamiltonian. However, the Ising model is not the only tool to find the given system's ground state; the other one is Quadratic Unconstrained Binary Optimization (QUBO). 
+
+What distinguishes QUBO from the Ising model is that QUBO uses binary variables $q_i{\in}\mathbb{B}=\{0,1\}$, instead of $s_i{\in}\{-1,1\}$ spin variables. QUBO problem can be defined as minimizing the objective function:
+
+\begin{equation}
+    \min_{q{\in}\{0,1\}^n}f_Q(q).
+\end{equation}
+
+\noindent The objective function $f_Q: \mathbb{B}^n \to \mathbb{R}$ is in the form given by:
+
+\begin{equation}
+    f_Q(x)=q^{T}Qq,
+\end{equation}
+
+\noindent where $Q \in \mathbb{R}^{n \times n}$ is upper triangular matrix, whose entries $Q_{ij}$ define a weight for each pair of indices $i,j \in \{1, 2, \ldots, n\}$. The objective function can be transformed to the following form:
+
+\begin{equation}
+    f_Q(q)=\sum _iQ_{ii}q_i+\sum _{i<j}Q_{ij}q_iq_j,
+\end{equation}
+
+\noindent which makes the QUBO problem and the Ising model essentially equivalent. To express the Ising model as a QUBO problem, we introduce the substitution $s_i=2q_i-1$ and we assign $a_i$ and $b_{ij}$ symbols to denote respectively linear and quadratic QUBO coefficients. Values for $a_i$ and $b_{ij}$ are as follows \cite{Jałowiecki2023}:
+
+\begin{equation}\label{a_and_b_qubo}
+    a_i = 4J_{ij}, \quad b_{ij} = 2h_i - 2\sum_{\left\langle i\right.,\left.j\right\rangle}J_{ij},
+\end{equation}
+
+\noindent what results in the following form of $f_Q$:
+
+\begin{equation}
+f_Q(q)=\sum _ia_iq_i+\sum _{i<j}b_{ij}q_iq_j,
+\end{equation}
+
+\noindent which differs from \eqref{isingH} by a constant value, although it is irrelevant to the optimization process \cite{Jałowiecki2023}.
+
+\subsection{Adiabatic Quantum Computation and Quantum Annealing}\label{aqc_qa_section}
+
+The core concept of Adiabatic Quantum Computing (AQC) relies on the adiabatic theorem \cite{Farhi2000}, which states that if a quantum system begins in the ground state of its initial Hamiltonian and the Hamiltonian changes slowly enough, the system will remain in its ground state throughout the evolution. 
+
+The time-dependent Hamiltonian $H(t)$ is constructed from  $H_{\mathrm{init}}$ and $H_{\mathrm{target}}$. The adiabatic evolution of a state transforms the known ground state of the $H_{\mathrm{init}}$ into the unknown ground state of the $H_{\mathrm{target}}$. $H(s)$ is given by \cite{Kumar2018, Głomb2023}:
+
+\begin{equation}\label{H(s)}
+    H(s) = (1 - s) H_{\mathrm{init}} + s H_{\mathrm{target}},
+\end{equation}
+
+\noindent where $s=\frac{t}{T} \in [0, 1]$ and $T$ is the total evolution time, and it controls the rate at which $H(s)$ or $H(t)$ is varying. In AQC, the slower the evolution process, the better the approximate solution is obtained \cite{Calude2015}; this is why, in practice, the annealing approach is being used.
+
+Annealing is a process in metallurgy that involves slowly cooling metal to achieve a state with the lowest possible internal energy, resulting in greater strength and structural stability \cite{Ferrer2001}. In this process, the metal atoms move freely at high temperatures, and the slow reduction of temperature allows them to gradually arrange themselves in a stable configuration.
+
+Simulated annealing (SA) is an optimization algorithm inspired by this physical process. SA treats the optimization problem as a physical system, with energy representing the objective function value and temperature controlling the probability of accepting inferior solutions. The algorithm starts at a high temperature, where energy-increasing movements are allowed, and then the temperature slowly decreases to find the global minimum of the objective function \cite{Benedetti2021}.
+
+Quantum annealing (QA) is an extension of the idea of simulated annealing that uses quantum effects to search the solution space. Unlike SA, which relies on classical temperature perturbations, QA uses quantum fluctuations to overcome energy barriers. Optimization problems, solvable by QA, are most often represented in terms of an Ising model. Although Quantum Annealing, in principle, follows similar scheme as Adiabatic Quantum Computing, the difference is that system evolution in QA is not necessarily adiabatic \cite{Vinci2017}.
+
+Quantum annealing has the potential to be used for data clustering by transforming the optimization problem of the clustering cost function into the form of a quadratic binary optimization problem. QA makes it possible to search the solution space more efficiently and deal better with local minima compared to classical methods such as k-means \cite{Kumar2018}.
+
+\subsection{D–Wave's Quantum Processing Units}\label{dwave_qpu_section}
+
+D-Wave uses various architectures in its processors. The basic topology is Chimera and its architecture is designed to provide flexibility in mapping optimization problems onto a physical quantum system \cite{schuld2021}. However, the graph structure, like that of Chimera, introduces some limitations, \textit{e.g.}, not all qubits are directly connected to each other. 
+
+\noindent Such cells are then combined into a two-dimensional grid, allowing the system to scale to a larger number of qubits and enable more complex interactions. Chimera layout is denoted by $C_n$, where $n$ is the width and the height of the grid and in such configuration, each qubit is connected to a maximum of 6 qubits, the total number of qubits is $8n^2$ and the total number of couplers is $16n^2 + 8(n - 1)^n$ \cite{Jałowiecki2023}. The couplers connecting qubits in the same unit cell are called internal and the couplers connecting qubits belonging to different cells are called external.
+
+The Pegasus $P_3$ architecture, represents the next generation of the Chimera topology. This topology introduces some upgrades to qubit connectivity. Firstly, the internal couplers not only connect qubits within the same unit cell but also link qubits in adjacent unit cells. Secondly, a new type of connection, referred to as odd couplers, is introduced within the unit cells. Each Pegasus unit cell consists of 24 qubits organized into three Chimera unit cells. The Pegasus topology, denoted by $P_n$, features $n$ rows and $n$ columns of unit cells and contains a total of $24n(n - 1)$ qubits \cite{Jałowiecki2023}.
+
+D–Wave's QPU uses Ising Hamiltonian from Equation \eqref{isingH} in a transformed form~\cite{DWaveDocumentation}:
+
+\begin{equation}\label{dwaveH}
+    H_{\mathrm{ising}}\left(s\right)=\frac{-A\left(s\right)} 2\left(\sum _i\widehat {\sigma
+}_x^{\left(i\right)}\right)+\frac{B(s)} 2\left(\sum _ih_i\widehat {\sigma }_z^{\left(i\right)}+\sum
+_{i>j}J_{i,j}\widehat {\sigma }_z^{\left(i\right)}\widehat {\sigma }_z^{\left(j\right)}\right),
+\end{equation}
+
+\noindent where $\widehat {\sigma }_x^{\left(i\right)}$, $\widehat {\sigma }_z^{\left(i\right)}$, $\widehat {\sigma
+}_z^{\left(j\right)}$ are Pauli matrices on qubit $q_i$, $h_i$ and $J_{i,j}$ are respectively the qubit biases and coupling strengths, $s = \frac{t}{T}$, where $t$ is time, and $T$ is the total time of the anneal. The relative energy of each state depends on the biases of qubits and couplers between them. The $A(s)$ is the tunneling energy, and the $B(s)$ is the problem Hamiltonian energy at $s$. Both are expressed as energies in units of Joules, as is standard for a Hamiltonian. A linear anneal sets $s = \frac{t}{T}$, where $t$ is time, and $T$ is the total time of the anneal. At $t = 0$, $A(0) > B(0)$, which leads to the quantum ground state of the system where each spin is in a delocalized combination of its classical states. As the system is annealed, $A$ decreases and $B$ increases until $T$ when the final state of the qubits represents a low-energy solution to a problem Hamiltonian.
+
+Hamiltonian from Equation \eqref{dwaveH} is composed of two parts: 
+$H_{\mathrm{init}}$ and $H_{\mathrm{final}}$:
+
+\begin{equation}\label{DWaveHinit}
+    H_{\mathrm{init}}=\frac{-A\left(s\right)} 2\left(\sum _i\widehat {\sigma }_x^{\left(i\right)}\right),
+\end{equation}
+
+\begin{equation}\label{DWaveHfinal}
+    H_{\mathrm{final}}=\frac{B(s)} 2\left(\sum _ih_i\widehat {\sigma }_z^{\left(i\right)}+\sum _{i>j}J_{i,j}\widehat
+{\sigma }_z^{\left(i\right)}\widehat {\sigma }_z^{\left(j\right)}\right).
+\end{equation}
+
+\noindent  $A(s)$ represents the tunneling energy, and $B(s)$ refers to the Hamiltonian energy of the problem in a given time step $s$.
+
+
 
 \section*{Acknowledgments}\label{acknowledgments}
 \addcontentsline{toc}{chapter}{Acknowledgments}
