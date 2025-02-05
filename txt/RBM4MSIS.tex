@@ -34,7 +34,8 @@
 
 \authorrunning{D. Mazur et al.}
 
-\institute{\todo[inline]{Dawid, uzupelnij prosze.}
+\institute{
+    AGH University, 30 Mickiewicza Lane, PL30-059 Cracow, Poland
 	\and
 	Systems Research Institute, Polish Academy of Sciences, 6 Newelska Street,
 	PL01-447 Warsaw, Poland
@@ -517,7 +518,6 @@ Wanting to select the best model, we performed the procedure described in \ref{m
     \label{fig:rbm_sa_learning_annealer}
     }
 \end{figure}
-
 At this point, both RBM models have been trained with CD-$1$ and simulated annealing, so we proceed to train our model using quantum annealing. Again, we use the sampler provided by D-Wave \cite{DWaveDocumentation} and the automatic embedding of our problem into the target QPU Solver—Advantage 5.4. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs.
 
 As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_qa_learning_annealer}.
