@@ -189,7 +189,8 @@ enable machines to learn, resulting in a wide range of applications
 explores machines' capability to learn patterns from the data is called
 machine learning (ML).
 
-The focus of this work in on unsupervised learning \todo{DM: Dawidzie, czy mamy jakąś pracę przeglądową z technik uczenia nienadzorowanego?}. It is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. Classic problems in which unsupervised learning is applied are clustering and dimensionality reduction. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}. Lately, autoencoders have also proven to be highly effective for this task \cite{Wang2014}. 
+The focus of this work in on unsupervised learning \todo{DM: Dawidzie, czy mamy jakąś pracę przeglądową z technik uczenia nienadzorowanego?}. It is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. Classic problems in which unsupervised learning is applied are clustering, dimensionality reduction
+and representation learning. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}. Lately, autoencoders have also proven to be highly effective for this task \cite{Wang2014}. Representation learning, also called feature learning, is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data \cite{Goodfellow2016}.
 
 In the context of this work, unsupervised learning will be used for all the
 tasks we mentioned. The model we propose, detailed in section \ref{sec:exp},
@@ -200,26 +201,30 @@ assessment.
 % LBAE
 \subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
 
-Autoencoders are artificial neural networks used for unsupervised representation learning. Representation learning or feature learning is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data.
+Autoencoders are artificial neural networks used for unsupervised
+representation learning. Their architecture consists of two separate networks:
+encoder and decoder. Encoder transforms the data into a its latent space
+representation whereas decoder tries to restore the input data from it. An autoencoder whose latent space dimension is lower than the input data one is called undercomplete \cite{Goodfellow2016}. Learning an undercomplete representation forces the autoencoder to capture the most significant features of the training data, thus it essentially implements an representation learning
+scheme.
 
-The autoencoder architecture is built from two separate networks. The first network, referred to as the encoder, executes the encoding operation $h = f(x)$, while the second one, known as the decoder, carries out the decoding operation $r = g(h)$. An autoencoder whose latent space  $h$ dimension is lower than the input data one is called undercomplete \cite{Goodfellow2016}. Learning an undercomplete representation forces the autoencoder to capture the most significant features of the training data.
-When the encoder and decoder are linear and the loss function is the mean squared error, an undercomplete autoencoder learns to capture the same subspace as PCA. In this scenario, an autoencoder trained to reconstruct its input ends up learning the principal subspace of the training data as a byproduct. Autoencoders with nonlinear encoder transformation $f$ and nonlinear decoder transformation $g$ can therefore learn a more flexible and powerful nonlinear extension of PCA \cite{Goodfellow2016}. 
+When the encoder and decoder are linear and the loss function is mean square
+error (MSE), an undercomplete autoencoder learns to capture the same subspace as PCA algorithm would. In this scenario, an autoencoder trained to reconstruct its input ends up learning the principal subspace of the training data as a byproduct. Autoencoders with nonlinear encoder transformation and nonlinear decoder transformation $g$ can therefore implement a more flexible and powerful nonlinear extension of PCA \cite{Goodfellow2016}. 
 
-Autoencoder networks may be viewed as special cases of feed-forward networks and can be trained similarly, especially using gradient descent and back-propagation techniques. The learning process in an autoencoder involves minimizing a loss function, denoted by $L$, which quantifies the difference between the input and the reconstructed output \cite{Goodfellow2016}. A loss function is generally defined as $L(x,g(f(x)))$, where $L$ is a loss function penalizing  $g(f\left(x\right))$ for being dissimilar from  $x$. Typically MSE is used \cite{Goodfellow2016}.
+Autoencoder networks may be viewed as special cases of feed-forward networks
+and can be trained as such, using gradient descent and back-propagation
+techniques in particular. The learning process of an autoencoder involves
+minimizing a loss function which quantifies the difference between the input
+and its reconstruction. Typically MSE is used \cite{Goodfellow2016}.
 
-Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, and its idea is based on a class of autoencoders called Variational Autoencoders \cite{fajtl2020}. The interesting LBAE property is that the hidden layer is binarized by \cite{fajtl2020}:
+A popular example of an autoencoder is the Latent Bernoulli Autoencoder (LBAE).
+It  belongs to the generative models' category. Its idea is based on a class of
+autoencoders called Variational Autoencoders \cite{fajtl2020}. In the context
+of this work, an vital LBAE property is that its latent space is binarized. We
+use this property in our model construction.
 
-\begin{equation}\label{lbae_latent_space}
-    h_{i} = 
-    \begin{cases}
-        1, & \text{if } \tanh(\mathbf{z}_i) \geq 0 \\
-        -1, & \text{if } \tanh(\mathbf{z}_i) < 0
-    \end{cases},
-\end{equation}
-
-\noindent where $\mathbf{z}_i$ is the input data transformed by the encoder. The importance of this property will be highlighted in the methodology section of this work.
 % RBM
 \subsection{Restricted Boltzmann Machines}\label{rbm_section}
+
 In contrast to traditional approaches in machine learning and deep learning, structured probabilistic models offer a different paradigm. These models focus on representing probability distributions through graph-based structures, defined as:
 
 \begin{equation}
@@ -406,6 +411,7 @@ The selection of appropriate evaluation metrics is crucial for an objective anal
 
 % - pipeline
 \subsection{Data Preprocessing}\label{data_preprocessing_section}
+
 The preparation of spectral data for processing by the neural network model proposed later in this work included transformations that are standard in the field of machine learning.
 
 The documentation of the dataset \cite{Romaszewski2021} describes some of the hyperspectral channels as “noisy”, and we decided that the indicated spectral bands should be removed from further processing. We also decided to remove from hyperspectral images pixels whose position $(x,y)$ corresponded to the label ``0'' (which is the background) in the ground truth image; by such action, we wanted to achieve better clustering results because the background in the studied dataset is not homogeneous --- the neural network model would try to assign background pixels to different classes.
