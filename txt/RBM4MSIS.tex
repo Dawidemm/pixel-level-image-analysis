@@ -26,7 +26,7 @@
 \title{Multispectral image segmentation with a machine learning model trained using quantum annealer}
 
 \author{
-	Dawid~Mazur\inst{1}
+	Dawid~Mazur\inst{1}\orcidID{0009-0006-2420-6558}
 	\and 
 	Tomasz~Rybotycki\inst{2, 3, 4}\orcidID{0000-0003-2493-0459}
 	\and Piotr~Gawron\inst{3, 4}\orcidID{0000-0001-7476-9160}
@@ -49,7 +49,7 @@
 \begin{document}
 
 \maketitle
-\todo{DM, PG: Uzupelnijcie / sprawdzcie dane, prosze.}
+\todo{DM, PG: Sprawdzcie dane, prosze.}
 \todo[inline]{TR: Widzialem pare nieuzupelnionych referencji, zarowno do prac jak i figur. Trzeba na to rzucic okiem.}
 \begin{abstract}
 	
@@ -64,8 +64,8 @@
 	following the results of QBM4EO team, we propose a classical machine 
 	leaning model, partially trained using quantum annealer, for
 	multi-spectral image segmentation. We show that the model trained using
-	quantum annealer are better or at least comparable with alternative
-	training algorithms, according to the selected metrics. Our results
+	quantum annealer is better or at least comparable with models trained using
+	alternative algorithms, according to the selected metrics. Our results
 	suggest that QML may provide useful tools for multispectral image
 	processing.
 	
@@ -76,8 +76,8 @@
 Technological advancements in the XX century contributed to development of
 computer science, and the digital era has emerged. One of the modern
 advancements that we witness is the rapid growth of artificial intelligence,
-especially in the field of generative model \cite{Goodfellow2014}, and
-Transformer architecture in  2017 \cite{Vaswani2023}. Certainly worth
+especially in the field of generative models \cite{Goodfellow2014}, and
+transformer architecture in 2017 \cite{Vaswani2023}. Certainly worth
 mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey
 E. Hinton. The motivation for the prize was as follows: ``for foundational
 discoveries and inventions that enable machine learning with artificial neural
@@ -88,8 +88,8 @@ probabilistic distribution over its set of inputs. RBM is a widely used machine
 learning technique for unsupervised \cite{Decelle2023} and supervised tasks
 \cite{Dixit2021RBM_DWave}.
 
-Among others, RBMs have been used in computer vision, as a part of an
-image processing system. Specifically, the authors of QBM4EO devised a
+Among others, RBMs have been used in computer vision, as a part of the
+image processing systems. For instance, the authors of QBM4EO devised a
 ML model for multi-label land-use classification \cite{QBM4EO}. Their model
 was designed to process multispectral data from the Sentinel-2 images dataset,
 hence we were able to ascertain the model capabilities to process similar data.
@@ -106,7 +106,7 @@ capture information in broader electromagnetic wavelength spectrum
 \cite{Mengu2023}, not just in the visible range. Such data allow for a deeper
 analysis of the imaged object properties~\cite{Sifnaios2024}. 
 
-What we strove to investigate, was how accurately a model similar to the
+What we strove to investigate was how accurately a model similar to the
 one proposed by \cite{QBM4EO} can handle pixel-level multispectral image
 segmentation task. Since the \cite{QBM4EO} model was trained using quantum
 annealers (QA), the problem is essentially a quantum machine learning (QML)
@@ -119,9 +119,9 @@ in this limited context? We tackled that issue in our investigations.
 
 This paper is organized as follows. We begin with the problem formulation,
 where we formally describe introduce the idea of multispectral images and
-image segmentation. Moreover, we discuss the proposed solutions to the
+image segmentation. Moreover, we discuss previously proposed solutions to the
 problem therein. In the next section, we discuss quantum machine learning,
-focusing especially on the building block of the model we propose. Here,
+focusing especially on the building blocks of the model we propose. Here,
 we also describe how quantum annealers can be used to train specific ML models.
 Then, we start with describing the experiment. We review the dataset we use
 and introduce our model. We then discuss the our experiments in great detail
@@ -133,39 +133,52 @@ with conclusions, insights and directions for future research.
 
 % Image segmentation
 % + multispectral images
-\section{Image Segmentation}
-\label{sec:img_seg}
+Image segmentation is an important area of research and application in the
+field of computer vision. It is a process of dividing an image into homogeneous
+regions. One can find its' uses in many fields, such as medicine \cite{Ma2024},
+remote sensing \cite{Kemker2018}, and vision systems in autonomous vehicles
+\cite{Cakir2022}.
 
-Image segmentation is an important area of research and application in the field of computer vision. It has wide applications in many fields, such as medicine \cite{Ma2024}, remote sensing \cite{Kemker2018}, and vision systems in autonomous vehicles \cite{Cakir2022}. It is the process of dividing an image into homogeneous regions. Formally, image segmentation can be defined as follows \cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to \{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that \cite{Pal1993}:
-
+Formally, image segmentation can be defined as follows
+\cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to
+\{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that:
 \begin{equation}
 	\label{segmentation_eq}
-    \bigcup_{i=1}^{n} S_{i}=F \quad \text{with} \quad S_{i} \cap S_{j} = \emptyset, i \neq j.
+    \bigcup_{i=1}^{n} S_{i}=F \quad \text{with} \quad S_{i} \cap S_{j} =
+    \emptyset, i \neq j.
 \end{equation}
+\noindent The homogeneity predicate $P(S_{i})=\text{true}$ for all regions
+$S_{i}$ and $P(S_{i} \cap S_{j})=\text{false}$, when $S_{i}$ is adjacent to
+$S_{j}$. Set $F$ is a digital image defined as 
 
-\noindent The homogeneity predicate $P(S_{i})=\text{true}$ for all regions $S_{i}$ and $P(S_{i} \cap S_{j})=\text{false}$, when $S_{i}$ is adjacent to $S_{j}$. Set $F$ is a digital image defined as \cite{Pal1993}:
-
-\begin{equation}\label{digital_image}
-    F_{W \times H}=[f(x,y)]_{W \times H},
+\begin{equation}
+	\label{eq:image}
+	F_{W \times H \times B}=[f(x,y,\lambda)]_{W \times H \times B}
 \end{equation}
+\noindent where $W$ and $H$ are image dimensions, $B$ is the band dimension and
+$f(x,y) \in G_{L}=\{0,1, \ldots, L-1\}$ is a set of discrete levels of the
+feature value and $(x,y)$ denotes the spatial coordinate. 
 
-\noindent where $W$ and $H$ are image dimensions and $f(x,y) \in G_{L}=\{0,1, \ldots, L-1\}$ is a set of discrete levels of the feature value, $(x,y)$ denotes the spatial coordinate. Equation \eqref{digital_image} refers to monochrome images, although it could be extended to commonly used images in RGB or other color spaces by adding channel or band dimension. The extended form of Equation \eqref{digital_image} can be defined as:
+In the context of this work, $B$ is of utmost importance, because this
+dimension is the one used to determine if an image is multi- or hiperspectral.
+Typically, images with 3-15 spectral bands are considered multispectral, 
+whereas hiperspectral images can have hundreds of spectral bands \todo{DM: Jeśli masz już jakiś w pracy, to dodaj tutaj odpowiedni odnośnik. Jeśli nie, to na wikipedii jest przykładowa praca Hagena.}. One can
+clearly see how that makes analysis of such images more demanding in comparison
+to the standard ones.
 
-\begin{equation}\label{digital_image_extended}
-    F_{W \times H \times B}=[f(x,y,\lambda)]_{W \times H \times B},
-\end{equation}
+Since image segmentation task is an old and well established problem \todo{DM: Dodaj proszę odnośnik do pracy, w której ten problem został wprowadzony, albo do jakiejś pracy przeglądowej.} there are variety of techniques to deal with it.
+In the context of this work, the most interesting are the ones using machine
+learning techniques (ML), especially unsupervised learning methods. Among those
+cluster analysis techniques are popular \todo{DM: Odnośnik proszę. Jeśli masz, to najlepsza będzie praca przeglądowa}. \todo[inline]{DM: Tutaj dobrze by było opisać ew. niedociągnięcia tych metod i dlaczego warto poszukiwania kontynuować. Czy miałeś coś takiego w swojej dysertacji?}
 
-\noindent where $B$ is a band dimension. The Equation \eqref{digital_image_extended} represents the hyperspectral or multispectral image on which we intend to perform segmentation.
-
-The task of image segmentation can be approached with a variety of algorithms, including both classical methods \cite{Chen2017} and those based on deep learning \cite{Badrinarayanan2017}. Among classical algorithms that are often used for segmentation are approaches like \cite{Chen2017}: thresholding, region-based, edge-detection, clustering.
-
-Clustering is an unsupervised machine learning class of algorithms that allows models to learn patterns in data without explicit labels. Segmentation with the classical clustering algorithm can be be implemented using \textit{e.g.}, $k$-means \cite{Dhanachandra2015} or Agglomerative Hierarchical Clustering \cite{Mohanta2002}. Both of these algorithms will be discussed in the following chapters, as they will be used to set a baseline for our model to exceed and to recognize the higher hierarchy of clusters returned by our model.
-
-The following chapters will also discuss clustering using deep learning models, as the neural network architecture presented in this dissertation derives from deep learning.
-
-% literature overview, solutions and shortcomings
-
-Research on hyperspectral imaging at the pixel-level has grown in recent years, leading to an increasing number of scientific publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023, Sifnaios2024, Chen2024}.
+The decision of which algorithm to select can be further guided by the
+approach one wishes to implement. The image can be analyzed using either
+pixel-level or patch approach. The latter usually involves using deep
+convolutional neural networks \todo{DM: Jeśli masz, to praca przeglądowa z CNNów i praca przeglądowa z analizy zdjęć multispektralnych z wykorzystaniem CNNów)}. However, research on hyperspectral imaging at the pixel-level has
+grown in recent years, leading to an increasing number of scientific
+publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023,
+Sifnaios2024, Chen2024}. We therefore decided to pursue this direction in this
+work.
 
 \section{Machine Learning and Quantum Machine Learning} 
 \label{sec:qml}
@@ -509,25 +522,27 @@ After obtaining baseline segmentation, we proceeded to create segmentation image
 
 With the RBM hyperparameters determined, the next step of the project was to test the implemented training algorithm using a simulation annealer. For this task, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics.
 
-Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_sa_learning_annealer}.
+Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_training}.
 
-\begin{figure}[H]
-    \centering
-    {\includegraphics[width=0.85\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_sa.pdf}
-    \caption[Learning curve of the RBM from the SA training.]{Learning curve of the RBM from the simulated annealing training. The blue line represents the loss value on the training dataset, and the red line represents the loss value on the validation dataset.}
-    \label{fig:rbm_sa_learning_annealer}
-    }
-\end{figure}
 At this point, both RBM models have been trained with CD-$1$ and simulated annealing, so we proceed to train our model using quantum annealing. Again, we use the sampler provided by D-Wave \cite{DWaveDocumentation} and the automatic embedding of our problem into the target QPU Solver—Advantage 5.4. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs.
 
-As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_qa_learning_annealer}.
-
+As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_training}.
 \begin{figure}[H]
     \centering
-    {\includegraphics[width=0.85\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_qa.pdf}
-    \caption[Learning curve of the RBM from the QA training.]{Learning curve of the RBM from the quantum annealing training. The blue line represents the loss value on the training dataset, and the red line represents the loss value on the validation dataset.}
-    \label{fig:rbm_qa_learning_annealer}
+    \begin{subfigure}{0.49\linewidth}
+    {\includegraphics[width=\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_sa.pdf}
+    	\caption{Simulated annealing.}
     }
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}
+		{\includegraphics[width=\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_qa.pdf}
+			\caption{Quantum annealing.}
+		}
+	\end{subfigure}
+	\caption{Learning curve of the RBM with respective algorithms. The blue
+	line represents the loss value on the training dataset, and the red line
+	represents the loss value on the validation dataset.}
+	\label{fig:rbm_training}
 \end{figure}
 
 % - segmentation
