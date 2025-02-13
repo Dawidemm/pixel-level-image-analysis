@@ -177,20 +177,25 @@ pixel-level or patch approach. The latter usually involves using deep
 convolutional neural networks \todo{DM: Jeśli masz, to praca przeglądowa z CNNów i praca przeglądowa z analizy zdjęć multispektralnych z wykorzystaniem CNNów)}. However, research on hyperspectral imaging at the pixel-level has
 grown in recent years, leading to an increasing number of scientific
 publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023,
-Sifnaios2024, Chen2024}. We therefore decided to pursue this direction in this
-work.
+Sifnaios2024, Chen2024}. We therefore decided to pursue this direction.
 
 \section{Machine Learning and Quantum Machine Learning} 
 \label{sec:qml}
 
-% Unsupervised learning
-\section{Unsupervised Learning}\label{unsupervised_learning}
+Artificial intelligence is a technology at the intersection of mathematics and
+computer science. It includes a wide spectrum of methods and algorithms that
+enable machines to learn, resulting in a wide range of applications
+\cite{raschka2019, Goodfellow2016}. A subset of artificial intelligence that
+explores machines' capability to learn patterns from the data is called
+machine learning (ML).
 
-Artificial intelligence is a technology at the intersection of mathematics and computer science. It includes a wide spectrum of methods and algorithms that enable machines to learn, resulting in a wide range of applications \cite{raschka2019, Goodfellow2016}. The origins of artificial intelligence are considered to be the Perceptron model presented conceptually in \cite{Mcculloch1943} and developed in \cite{Rosenblatt1958}. 
+The focus of this work in on unsupervised learning \todo{DM: Dawidzie, czy mamy jakąś pracę przeglądową z technik uczenia nienadzorowanego?}. It is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. Classic problems in which unsupervised learning is applied are clustering and dimensionality reduction. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}. Lately, autoencoders have also proven to be highly effective for this task \cite{Wang2014}. 
 
-Unsupervised learning is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. The classic problems in which unsupervised learning is applied are clustering and dimensionality reduction. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}, but autoencoders have also proven to be highly effective for this task \cite{Wang2014}. 
-
-In the context of this work, we will use several unsupervised learning algorithms, for representation learning and dimensionality reduction and other clustering algorithms to perform image segmentation.
+In the context of this work, unsupervised learning will be used for all the
+tasks we mentioned. The model we propose, detailed in section \ref{sec:exp},
+employs both dimensionality reduction and clustering techniques. We also
+use standard cluster analysis algorithms as a baseline for out model quality
+assessment.
 
 % LBAE
 \subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
@@ -200,19 +205,7 @@ Autoencoders are artificial neural networks used for unsupervised representation
 The autoencoder architecture is built from two separate networks. The first network, referred to as the encoder, executes the encoding operation $h = f(x)$, while the second one, known as the decoder, carries out the decoding operation $r = g(h)$. An autoencoder whose latent space  $h$ dimension is lower than the input data one is called undercomplete \cite{Goodfellow2016}. Learning an undercomplete representation forces the autoencoder to capture the most significant features of the training data.
 When the encoder and decoder are linear and the loss function is the mean squared error, an undercomplete autoencoder learns to capture the same subspace as PCA. In this scenario, an autoencoder trained to reconstruct its input ends up learning the principal subspace of the training data as a byproduct. Autoencoders with nonlinear encoder transformation $f$ and nonlinear decoder transformation $g$ can therefore learn a more flexible and powerful nonlinear extension of PCA \cite{Goodfellow2016}. 
 
-Autoencoder networks may be viewed as special cases of feed-forward networks and can be trained similarly, especially using gradient descent and back-propagation techniques. The learning process in an autoencoder involves minimizing a loss function, denoted by $L$, which quantifies the difference between the input and the reconstructed output \cite{Goodfellow2016}. A loss function is generally defined as:
-
-\begin{equation}\label{loss}
-    L(x,g(f(x))),
-\end{equation}
-
-\noindent where $L$ is a loss function penalizing  $g(f\left(x\right))$ for being dissimilar from  $x$. The loss function is typically defined as the mean squared error (MSE):
-
-\begin{equation}\label{mse}
-    \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (\mathbf{x}_i - \hat{\mathbf{x}}_i)^2,
-\end{equation}
-
-\noindent where $\mathbf{x}_i$ is an input data --- a vector of features and $\hat{\mathbf{x}}_i$ is the $\mathbf{x}_i$ reconstruction, which is obtained as an autoencoder output \cite{Goodfellow2016}.
+Autoencoder networks may be viewed as special cases of feed-forward networks and can be trained similarly, especially using gradient descent and back-propagation techniques. The learning process in an autoencoder involves minimizing a loss function, denoted by $L$, which quantifies the difference between the input and the reconstructed output \cite{Goodfellow2016}. A loss function is generally defined as $L(x,g(f(x)))$, where $L$ is a loss function penalizing  $g(f\left(x\right))$ for being dissimilar from  $x$. Typically MSE is used \cite{Goodfellow2016}.
 
 Latent Bernoulli Autoencoder (LBAE) belongs to the generative models' category, and its idea is based on a class of autoencoders called Variational Autoencoders \cite{fajtl2020}. The interesting LBAE property is that the hidden layer is binarized by \cite{fajtl2020}:
 
@@ -469,21 +462,6 @@ Our approach based on binarized values of neuron activation probability in RBM's
 
 Having the RBM models trained by CD-$1$, SA, and QA and identified which are the best in the context of the observable metrics, as the last step, we proceed to create segmentation images using these three RBM models and AHC.
 
-\section{Experiments and results}\label{experiments_and_results}
-
- The following subsections cover an analysis of the comparative performance of the both methods in the context of multispectral image segmentation.
-
- \subsection{Dataset}\label{dataset_section}
-
- We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
- 
- \begin{figure}[h!]
-     \centering
-     {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
-     \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
-     \label{fig:dataset_img}
-     }
- \end{figure}
 
 % Results
 % - training
