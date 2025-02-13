@@ -244,23 +244,17 @@ Cluster analysis is a category of unsupervised learning algorithms that seek to 
 
 The AHC algorithm relies on a bottom-up approach. It starts the clustering process by treating each data point as an individual cluster and then iteratively merging the most similar clusters based on a selected distance metric. The process continues until all data points are combined into a single cluster or the desired number of clusters is reached. The result of such clustering is a hierarchical tree — a dendrogram depicting the merging of data points into larger and larger clusters \cite{Bindra2017}.
 
-The AHC  algorithm requires specifying a linkage criterion, which determines how clusters are merged based on the distance between them. Standard linkage methods include single linkage, complete linkage, and average linkage. This work will use the complete linkage and the average linkage criterion to measure the distances between clusters during the merging process. Average linkage defines the distance between two clusters as the average of all pairwise distances between points in the two clusters \cite{Müllner2011, Bratchell1989}. Formally, for two clusters $C_i$ and $C_j$, the average linkage distance is given by the formula:
+The AHC  algorithm requires specifying inter- and intra-cluster distance
+measures. The latter are commonly called linkage methods, whereas the first
+are usually standard distance measures used in analyzed objects processing. 
+In this work we used Euclidean and Spectral Angle distances \todo{DM: proszę o referencję do tego ostatniego, najlepiej w użyciu do analizy zdjęć multispektralnych}. We also used complete and average linking criteria \cite{Müllner2011, Bratchell1989}. 
 
-\begin{equation}\label{avg_link}
-    d_{\text{avg}}(C_i, C_j) = \frac{1}{|C_i||C_j|} \sum_{x \in C_i} \sum_{y \in C_j} d(x, y),
-\end{equation}
+In the context of this work, an interesting property of the AHC algorithm is
+that it can be used to further cluster the pre-clustered data. In other words
+it can be used to continue initial clustering. This initial clustering could,
+in particular, use different algorithm.
 
-\noindent where \( |C_i| \) and \( |C_j| \) are the number of points in clusters \( C_i \) and \( C_j \), respectively, and \( d(x, y) \) represents the distance between points \( x \) and \( y \).
-
-Complete linkage defines the distance between two clusters as the maximum distance between any pair of points in the two clusters \cite{Müllner2011}. Formally, for two clusters \( C_i \) and \( C_j \), the complete linkage distance is given by the formula:
-
-\begin{equation}\label{complete_link}
-    d_{\text{complete}}(C_i, C_j) = \max_{x \in C_i, \, y \in C_j} d(x, y),
-\end{equation}
-
-\noindent This criterion tends to produce compact clusters by prioritizing the maximum distance, which discourages merging clusters that are widely spread.
-
-The AHC algorithm works on pre-clustered data. In Chapter \ref{methodology}, it will be described why exactly we will use AHC.
+\todo[inline]{DM: Dawidzie, nie widzę opisu K-meansa. Wklej go tu proszę w	podobnej formie do obecnego opisu AHC.}
 
 % RBM training as QUBO
 % QUBO on QA
