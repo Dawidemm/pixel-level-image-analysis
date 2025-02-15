@@ -23,7 +23,7 @@
 
 \addbibresource{bibliography.bib}
 
-\title{Multispectral image segmentation with a machine learning model trained using quantum annealer}
+\title{Hyperspectral image segmentation with a machine learning model trained using quantum annealer}
 
 \author{
 	Dawid~Mazur\inst{1}\orcidID{0009-0006-2420-6558}
@@ -245,6 +245,11 @@ Simulated annealing (SA) is an optimization algorithm inspired by this physical 
 
 Quantum annealing (QA) is an extension of the idea of simulated annealing that uses quantum effects to search the solution space. Unlike SA, which relies on classical temperature perturbations, QA uses quantum fluctuations to overcome energy barriers. Optimization problems, solvable by QA, are most often represented in terms of an Ising model \todo{DM: Dawidzie, poproszę tylko odnośnik.}. Although Quantum Annealing, in principle, follows similar scheme as Adiabatic Quantum Computing \todo{DM: Odnośnik do AQC prosze.}, the difference is that system evolution in QA is not necessarily adiabatic \cite{Vinci2017}.
 
+The use of quantum annealing for RBM training represents a novel approach  \cite{Datta2005, Dixit2021RBM_DWave}. It starts with determining the probability distribution of the hidden RBM layer for a given set of input data. The RBM coefficients are then transformed into a Quadratic Unconstrained Binary Optimization (QUBO) problem. The QUBO is defined by a quadratic function, where the linear elements correspond to the biases, and the quadratic elements correspond to the weights between the neurons. The generated QUBO is then sampled by an annealer, which finds the variables' values corresponding to the objective function's minimization. In this context, the annealer acts as a probabilistic sampler, providing samples of the values of hidden and visible RBM units based on energy minimization. The values of these samples are then used to update the RBM weights and biases. The algorithm gradually adjusts the model by comparing the distributions sampled by the annealer with those inferred from the data, allowing the hidden structures to be correctly represented in the data. Using the annealer in this context can help more efficient sampling in cases where gradient methods become insufficient or when the problem has a complex energy space, making sampling more difficult. At the beginning of the annealing process, the system exhibits a significantly
+quantum behavior. As time passes, and the system cools down, we arrive at the
+systems final state, which corresponds to the low-energy solution of the
+assigned problem. 
+
 % Cluster analysis
 \subsection{Cluster Analysis}
 
@@ -274,58 +279,58 @@ such as k-means \cite{Kumar2018}.
 \section{Experiments and results}
 \label{sec:exp}
 
-% Dataset
-\subsection{Dataset}\label{dataset_section}
-
-We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It consists of fourteen multispectral images showing a mock-up crime scene with bloodstains and other visually similar substances. The images, collected over three weeks, vary in background composition and lighting conditions. Each image consists of 120 spectral bands, and is annotated with class labels indicating the presence of respective substances. This dataset was designed to support the development and evaluation of machine learning algorithms for multispectral blood detection and classification \cite{Romaszewski2021}. The dataset consists of eight classes: background, blood, ketchup, artificial blood, beetroot juice, poster paint, tomato concentrate, and acrylic paint.
+We used HyperBlood dataset \cite{Romaszewski2021} our the experiments. It
+consists of fourteen hyperspectral images showing a mock-up crime scene with
+bloodstains and other visually similar substances. The images, collected over
+three weeks, vary in background composition and lighting conditions. Each image
+consists of 120 spectral bands, and is annotated with class labels indicating
+the presence of respective substances. This dataset was designed to support the
+development and evaluation of machine learning algorithms for hyperspectral
+blood detection and classification \cite{Romaszewski2021}. The dataset consists
+of eight classes: background, blood, ketchup, artificial blood, beetroot juice,
+poster paint, tomato concentrate, and acrylic paint. Each input datum is a
+112-element vector.
 
 \begin{figure}[h!]
     \centering
     {\includegraphics[width=0.44\textwidth]{figures/experiments_and_results/dataset_imgs/frame_image.png}
-    \caption[Dataset classes overview.]{An image from the HyperBlood dataset documentation. It shows classes present in the data \cite{Romaszewski2021}.}
+    \caption[Dataset classes overview.]{An image from the HyperBlood dataset. It shows classes present in the data \cite{Romaszewski2021}.}
     \label{fig:dataset_img}
     }
 \end{figure}
 
-% Model
+The dataset documentation \cite{Romaszewski2021} describes some of the hyperspectral channels as “noisy”. We decided that the indicated spectral bands should be removed from further processing. Additionally, we excluded pixels whose position $(x,y)$ corresponded to the label ``0'' (which is the background) in the ground truth image. Our goal was to improve homogeneity
+of the training data and thus quality of the model.
 
-% Experiments
-% - baseline 
-
-% - metrics
-The selection of appropriate evaluation metrics is crucial for an objective analysis of the quality of the machine learning models. We decided to use the Homogeneity Score, the Completeness Score, the Rand Score, and the Adjusted Rand Score, which are commonly used in evaluating clustering tasks \cite{Emmons2016}, \cite{Rosenberg2007}. Additionally, Euclidean distance and Spectral Angle Distance were employed to evaluate the capability of the autoencoder to reconstruct the data.
-
-% - parameters
-
-% - pipeline
-\subsection{Data Preprocessing}\label{data_preprocessing_section}
-
-The preparation of spectral data for processing by the neural network model proposed later in this work included transformations that are standard in the field of machine learning.
-
-The documentation of the dataset \cite{Romaszewski2021} describes some of the hyperspectral channels as “noisy”, and we decided that the indicated spectral bands should be removed from further processing. We also decided to remove from hyperspectral images pixels whose position $(x,y)$ corresponded to the label ``0'' (which is the background) in the ground truth image; by such action, we wanted to achieve better clustering results because the background in the studied dataset is not homogeneous --- the neural network model would try to assign background pixels to different classes.
-
-The following data transformations were to perform normalization, shuffle the data, and divide the data into training, validation, and test sets. Scaling to the interval $\langle 0, 1 \rangle$ was chosen as a standard normalization method in machine learning \cite{raschka2019} but was also used for processing hyperspectral images \cite{Głomb2023}. Data shuffling was used to reduce the influence of sequential pixel order. Data partitioning was done according to the Pareto principle: first, the data were divided into a training set and a test set in a ratio of $0.8:0.2$, and then the training set was further split into a training and validation set, also in a ratio of $0.8:0.2$.
+Further data transformations were to perform normalization, shuffle the data, and divide the data into training, validation, and test sets. Scaling to the interval $\langle 0, 1 \rangle$ was chosen as a standard normalization method in machine learning \cite{raschka2019} but was also used for processing hyperspectral images \cite{Głomb2023}. Data shuffling was used to reduce the influence of sequential pixel order. Data partitioning was done according to the Pareto principle: first, the data were divided into a training set and a test set in a ratio of $0.8:0.2$, and then the training set was further split into a training and validation set, also in a ratio of $0.8:0.2$ \todo{DM: Dlaczego bez odnośnika?}.
 
 \subsection{Proposed Model}\label{proposed_model_section}
-Our proposed model, shown in Figure \ref{fig:proposed_model_pipeline}, accepts preprocessed input data as described above section of this work. Our proposed model consists of two main parts. The part, that this work aim to study is the Restricted Boltzmann Machines (RBM) part, and the second one is the Latent Bernoulli Autoencoder (LBAE) part. RBM requires binary data as input, so the data must be encoded into binary form. In our model, LBAE's encoder will be used for this task as it is proven to work well in similar task \cite{QBM4EO}. The data flow starts with LBAE, so we will start describing our proposed model with it.
 
-\begin{figure}[h]
+The model we propose consists of two parts. The initial one is encoder of a
+LBAE. It processes the input and returns its binarized latent space
+representation. Binarization is vital for our model to work, because RBM, which
+constitutes the second layer of our model, accepts only binarized inputs. By
+setting respective neurons of the RMB visible layer to 1, we update
+probabilities of neuron activation in the hidden layer or the RBM. We compute
+and binarize these probabilities, thus obtaining a label for the inputted
+hyperspectral pixel. We present our model in the figure
+\ref{fig:proposed_model_pipeline}. Notice that such pipeline is basically
+a repurposed QBM4EO pipeline \cite{QBM4EO}, which was shown to work well
+for similar problem.
+\begin{figure}[h!]
     \centering
-
     \includegraphics[width=1\textwidth]{figures/metodology/pipeline.pdf}
-    \caption[Proposed model pipeline.]{Proposed model pipeline. The pipeline processes spectral pixel data through the LBAE encoder, which consists of one-dimensional convolutional layers followed by a $tanh$ activation and binarization (as described in Equation \eqref{lbae_latent_space}). The resulting binary representation is forwarded into the visible layer of the RBM, where the neuron's activation probabilities in a hidden layer are binarized, and the resulting binary vector is considered as a label.}
+    \caption[Proposed model pipeline.]{Proposed model pipeline. The pipeline
+    	processes spectral pixel data through the LBAE encoder, which consists
+    	of one-dimensional convolutional layers followed by a $tanh$ activation
+    	and binarization. The resulting binary representation is forwarded into
+    	the visible layer of the RBM. Then we compute each hidden layer
+    	neuron's activation probability and binarize it. The resulting binary
+    	vector is considered the input pixel's label.}
     \label{fig:proposed_model_pipeline}
 \end{figure}
 
-\subsubsection{Data Processing Module --- LBAE}\label{lbae_implementation}
-LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented in \cite{QBM4EO}. It contains convolutional layers in both encoding and decoding parts. Our approach relies on the work done in the \cite{QBM4EO}. However, our approach explores the possibility of pixel-level analysis in the context of hyperspectral images, so we had to adjust \cite{QBM4EO} implementation of the LBAE. This adjustment consisted of changing the convolution layers from two to one-dimensional. The rest of the network and its layers will stay the same as in \cite{QBM4EO} as this project obtained satisfactory performance. LBAE will be trained using techniques such as back-propagation and gradient descent as described in Section \ref{lbae_section}. Our LBAE transforms the spectral (already preprocessed) data into a binary representation. Input data is a 112-element vector, which will be transformed through convolutional layers. Due to the undercomplete architecture of this autoencoder, the dimension of this vector shrinks accordingly to each convolution layer as it is described by a given formula \cite{PyTorchDocumentation}:
-
-\begin{equation}
-    L_{\text{out}} = \left\lfloor \frac{L_{\text{in}} + 2 \times \text{padding} - \text{dilation} \times (\text{kernel size} - 1) - 1}{\text{stride}} + 1 \right\rfloor,
-\end{equation}
-
-\noindent where $L_{\text{out}}$ is the output length of the vector applying the convolutional layer, and $L_{\text{in}}$ is the input vector length. The term $\text{padding}$ refers to the number of elements added to each input side to control the output length. The $\text{dilation}$ factor specifies the spacing between elements in the convolution kernel, effectively increasing the kernel's receptive field, $\text{kernel\_size}$ represents the size of the convolutional kernel, or the number of samples covered by the kernel in one pass, while $\text{stride}$ denotes the number of steps the kernel moves with each application. 
-
+LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented in \cite{QBM4EO}. It contains convolutional layers in both encoding and decoding parts. Our approach relies on the work done in the \cite{QBM4EO}. However, our approach explores the possibility of pixel-level analysis in the context of hyperspectral images, so we had to adjust \cite{QBM4EO} implementation of the LBAE. This adjustment consisted of changing the convolution layers from two- to one-dimensional. The rest of the network and its layers will stay the same as in \cite{QBM4EO} as this project obtained satisfactory performance. LBAE was trained using standard back-propagation algorithm. Our LBAE transforms the input pixel data into its binary representation. Due to the undercomplete architecture of this autoencoder, the dimension of input vector shrinks accordingly. We show the LBAE convolutional layers parameters in table \ref{tab:conv_params}. Each latent space vector has 28 binary elements.
 \begin{table}[ht]
     \centering
     \caption{Parameters of the convolutional layers in the LBAE encoder.}
@@ -339,27 +344,22 @@ LBAE is an autoencoder which was introduced in \cite{fajtl2020} and implemented 
     \end{tabular}
     \label{tab:conv_params}
 \end{table}
+After the encoding, the data is processed by an RBM. The number of neurons in the visible layer of our RBM is determined by input data dimension and LBAE encoder convolutional layers. In the case of our experiments, that would be 28 neurons. 
 
-The vector that we aim to obtain, which is a vector in the latent space of our autoencoder, has 28 binary elements. We postulate that if the values of both metrics, which we will observe, the Euclidean distance and the spectral angle distance computed between the input spectral vector and reconstructed spectral vector, are low, the hidden representation in the latent space is good. This binary representation will serve as an input to the RBM. 
+We trained the RBM with a fixed number of neurons in its visible layer and a changing number of neurons in its hidden layer $h_i \in \{3, 4, \ldots, 28\}$ using CD-$1$ algorithm. Our approach is to take RBM's hidden layer neurons activation probabilities and binarize them. The obtained binary vector is a label assigned to the input pixel. The binarization threshold was selected as follows: for each $th_i \in \{0.1, 0.2, \ldots, 0.9\}$, we computed the  adjusted rand score (ARS) between true labels and predicted labels. Then we checked for which threshold we obtained the highest ARS, and for this threshold, we compute other metrics. Using the V-measure, we then compare the models. We selected the $\beta \in [0,1]$ parameter of the V-measure such that the metric promotes homogeneity --- a metric we deemed more important in the
+image segmentation task. For each $i$-th model, we manually tuned $\beta_i \in \{0, 0.01, \ldots, 1\}$, to find such $\beta$ that yield the best V-measure
+value. The RBM architecture that most frequently obtained the highest V-measure scores was selected as the best one. Thus concluding the model architecture
+design. 
 
-\subsubsection{Data Clustering Module --- RBM}\label{rbm_implementation}
-
-RBM is a neural network that accepts binary data as its input, and by the LBAE encoding part, we can obtain a binary representation of the original data. The number of neurons in the visible layer of our RBM is determined by input data dimension and LBAE encoder convolutional layers; in the case of our experiments, that would be 28 neurons. 
-
-We will conduct experiments to train the RBM model with a fixed number of neurons in its visible layer and a changing number of neurons in its hidden layer $h_i \in \{3, 4, \ldots, 28\}$ using CD-$1$ algorithm. Our approach is to take RBM's hidden layer neurons activation probabilities calculated with Equation \eqref{p_hj_1_mid_v} and binarize those probabilities, and then the obtained binary vector is a label. The binarization threshold will be selected as follows: for each $th_i \in \{0.1, 0.2, \ldots, 0.9\}$, we will compute adjusted rand score (ARS) between true labels and predicted labels. Then we will check for which threshold we obtained the highest ARS, and for this threshold, we compute other metrics. Then, while having trained RBM models, we proceed to determine the best one by comparing them via V-measure, a meta metric whose value depends on homogeneity, completeness, and an additional $\beta$ parameter. Authors of \cite{Rosenberg2007} do not suggest how to choose $\beta$ value, however it is said by them that $\beta \in [0,1]$ promotes homogeneity. We will conduct an experiment that explores, for which model we obtained, the highest value of V-measure for $\beta_i \in \{0, 0.01, \ldots, 1\}$. The RBM architecture that most frequently obtains the highest V-measure scores will be selected as the best one, and we will proceed to experiments with simulated annealing (SA) and quantum annealing (QA) on this architecture.
-
-The utilization of annealing to train Restricted Boltzmann Machines represents a novel approach to optimizing model parameters by exploiting quantum effects \cite{Datta2005, Dixit2021RBM_DWave}. RBM training on the annealer starts with determining the probability distribution of the hidden RBM layer for a given set of visible data. The RBM coefficients, such as the weights and the biases of the visible and hidden units, are then transformed into a Quadratic Unconstrained Binary Optimization (QUBO) problem. The QUBO is defined by a quadratic function, where the linear elements correspond to the biases, and the quadratic elements correspond to the weights between the neurons. The generated QUBO is then sampled by an annealer, which finds the variables' values corresponding to the objective function's minimization. In this context, the annealer acts as a probabilistic sampler, providing samples of the values of hidden and visible RBM units based on energy minimization. The values of these samples are then used to update the RBM weights and biases. The algorithm gradually adjusts the model by comparing the distributions sampled by the annealer with those inferred from the data, allowing the hidden structures to be correctly represented in the data. Using the annealer in this context can help more efficient sampling in cases where gradient methods become insufficient or when the problem has a complex energy space, making sampling more difficult.
-
-Quantum annealer that we were granted access to uses Hamiltonian in the form presented in Equation \eqref{dwaveH}. At the beginning of the annealing process, when $t=0$, we have $A(0)>B(0)$, which puts the system in a quantum ground state where each spin is delocalized and is a superposition of its classical counterparts. During annealing, $A(s)$ gradually decreases, while $B(s)$ increases until $T$, when the final state of the qubits corresponds to a low-energy solution. In the final annealing phase, the Hamiltonian consists solely of the $B(s)$. Eventually, it takes the form of the classical Hamiltonian, in which every possible classical configuration of bits corresponds to an eigenstate, and the eigenenergy is related to the objective function that was introduced into the system. Both SA and QA will be executed using D-Wave Samplers. Additionally, in QA, we will use automatic embedding of our problem into the target quantum machine.
-
-Our approach based on binarized values of neuron activation probability in RBM's hidden layer leads to a maximum number of unique returned labels equal to $2^N$, where $N \in \{3,4,\ldots,28$\}. Since there are seven classes in the HyperBlood dataset after our preprocessing, we see that the RBM will return more labels than in the dataset. Accordingly, to \cite{Decelle2023}, RBM may be used to build relational trees and then use these hierarchies to divide the data into groups and subgroups. We will use the structure clustered by RBM to create a distance matrix, which will serve as an input to the Agglomerative Hierarchical Clustering (AHC) algorithm. By specifying the target number of clusters for the AHC, we aim to obtain clusterization that will be useful in our segmentation task.
-
-Having the RBM models trained by CD-$1$, SA, and QA and identified which are the best in the context of the observable metrics, as the last step, we proceed to create segmentation images using these three RBM models and AHC.
+Our approach based on binarized values of neuron activation probability in RBM's hidden layer leads to a maximum number of unique returned labels equal to $2^N$, where $N \in \{3,4,\ldots,28$\}. Since there are seven classes in the HyperBlood dataset after our preprocessing, we see that the RBM will return more labels than in the dataset. Accordingly, to \cite{Decelle2023}, RBM may be used to build relational trees and then use these hierarchies to divide the data into groups and subgroups. We will use the structure clustered by RBM to create a distance matrix, which will serve as an input to the Agglomerative Hierarchical Clustering (AHC) algorithm. By specifying the target number of clusters for the AHC, we aim to obtain clusterization that will be useful in our segmentation task. This final phase of the segmentation takes place only
+for the best model; after training algorithms are compared.
 
 
 % Results
 % - training
 \subsection{Classical Model Training and Evaluation}
+
+The selection of appropriate evaluation metrics is crucial for an objective analysis of the quality of the machine learning models. We decided to use the Homogeneity Score, the Completeness Score, the Rand Score, and the Adjusted Rand Score, which are commonly used in evaluating clustering tasks \cite{Emmons2016}, \cite{Rosenberg2007}. Additionally, Euclidean distance and Spectral Angle Distance were employed to evaluate the capability of the autoencoder to reconstruct the data.
 
 We trained the model using three different approaches: the traditional contrastive divergence (CD-$1$) algorithm and an approach based on simulated annealing (SA) and quantum annealing (QA) to improve optimization efficiency.
 
@@ -377,7 +377,7 @@ We then proceeded with the RBM part and started with the CD-$1$ training procedu
 
 Due to limited resources, we would like to proceed with further experiments involving simulated and quantum annealing using the best RBM model from those we obtained. However, it is unclear which of those models is better than others. To face the problem of choosing one model, we will use a V-measure, a meta-metric, whose value depends on homogeneity, completeness, and an additional $\beta$ parameter. Authors of \cite{Rosenberg2007} do not suggest how to choose $\beta$ value, however it is said that $\beta \in [0,1]$ promotes homogeneity. We will conduct an experiment, exploring how frequently, for which model we obtain the greatest value of V-measure for $\beta_i \in \{0, 0.01, \ldots, 1\}$. This experiment concluded that the RBM model with 23 neurons in the hidden layer was the most promising for the segmentation task. Figure \ref{fig:rbm_learning_cd} shows the learning curve for that model.
 
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
     {\includegraphics[width=0.85\linewidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_cd1.pdf}}
     \caption[Learning curve of the RBM from the CD-$1$ training.]{Learning curve of the RBM from the contrastive divergence (CD-$1$) training. The blue line represents the loss value on the training dataset, and the red line represents the loss value on the validation dataset.}
@@ -399,7 +399,7 @@ Wanting to select the best model, we performed the procedure described in \ref{m
 At this point, both RBM models have been trained with CD-$1$ and simulated annealing, so we proceed to train our model using quantum annealing. Again, we use the sampler provided by D-Wave \cite{DWaveDocumentation} and the automatic embedding of our problem into the target QPU Solver—Advantage 5.4. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs.
 
 As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_training}.
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
     \begin{subfigure}{0.49\linewidth}
     {\includegraphics[width=\textwidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_sa.pdf}
