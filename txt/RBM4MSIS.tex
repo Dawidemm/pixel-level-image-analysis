@@ -383,13 +383,11 @@ used the standard $k$-means algorithm to obtain it. Figure \ref{fig:kmeans_segme
 \subsection{Quantum Model Training and Evaluation}
 
 
-With the RBM hyperparameters determined, the next step of the project was to test the implemented training algorithm using a simulation annealer. For this task, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics.
+The next step of the project was to test the implemented training algorithm using a annealer-based algorithms. First, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics. The
+best model, according to the V-measure, was the one after 200 training epochs. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_training}.
 
-Wanting to select the best model, we performed the procedure described in \ref{metrics_section} using the V-measure metric. This procedure concluded that the best one, from the obtained models, is the model saved on epoch 200. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_training}.
-
-At this point, both RBM models have been trained with CD-$1$ and simulated annealing, so we proceed to train our model using quantum annealing. Again, we use the sampler provided by D-Wave \cite{DWaveDocumentation} and the automatic embedding of our problem into the target QPU Solver—Advantage 5.4. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs.
-
-As before, we repeat the procedure using the V-measure to obtain the model with the best performance in the context of evaluation metrics.  This procedure concluded that the best one, from the obtained models, is the model saved on epoch 300. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_training}.
+Next, we trained the model using quantum annealing. Again, we used the sampler provided by D-Wave \cite{DWaveDocumentation}. We also used the automatic embedding of our problem into the target QPU Solver—Advantage 5.4 \todo{DM: Czym jest Solver-Advantage? Metodą automatycznego embeddingu? Wyjaśnij proszę.}. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs. The best
+model, according to V-measure, was obtained after 300 training epochs. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_training}.
 \begin{figure}[h]
     \centering
     \begin{subfigure}{0.49\linewidth}
