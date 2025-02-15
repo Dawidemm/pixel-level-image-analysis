@@ -408,6 +408,8 @@ model, according to V-measure, was obtained after 300 training epochs. The learn
 
 % - segmentation
 \subsection{Segmentation Results}
+
+
 We will start showing our experiments results with our baseline segmentation obtained by using $k$-means algorithm on the Figure \ref{fig:kmeans_segmentation} and ground truth image on the Figure \ref{fig:ground_truth_image}. Next, we will present segmentations obtained by using our proposed model trained with contrastive divergence (CD-$1$) and followed by AHC using both linkage methods --- complete and average, those will be respectively Figure \ref{fig:cd1_rbm_ahc_complete_seg} and Figure \ref{fig:cd1_rbm_ahc_average_seg}. Similarly we will present segmentations for models trained with simulated annealing (SA) and quantum annealing (QA). For simulated annealing obtained images are Figure \ref{fig:sa_rbm_ahc_complete_seg} and Figure \ref{fig:sa_rbm_ahc_average_seg}, and for quantum annealing obtained images are Figure \ref{fig:qa_rbm_ahc_complete_seg} and Figure \ref{fig:qa_rbm_ahc_average_seg}.
 
 \begin{figure}[h]
@@ -471,7 +473,7 @@ We will start showing our experiments results with our baseline segmentation obt
     \label{fig:comparison_seg}
 \end{figure}
 
-\noindent A summary of the computed evaluation metrics such as homogeneity, completeness, adjusted rand score (ARS) and rand score (RS) for each segmentation obtained is presented collectively in Table \ref{tab:segmentation_metrics_comparison}.
+A summary of the computed evaluation metrics such as homogeneity, completeness, adjusted rand score (ARS) and rand score (RS) for each segmentation obtained is presented collectively in Table \ref{tab:segmentation_metrics_comparison}.
 
 \begin{table}
     \centering
@@ -504,11 +506,12 @@ We will start showing our experiments results with our baseline segmentation obt
     \label{tab:segmentation_metrics_comparison}
 \end{table}
 
-\section{Conclusions}
 
 Analyzing obtained metrics on the segmentation images, we notice that almost all metrics improve their value for RBM trained with QA, and if they are not improved, they are close to the best-obtained value. For a model that does not use AHC, we note the consistent improvement of the metrics while changing the RBM training algorithm from CD-1 through SA to QA. For the metrics homogeneity and ARS, the RBM model trained with QA surpassed the baseline value, which was set by the $k$-means algorithm. The use of the AHC algorithm in combination with RBM affects clustering characteristics. First, AHC improves the completeness metric, especially when using the RBM version trained with Quantum Annealing. At the same time, adding AHC reduces the clusters' homogeneity. 
 
-This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for multispectral image segmentation. Firstly, the LBAE's encoder part is utilized for dimensionality reduction and encoding spectral data to a binary representation, which is necessary for RBM. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
+\section{Conclusions}
+
+This work proposes a hybrid neural network architecture --- Latent Bernoulli Autoencoder's encoder connected with Restricted Boltzmann Machines for hyperspectral image segmentation. Firstly, the LBAE's encoder part is used for dimensionality reduction and spectral data binary representation encoding, necessary for RBM processing. Secondly, we use RBM to perform clustering on the encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models for the segmentation of multispectral images since we achieved better segmentations, in terms of observed metrics than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
 
