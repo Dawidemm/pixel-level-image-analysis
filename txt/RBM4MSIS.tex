@@ -162,19 +162,19 @@ feature value and $(x,y)$ denotes the spatial coordinate.
 In the context of this work, $B$ is of utmost importance, because this
 dimension is the one used to determine if an image is multi- or hiperspectral.
 Typically, images with 3-15 spectral bands are considered multispectral, 
-whereas hiperspectral images can have hundreds of spectral bands \todo{DM: Jeśli masz już jakiś w pracy, to dodaj tutaj odpowiedni odnośnik. Jeśli nie, to na wikipedii jest przykładowa praca Hagena.}. One can
+whereas hiperspectral images can have hundreds of spectral bands \cite{Hagen2013} \todo{DM: Jeśli masz już jakiś w pracy, to dodaj tutaj odpowiedni odnośnik. Jeśli nie, to na wikipedii jest przykładowa praca Hagena. TR: Dodalem \cite{Hagen2013}}. One can
 clearly see how that makes analysis of such images more demanding in comparison
 to the standard ones.
 
-Since image segmentation task is an old and well established problem \todo{DM: Dodaj proszę odnośnik do pracy, w której ten problem został wprowadzony, albo do jakiejś pracy przeglądowej.} there are variety of techniques to deal with it.
+Since image segmentation task is an old and well established problem \todo{DM: Dodaj proszę odnośnik do pracy, w której ten problem został wprowadzony, albo do jakiejś pracy przeglądowej. TR: Dodalem \cite{Pal1993}} there are variety of techniques to deal with it \cite{Pal1993}.
 In the context of this work, the most interesting are the ones using machine
 learning techniques (ML), especially unsupervised learning methods. Among those
-cluster analysis techniques are popular \todo{DM: Odnośnik proszę. Jeśli masz, to najlepsza będzie praca przeglądowa}. \todo[inline]{DM: Tutaj dobrze by było opisać ew. niedociągnięcia tych metod i dlaczego warto poszukiwania kontynuować. Czy miałeś coś takiego w swojej dysertacji?}
+cluster analysis techniques are popular \todo{DM: Odnośnik proszę. Jeśli masz, to najlepsza będzie praca przeglądowa. TR: Dodalem \cite{Bratchell1989}} \cite{Bratchell1989}. \todo[inline]{DM: Tutaj dobrze by było opisać ew. niedociągnięcia tych metod i dlaczego warto poszukiwania kontynuować. Czy miałeś coś takiego w swojej dysertacji?}
 
 The decision of which algorithm to select can be further guided by the
 approach one wishes to implement. The image can be analyzed using either
 pixel-level or patch approach. The latter usually involves using deep
-convolutional neural networks \todo{DM: Jeśli masz, to praca przeglądowa z CNNów i praca przeglądowa z analizy zdjęć multispektralnych z wykorzystaniem CNNów)}. However, research on hyperspectral imaging at the pixel-level has
+convolutional neural networks \todo{DM: Jeśli masz, to praca przeglądowa z CNNów i praca przeglądowa z analizy zdjęć multispektralnych z wykorzystaniem CNNów). TR: Dodalem \cite{Ajit2020, Morchhale2016}} \cite{Ajit2020, Morchhale2016}. However, research on hyperspectral imaging at the pixel-level has
 grown in recent years, leading to an increasing number of scientific
 publications in this field \cite{Morchhale2016, González-Santiago2022, Yan2023,
 Sifnaios2024, Chen2024}. We therefore decided to pursue this direction.
@@ -189,8 +189,16 @@ enable machines to learn, resulting in a wide range of applications
 explores machines' capability to learn patterns from the data is called
 machine learning (ML).
 
-The focus of this work in on unsupervised learning \todo{DM: Dawidzie, czy mamy jakąś pracę przeglądową z technik uczenia nienadzorowanego?}. It is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels. The goal of learning in this context is to uncover the underlying structure of the dataset. Classic problems in which unsupervised learning is applied are clustering, dimensionality reduction
-and representation learning. Clustering can be performed using a variety of algorithms \cite{Bindra2017}, including partitioning methods, density-based and hierarchical methods. Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}. Lately, autoencoders have also proven to be highly effective for this task \cite{Wang2014}. Representation learning, also called feature learning, is a process during which algorithms extract meaningful patterns from data to create representations usually in a lower dimension than the original data \cite{Goodfellow2016}.
+The focus of this work in on unsupervised learning \todo{DM: Dawidzie, czy mamy jakąś pracę przeglądową z technik uczenia nienadzorowanego? TR: Dodalem \cite{Naeem2023}}. 
+It is a fundamental approach in machine learning that allows models to learn patterns in data without explicit labels \cite{Naeem2023}. 
+The goal of learning in this context is to uncover the underlying structure of the dataset. 
+Classic problems in which unsupervised learning is applied are clustering, dimensionality reduction and representation learning. 
+Clustering can be performed using a variety of algorithms \cite{Bindra2017}, 
+including partitioning methods, density-based and hierarchical methods. 
+Dimensionality reduction has traditionally been achieved using principal component analysis (PCA) \cite{Goodfellow2016}. 
+Lately, autoencoders have also proven to be highly effective for this task \cite{Wang2014}. 
+Representation learning, also called feature learning, is a process during which algorithms extract meaningful 
+patterns from data to create representations usually in a lower dimension than the original data \cite{Goodfellow2016}.
 
 In the context of this work, unsupervised learning will be used for all the
 tasks we mentioned. The model we propose, detailed in section \ref{sec:exp},
@@ -227,8 +235,8 @@ use this property in our model construction.
 
 Restricted Boltzmann Machines are undirected graphical, energy-based models
 that contain a layer of observable variables and a layer of latent variables.
-Typically they're referred to as visible and hidden layer, respectively \cite{Goodfellow2016, Tieleman2008}. \todo{DM: Dawidzie, znajdź proszę w pracy wysokopoziomowy opis RBMów i wklej go tutaj. Bez wzorów. Tylko cechy, typowe zastosowania, tego sortu rzeczy. W szczególności wskazać potencjał w przetwarzaniu zdjęć multispektralnych --- QBM4EO.} 
-
+Typically they're referred to as visible and hidden layer, respectively \cite{Goodfellow2016, Tieleman2008}. \todo{DM: Dawidzie, znajdź proszę w pracy wysokopoziomowy opis RBMów i wklej go tutaj. Bez wzorów. Tylko cechy, typowe zastosowania, tego sortu rzeczy. W szczególności wskazać potencjał w przetwarzaniu zdjęć multispektralnych --- QBM4EO. TR: Dodalem fragment zaczynajacy sie: A key feature of RBM... do: as Deep Belief Networks.}. 
+A key feature of RBM is that there are no connections between neurons in the same layer, hence the ``restricted'' prefix. RBMs are used for tasks such as classification \cite{Koziol2014}, feature extraction \cite{Li2019} and multispectral image processing \cite{QBM4EO}. In addition, RBMs are commonly used as building blocks in other architectures such as Deep Belief Networks \cite{Li2019, Goodfellow2016}.
 RBM training is based on maximizing the log-likelihood of the training data,
 and is typically done using gradient-based techniques. However, parts of the
 log-likelihood gradient function, such as so-called negative-phase
@@ -243,7 +251,7 @@ Annealing is a process in metallurgy that involves slowly cooling metal to achie
 
 Simulated annealing (SA) is an optimization algorithm inspired by this physical process. SA treats the optimization problem as a physical system, with energy representing the objective function value and temperature controlling the probability of accepting inferior solutions. The algorithm starts at a high temperature, where energy-increasing movements are allowed, and then the temperature slowly decreases to find the global minimum of the objective function \cite{Benedetti2021}.
 
-Quantum annealing (QA) is an extension of the idea of simulated annealing that uses quantum effects to search the solution space. Unlike SA, which relies on classical temperature perturbations, QA uses quantum fluctuations to overcome energy barriers. Optimization problems, solvable by QA, are most often represented in terms of an Ising model \todo{DM: Dawidzie, poproszę tylko odnośnik.}. Although Quantum Annealing, in principle, follows similar scheme as Adiabatic Quantum Computing \todo{DM: Odnośnik do AQC prosze.}, the difference is that system evolution in QA is not necessarily adiabatic \cite{Vinci2017}.
+Quantum annealing (QA) is an extension of the idea of simulated annealing that uses quantum effects to search the solution space. Unlike SA, which relies on classical temperature perturbations, QA uses quantum fluctuations to overcome energy barriers. Optimization problems, solvable by QA, are most often represented in terms of an Ising model \todo{DM: Dawidzie, poproszę tylko odnośnik. TR: Dodalem \cite{Kadowaki1998}} \cite{Kadowaki1998}. Although Quantum Annealing, in principle, follows similar scheme as Adiabatic Quantum Computing \todo{DM: Odnośnik do AQC prosze. TR: Dodalem \cite{Farhi2000}} \cite{Farhi2000}, the difference is that system evolution in QA is not necessarily adiabatic \cite{Vinci2017}.
 
 The use of quantum annealing for RBM training represents a novel approach  \cite{Datta2005, Dixit2021RBM_DWave}. It starts with determining the probability distribution of the hidden RBM layer for a given set of input data. The RBM coefficients are then transformed into a Quadratic Unconstrained Binary Optimization (QUBO) problem. The QUBO is defined by a quadratic function, where the linear elements correspond to the biases, and the quadratic elements correspond to the weights between the neurons. The generated QUBO is then sampled by an annealer, which finds the variables' values corresponding to the objective function's minimization. In this context, the annealer acts as a probabilistic sampler, providing samples of the values of hidden and visible RBM units based on energy minimization. The values of these samples are then used to update the RBM weights and biases. The algorithm gradually adjusts the model by comparing the distributions sampled by the annealer with those inferred from the data, allowing the hidden structures to be correctly represented in the data. Using the annealer in this context can help more efficient sampling in cases where gradient methods become insufficient or when the problem has a complex energy space, making sampling more difficult. At the beginning of the annealing process, the system exhibits a significantly
 quantum behavior. As time passes, and the system cools down, we arrive at the
@@ -260,14 +268,17 @@ The AHC algorithm relies on a bottom-up approach. It starts the clustering proce
 The AHC  algorithm requires specifying inter- and intra-cluster distance
 measures. The latter are commonly called linkage methods, whereas the first
 are usually standard distance measures used in analyzed objects processing. 
-In this work we used Euclidean and Spectral Angle distances \todo{DM: proszę o referencję do tego ostatniego, najlepiej w użyciu do analizy zdjęć multispektralnych}. We also used complete and average linking criteria \cite{Müllner2011, Bratchell1989}. 
+In this work we used Euclidean and Spectral Angle distances \cite{Sinaice2022}\todo{DM: proszę o referencję do tego ostatniego, najlepiej w użyciu do analizy zdjęć multispektralnych}. We also used complete and average linking criteria \cite{Müllner2011, Bratchell1989}. 
 
 In the context of this work, an interesting property of the AHC algorithm is
 that it can be used to further cluster the pre-clustered data. In other words
 it can be used to continue initial clustering. This initial clustering could,
 in particular, use different algorithm.
 
-\todo[inline]{DM: Dawidzie, nie widzę opisu K-meansa. Wklej go tu proszę w	podobnej formie do obecnego opisu AHC.}
+\todo[inline]{DM: Dawidzie, nie widzę opisu K-meansa. Wklej go tu proszę w	podobnej formie do obecnego opisu AHC. TR: Dodalem.}
+
+The $k$-means algorithm is a clustering algorithm that partition a dataset into $k$ clusters \cite{Bindra2017}, aiming to minimize the differences within the clusters by assigning data points to the nearest clusters. A centroid is the center of a cluster, a point that represents the average value of all points assigned to a given cluster. The algorithm begins by initializing centroids \cite{Celebi2013}, which represent the centers of the clusters. Next, the distance from each data point to each centroid is computed, and each point is assigned to the cluster with the nearest centroid.
+Once all points have been assigned to their respective clusters, the centroids are updated by computing the arithmetic mean of all points assigned to each cluster. This update moves the centroid positions. Then assigning points to clusters is repeated based on the updated centroids. The algorithm works iteratively, and the cycle of assigning points to clusters and updating centroids repeats until the centroids stop changing, which means that the algorithm converged.
 
 It's worth mentioning that quantum annealing also has the potential to be used
 for data clustering. That can be done by transforming the optimization problem
@@ -302,7 +313,7 @@ poster paint, tomato concentrate, and acrylic paint. Each input datum is a
 The dataset documentation \cite{Romaszewski2021} describes some of the hyperspectral channels as “noisy”. We decided that the indicated spectral bands should be removed from further processing. Additionally, we excluded pixels whose position $(x,y)$ corresponded to the label ``0'' (which is the background) in the ground truth image. Our goal was to improve homogeneity
 of the training data and thus quality of the model.
 
-Further data transformations were to perform normalization, shuffle the data, and divide the data into training, validation, and test sets. Scaling to the interval $\langle 0, 1 \rangle$ was chosen as a standard normalization method in machine learning \cite{raschka2019} but was also used for processing hyperspectral images \cite{Głomb2023}. Data shuffling was used to reduce the influence of sequential pixel order. Data partitioning was done according to the Pareto principle: first, the data were divided into a training set and a test set in a ratio of $0.8:0.2$, and then the training set was further split into a training and validation set, also in a ratio of $0.8:0.2$ \todo{DM: Dlaczego bez odnośnika?}.
+Further data transformations were to perform normalization, shuffle the data, and divide the data into training, validation, and test sets. Scaling to the interval $\langle 0, 1 \rangle$ was chosen as a standard normalization method in machine learning \cite{raschka2019} but was also used for processing hyperspectral images \cite{Głomb2023}. Data shuffling was used to reduce the influence of sequential pixel order. Data partitioning was done according to the Pareto principle: first, the data were divided into a training set and a test set in a ratio of $0.8:0.2$, and then the training set was further split into a training and validation set, also in a ratio of $0.8:0.2$ \cite{Murugan2021} \todo{DM: Dlaczego bez odnośnika? TR: Dodalem \cite{Murugan2021}}.
 
 \subsection{Proposed Model}\label{proposed_model_section}
 
@@ -365,7 +376,23 @@ At first, we begin with LBAE training. Since, compared to \cite{QBM4EO}, we only
 
 The following values of batch size $b_i \in \{4, 8, 16\}$ and learning rate $\eta_i \in \{10^{-2}$, $10^{-3}$, $10^{-4}\}$ were chosen as a standard values \cite{raschka2019}. For each combination of these parameters, LBAE training was conducted, ultimately yielding nine trained models. Each model's performance was evaluated on a test dataset using Euclidean distance and spectral angle distance (SAD). We used LBAE model that obtained the lowest values of both metrics, that is the model trained with hyperparameters $b_i=4$ and $\eta_i=10^{-3}$.
 
-Having trained the LBAE model, we determined a baseline for Restricted Boltzmann Machines (RBM) clusterization that we aim to surpass. For this purpose, we used the $k$-means algorithm to perform clusterization on the test dataset, on both raw data and its latent space representation. To avoid the impact of how the $k$-means centroids are initialized, we conducted the clustering ten times using different random seeds. \todo{DM: Nie widzę wniosków czy wyników. Jaki jest baseline? Jest szansa, choć mała, że to ja go usunałem. Dodaj go tutaj proszę.}
+Having trained the LBAE model, we determined a baseline for Restricted Boltzmann Machines (RBM) clusterization that we aim to surpass. For this purpose, we used the $k$-means algorithm to perform clusterization on the test dataset, on both raw data and its latent space representation. To avoid the impact of how the $k$-means centroids are initialized, we conducted the clustering ten times using different random seeds. Results of the baseline clustering metrics on the test dataset are included in Table \ref{tab:baseline_kmeans_clustering_on_test_dataset}.\todo{DM: Nie widzę wniosków czy wyników. Jaki jest baseline? Jest szansa, choć mała, że to ja go usunałem. Dodaj go tutaj proszę. TR: Dodalem Table \ref{tab:baseline_kmeans_clustering_on_test_dataset}.}
+
+\begin{table}
+    \centering
+    \caption[Comparison of baseline clustering evaluation metrics for k-means and LBAE+k-means.]{Comparison of clustering evaluation metrics for k-means and LBAE+k-means. Values represent the mean $\pm$ standard deviation.}
+    \begin{tabular}{@{} lc c @{} }
+        \toprule
+        \textbf{Metric} & \textbf{$k$-means} & \textbf{LBAE+$k$-means} \\
+        \midrule
+        \textbf{Homogeneity} & $0.509 \pm 0.020$ & $0.596 \pm 0.056$ \\
+        \textbf{Completeness} & $0.443 \pm 0.027$ & $0.520 \pm 0.046$ \\
+        \textbf{ARS} & $0.362 \pm 0.065$ & $0.395 \pm 0.090$ \\
+        \textbf{Rand Score} & $0.779 \pm 0.021$ & $0.789 \pm 0.031$ \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:baseline_kmeans_clustering_on_test_dataset}
+\end{table}
 
 We then proceeded with the RBM training using CD-$1$. Similar to the case of LBAE, we keep hyperparameters as they were in \cite{QBM4EO}, except for one of them --- a number of neurons in the hidden layer. RBM training experiments were conducted for the following number of neurons in hidden layer $h_i \in \{3, 4, \ldots, 28\}$, and those experiments were repeated ten times for different weights initialization. This experiment concluded that the RBM model with 23 neurons in the hidden layer was the most promising for the segmentation task. Figure \ref{fig:rbm_learning_cd} shows the learning curve for that model.
 \begin{figure}[h]
@@ -386,7 +413,7 @@ used the standard $k$-means algorithm to obtain it. Figure \ref{fig:kmeans_segme
 The next step of the project was to test the implemented training algorithm using a annealer-based algorithms. First, we used D-Wave's implementation of a simulated annealing sampler \cite{DWaveDocumentation}. The training was repeated ten times for initialization with different weights, this time only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs to execute an insightful analysis of model performance in the context of clusterization metrics. The
 best model, according to the V-measure, was the one after 200 training epochs. The learning curve of the RBM trained using the simulated annealer is shown in Figure \ref{fig:rbm_training}.
 
-Next, we trained the model using quantum annealing. Again, we used the sampler provided by D-Wave \cite{DWaveDocumentation}. We also used the automatic embedding of our problem into the target QPU Solver—Advantage 5.4 \todo{DM: Czym jest Solver-Advantage? Metodą automatycznego embeddingu? Wyjaśnij proszę.}. The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs. The best
+Next, we trained the model using quantum annealing. Again, we used the sampler provided by D-Wave \cite{DWaveDocumentation}. We also used the automatic embedding of our problem into the target QPU --- D-Wave Advantage 5.4 system. \todo{DM: Czym jest Solver-Advantage? Metodą automatycznego embeddingu? Wyjaśnij proszę. TR: Usunalem Solver} The training was repeated ten times for initialization with different weights, again only for an RBM model containing 23 neurons in the hidden layer. We decided to save a model after every other hundred training epochs. The best
 model, according to V-measure, was obtained after 300 training epochs. The learning curve of the RBM trained using the quantum annealer is shown in Figure \ref{fig:rbm_training}.
 \begin{figure}[h]
     \centering
