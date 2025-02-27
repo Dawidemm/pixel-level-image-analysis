@@ -35,56 +35,49 @@
 \authorrunning{D. Mazur et al.}
 
 \institute{
-    AGH University, 30 Mickiewicza Lane, PL30-059 Cracow, Poland
+    Systems Research Institute Polish Academy of Sciences, ul.~Newelska 6, 01-447 Warsaw, Poland
 	\and
-	Systems Research Institute, Polish Academy of Sciences, 6 Newelska Street,
-	PL01-447 Warsaw, Poland
+	Nicolaus Copernicus Astronomical Center, Polish Academy of Sciences, ul. Bartycka 18, 00-716 Warsaw, Poland
 	\and
-	Nicolaus Copernicus Astronomical Center, Polish Academy of Sciences, 18 Bartycka Street, PL00-716 Warsaw, Poland
-	\and
-	Center of Excellence in Artificial Intelligence, AGH University,
-	30 Mickiewicza Lane, PL30-059 Cracow, Poland
-}
+	Center of Excellence in Artificial Intelligence, AGH University, al.~Mickiewicza 30, 30-059 Cracow, Poland
+ }
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-	Quantum computing and machine learning are currently at the peak of
-	computer scientists' attention. It comes as no surprise that their
-	natural intersection --- quantum machine learning  (QML) ---  also
-	is. Quantum, or more often hybrid quantum-classical, models consists
-	of so-called quantum layers. Those kind of layers, coming in various
-	shapes and sizes, describes the quantum computational part of the model
-	data processing pipeline. However, hybrid models are only one branch
-	of QML --- the other are quantum methods of learning. In this work,
-	following the results of QBM4EO team, we propose a classical machine 
-	leaning model, partially trained using quantum annealer, for
-	hyperspectral image segmentation. We show that the model trained using
-	quantum annealer is better or at least comparable with models trained using
-	alternative algorithms, according to the preselected, common metrics. Our
-	results suggest that QML may provide useful tools for hyperspectral image
-	processing.
-	
+	Training of machine learning models consumes large amounts of energy. Since
+    the energy consumption becomes a major problem in the development and
+    implementation of artificial intelligence systems there exists a need to
+    investigate the ways to reduce use of the resources by these systems. In
+    this work we study how application of quantum annealers could lead to
+    reduction of energy cost in training models aiming at pixel-level
+    segmentation of hyperspectral images. Following the results of QBM4EO team,
+    we propose a classical machine learning model, partially trained using
+    quantum annealer, for hyperspectral image segmentation. We show that the
+    model trained using quantum annealer is better or at least comparable with
+    models trained using alternative algorithms, according to the preselected,
+    common metrics. While direct energy use comparison does not make sense at
+    the current stage of quantum computing technology development, we believe
+    that our work proves that quantum annealing should be considered as a tool
+    for training at least some machine learning models. 
 \end{abstract}
 
-\section{Introduction}\label{introduction}
-
-Technological advancements in the XX century contributed to development of
-computer science, and the digital era has emerged. One of the modern
-advancements that we witness is the rapid growth of artificial intelligence,
-especially in the field of generative models~\cite{Goodfellow2014}, and
-transformer architecture in 2017~\cite{Vaswani2023}. Certainly worth
-mentioning is the 2024 Nobel Prize in Physics for John J. Hopfield and Geoffrey
-E. Hinton. The motivation for the prize was as follows: ``for foundational
-discoveries and inventions that enable machine learning with artificial neural
-networks''. One of such ANN models are Restricted Boltzmann Machines (RBM),
-initially introduced in 1986 under the name Harmonium~\cite{Smolensky1986},
-which fall into the generative models category due to their ability to learn a
-probabilistic distribution over its set of inputs. RBM is a widely used machine
-learning technique for unsupervised~\cite{Decelle2023} and supervised tasks
-\cite{Dixit2021RBM_DWave}.
+\section{Introduction}\label{introduction} The rapid growth of artificial
+intelligence, especially in the field of generative models~\cite{Goodfellow2014}
+and transformer architecture in 2017~\cite{Vaswani2023} has lead to a major
+proliferation of large deep learning models. It is becoming a major concern that
+economic opportunities that are believed to be existing coming from the
+explosion of large models, lead to major energy consumption related to training
+and using these models. In order to mitigate this problem it is important to
+search for alternative methods of models training. In this work we employ an old
+idea and implement it on a new hardware device --- namely a quantum annealer.
+The old idea is the Restricted Boltzmann Machine (RBM), initially introduced in
+1986 under the name Harmonium~\cite{Smolensky1986}. RBM is a generative model
+that has the ability to learn a probabilistic distribution over its set of
+inputs. RBM is a widely used machine learning technique for
+both unsupervised~\cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}.
 
 Among others, RBMs have been used in computer vision, as a part of the
 image processing systems. For instance, the authors of QBM4EO devised a
@@ -104,16 +97,18 @@ capture information in broader electromagnetic wavelength spectrum
 \cite{Mengu2023}, not just in the visible range. Such data allow for a deeper
 analysis of the imaged object properties~\cite{Sifnaios2024}. 
 
-What we strove to investigate was how accurately a model similar to the
-one proposed by~\cite{QBM4EO} can handle pixel-level multispectral image
+What we strove to investigate was how accurately a model similar to the one
+proposed by~\cite{QBM4EO} can handle pixel-level multispectral image
 segmentation task. Since the~\cite{QBM4EO} model was trained using quantum
-annealers (QA), the problem is essentially a quantum machine learning (QML)
-one. QML is an intersection of quantum computing (QC) and machine learning
-(ML). It leverages the principles of quantum mechanics to solve complex ML
-problems. In our case, the problem is RBM training. Since RBMs were trained
-far before first QAs became available, another research question arise. Are
-quantum training techniques better than their classical counterparts, at least
-in this limited context? We tackled that issue in our investigations.
+annealers (QA), the problem is essentially a quantum machine learning (QML) one.
+QML is an intersection of quantum computing (QC) and machine learning (ML). It
+leverages the principles of quantum mechanics to solve complex ML problems. In
+our case, the problem is RBM training. Since RBMs were trained far before first
+QAs became available, another research question arise. Are quantum training
+techniques better than their classical counterparts, at least in this limited
+context? If quantum training techniques are at least comparable in terms of
+results quality, one can hope that they could find wider applications due to
+their ability to use less energy~\cite{Jaschke_Montangero_2023}. 
 
 This paper is organized as follows. We begin with the problem formulation, where
 we formally introduce the idea of multi- and hyperspectral images and image
@@ -539,7 +534,7 @@ neurons in the hidden layer was the most promising for the segmentation task.
 Figure~\ref{fig:rbm_learning_cd} shows the learning curve for that model.
 \begin{figure}[h]
     \centering
-    {\includegraphics[width=0.85\linewidth]{figures/experiments_and_results/plot_loss/rbm_plot_loss_cd1.pdf}}
+    {\includegraphics[scale=0.7]{figures/experiments_and_results/plot_loss/rbm_plot_loss_cd1.pdf}}
     \caption[Learning curve of the RBM from the CD-$1$ training.]{CD-1 trainig learning curve of the RMB with 23 neurons in the hidden layer. The blue line represents the loss value on the training dataset, and the red line represents the loss value on the validation dataset.}
     \label{fig:rbm_learning_cd}
 \end{figure}
