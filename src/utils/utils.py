@@ -373,7 +373,8 @@ def plot_losses(
 
     plt.ylabel('Loss', fontsize=12, fontname="Times New Roman")
     plt.xlabel('Epoch', fontsize=12, fontname="Times New Roman")
-    plt.yticks(fontsize=12, fontname="Times New Roman")
+    plt.yticks(ticks=[0.6, 0.7, 0.8, 0.9], fontsize=12, fontname="Times New Roman")
+    plt.xticks(fontsize=12, fontname="Times New Roman")
     plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgrey')
     plt.legend(prop={'family': 'Times New Roman', 'size': 12}, loc='upper right')
     plt.tight_layout()
