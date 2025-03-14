@@ -1,20 +1,18 @@
 import abc
 from itertools import islice
+import os
 
 import dimod
 import numpy as np
 from scipy.special import expit
 from torch.utils.data import DataLoader
+import torch.nn as nn
 import tqdm
+from typing import Union
+import time
 
 
 INITIAL_COEF_SCALE = 0.1
-
-
-def infinite_dataloader_generator(data_loader):
-    while True:
-        for batch_idx, (data, target) in enumerate(data_loader):
-            yield batch_idx, (data, target)
 
 
 def qubo_from_rbm_coefficients(
@@ -55,11 +53,12 @@ class RBM:
         self,
         num_visible: int,
         num_hidden: int,
-        rng=None
+        random_seed: int = 42
     ):
         self.num_visible = num_visible
         self.num_hidden = num_hidden
-        self.rng = rng if rng is not None else np.random.default_rng()
+        self.random_seed = random_seed
+        self.rng = np.random.default_rng(seed=self.random_seed)
 
         self.weights = (
             self.rng.normal(size=(self.num_visible, self.num_hidden)) * INITIAL_COEF_SCALE
@@ -87,7 +86,7 @@ class RBM:
     def save(self, file):
         np.savez(file, v_bias=self.v_bias, h_bias=self.h_bias, weights=self.weights)
 
-    def binarize_rbm_output(self, v_batch, threshold):
+    def binarized_rbm_output(self, v_batch, threshold):
         h_probabilities_given_v = self.h_probabilities_given_v(v_batch)
         binarized_probabilities = np.where(h_probabilities_given_v <= threshold, 0, 1)
         return binarized_probabilities
@@ -102,31 +101,81 @@ class RBM:
         rbm.h_bias = h_bias
         return rbm
 
-
+    
 class RBMTrainer:
+    
+    def __init__(
+            self,
+            epochs: int,
+            encoder: nn.Module
+    ):
+        self.epochs = epochs
+        self.encoder = encoder
 
-    def __init__(self, num_steps: int):
-        self.num_steps = num_steps
-        self.losses = []
+        self.train_losses = []
+        self.val_losses = []
+        self.train_step_time = []
 
-    def fit(self, rbm: RBM, data_loader: DataLoader, callback=None):
-        self.losses.clear()
-        
-        for i, (_idx, (batch, target)) in enumerate(pbar := tqdm.tqdm(islice(
-                infinite_dataloader_generator(data_loader),
-                self.num_steps
-        ), total=self.num_steps)):
-            batch = batch.detach().cpu().numpy().squeeze()
-            self.training_step(rbm, batch)
-            loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
-            self.losses.append(loss)
-            pbar.set_postfix(loss=loss)
-            if callback is not None:
-                callback(i, rbm, loss)
+    def fit(
+            self,
+            rbm: RBM,
+            train_data_loader: DataLoader,
+            val_data_loader: Union[DataLoader, None],
+            experiment_path: str,
+            validation_step_after_n_steps: int = 50
+    ):
+        self.train_losses.clear()
+        self.val_losses.clear()
+        self.train_step_time.clear()
+
+        for epoch in range(self.epochs):
+
+            pbar = tqdm.tqdm(train_data_loader, desc=f'Epoch {epoch+1}/{self.epochs}')
+
+            for batch_idx, (batch, _) in enumerate(pbar):
+                batch = self.encoder(batch)[0].detach().cpu().numpy().squeeze()
+                timer1 = time.time()
+                self.training_step(rbm, batch)
+                timer2 = time.time()
+                train_loss = ((batch-rbm.reconstruct(batch)) ** 2).sum() / batch.shape[0] / batch.shape[1]
+                self.train_losses.append(train_loss)
+                self.train_step_time.append(timer2-timer1)
+
+                pbar.set_postfix(train_loss=train_loss)
+
+                if val_data_loader is not None and batch_idx % validation_step_after_n_steps == 0:
+                    val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
+                    self.val_losses.append((batch_idx, val_loss))
+
+                if batch_idx+1 in [100*(i+1) for i in range(10)]:
+                    rbm.save(os.path.join(experiment_path, f'rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz'))
+                    print(f'\nSaved model: rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz')
+
+        val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
+        self.val_losses.append((batch_idx+1, val_loss))
 
     @abc.abstractmethod
     def training_step(self, rbm: RBM, batch):
         pass
+
+    def validation_step(
+            self, 
+            rbm: RBM, 
+            encoder: nn.Module, 
+            val_data_loader: DataLoader
+        ):
+            val_losses = []
+
+            pbar = tqdm.tqdm(val_data_loader, desc=f'\tValidation step')
+
+            for val_batch, _ in pbar:
+                val_batch = encoder(val_batch)[0].detach().cpu().numpy().squeeze()
+                val_loss = ((val_batch - rbm.reconstruct(val_batch)) ** 2).sum() / val_batch.shape[0] / val_batch.shape[1]
+                val_losses.append(val_loss)
+
+                pbar.set_postfix(val_loss=val_loss)
+                
+            return np.mean(val_losses)
 
 
 class AnnealingRBMTrainer(RBMTrainer):
@@ -134,16 +183,19 @@ class AnnealingRBMTrainer(RBMTrainer):
     def __init__(
         self,
         num_steps: int,
+        encoder: nn.Module,
         sampler: dimod.Sampler,
         qubo_scale: float = 1.0,
         learning_rate: float = 0.01,
         **sampler_kwargs
     ):
-        super().__init__(num_steps)
+        super().__init__(num_steps, encoder)
         self.sampler = sampler
         self.sampler_kwargs = sampler_kwargs
         self.qubo_scale = qubo_scale
         self.learning_rate = learning_rate
+
+        self.sample_time = []
 
     def training_step(self, rbm, batch):
         # Conditional probabilities given visible batch input
@@ -154,14 +206,16 @@ class AnnealingRBMTrainer(RBMTrainer):
         # that in dimod this operation has to be done in place.
         bqm.scale(self.qubo_scale)
         # Take a sample of the same size as batch, extract only visible and hidden variables
-        if "num_reads" in self.sampler.parameters:
-            sample = self.sampler.sample(
-                bqm, num_reads=len(batch), **self.sampler_kwargs
-            ).record["sample"]
-        else:
-            sample = dimod.concatenate(
-                [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
-            ).record["sample"]
+        # print(f'batch shape: {batch.shape}, len batch: {len(batch)}')
+        timer3 = time.time()
+        sample = [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+        timer4 = time.time()
+        self.sample_time.append(timer4-timer3)
+        # print(f'len sample befor concat: {len(sample)}')
+        sample = dimod.concatenate(sample)
+        sample = sample.record["sample"]
+        # print(f'shape sample after concat: {sample.shape}')
+        # print(sample.shape)
         # Split, remembering that first variables correspond to hidden layer
         sample_v = sample[:, :rbm.num_visible]
         sample_h = sample[:, rbm.num_visible:]
@@ -170,14 +224,50 @@ class AnnealingRBMTrainer(RBMTrainer):
             self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
         )
         # And biases
+        # print(batch.shape)
+        # print(sample_v.shape)
         rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
         rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
+
+    # def training_step(self, rbm, batch):
+    #     # Conditional probabilities given visible batch input
+    #     hidden = rbm.h_probabilities_given_v(batch)
+    #     # Construct QUBO from this RBM
+    #     bqm = qubo_from_rbm_coefficients(rbm.weights, rbm.v_bias, rbm.h_bias)
+    #     # Scaling to compensate the temperature difference. Strangely, it seems
+    #     # that in dimod this operation has to be done in place.
+    #     bqm.scale(self.qubo_scale)
+    #     # Take a sample of the same size as batch, extract only visible and hidden variables
+    #     if "num_reads" in self.sampler.parameters:
+    #         timer3 = time.time()
+    #         sample = self.sampler.sample(
+    #             bqm, num_reads=len(batch), **self.sampler_kwargs
+    #         ).record["sample"]
+    #         timer4 = time.time()
+    #     else:
+    #         timer3 = time.time()
+    #         sample = dimod.concatenate(
+    #             [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+    #         ).record["sample"]
+    #         timer4 = time.time()
+        
+    #     self.sample_time.append(timer4-timer3)
+    #     # Split, remembering that first variables correspond to hidden layer
+    #     sample_v = sample[:, :rbm.num_visible]
+    #     sample_h = sample[:, rbm.num_visible:]
+    #     # Update weights
+    #     rbm.weights += (
+    #         self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
+    #     )
+    #     # And biases
+    #     rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
+    #     rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
 
 
 class CD1Trainer(RBMTrainer):
 
-    def __init__(self, num_steps: int, learning_rate: float = 0.01):
-        super().__init__(num_steps)
+    def __init__(self, epochs: int, encoder: nn.Module, learning_rate: float = 0.01):
+        super().__init__(epochs, encoder)
         self.learning_rate = learning_rate
 
     def training_step(self, rbm: RBM, batch):

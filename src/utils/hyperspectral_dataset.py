@@ -26,7 +26,8 @@ class HyperspectralDataset(Dataset):
             hyperspectral_data: Union[str, ArrayLike], 
             ground_truth_data: Union[str, ArrayLike],
             stage: Stage,
-            split: float=0.2
+            split: float=0.2,
+            class_filter=False
     ):
         if isinstance(hyperspectral_data, str):
             hyperspectral_image = tifffile.imread(hyperspectral_data)
@@ -46,25 +47,34 @@ class HyperspectralDataset(Dataset):
 
         hyperspectral_image /= hyperspectral_image.max()
 
-        if stage == Stage.IMG_SEG:
+        self.stage = stage
+
+        if self.stage == Stage.IMG_SEG:
             split = 0
 
         dataset = utils.train_test_split(hyperspectral_image, ground_truth_image, split=split)
 
-        if stage == Stage.TRAIN:
+        if self.stage == Stage.TRAIN:
 
             hyperspectral_image = dataset[ImagePartitions.TRAIN_IMAGE]
             ground_truth_image = dataset[ImagePartitions.TRAIN_LABEL]
 
-        elif stage == Stage.TEST:
+        elif self.stage == Stage.TEST:
 
             hyperspectral_image = dataset[ImagePartitions.TEST_IMAGE]
             ground_truth_image= dataset[ImagePartitions.TEST_LABEL]
 
-        elif stage == Stage.IMG_SEG:
+        elif self.stage == Stage.IMG_SEG:
 
             hyperspectral_image = dataset[ImagePartitions.SEG_IMG]
             ground_truth_image= dataset[ImagePartitions.SEG_LABEL]
+
+        if class_filter:
+            hyperspectral_image, ground_truth_image = utils.classes_filter(
+                hyperspectral_vector=hyperspectral_image,
+                ground_truth_vector=ground_truth_image,
+                classes_to_remove=class_filter
+            )
         
         self.hyperspectral_image = torch.tensor(hyperspectral_image)
         self.ground_truth_image = torch.tensor(ground_truth_image)
@@ -77,5 +87,83 @@ class HyperspectralDataset(Dataset):
         pixel_values = self.hyperspectral_image[index]
         pixel_values = pixel_values.reshape(1, len(pixel_values))
         label = self.ground_truth_image.clone().detach()[index]
+
+        if self.stage == Stage.TRAIN:
+            label = self.onehot_encoding(int(label.item()))
         
         return pixel_values, label
+    
+    def onehot_encoding(self, label: torch.TensorType) -> Sequence[int]:
+        onehot_label = torch.zeros(len(torch.unique(self.ground_truth_image)))
+        onehot_label[label] = 1.0
+        return onehot_label
+    
+
+class AVIRISDataset():
+    def __init__(
+            self,
+            hyperspectral_data: Union[str, ArrayLike], 
+            ground_truth_data: Union[str, ArrayLike],
+    ):
+        self.hyperspectral_image = tifffile.imread(hyperspectral_data)
+        self.ground_truth_image = tifffile.imread(ground_truth_data)
+
+        self.ground_truth_image = self.ground_truth_image.flatten()
+
+        bands, rows, cols = self.hyperspectral_image.shape
+        self.hyperspectral_image = self.hyperspectral_image.reshape(rows*cols, bands)
+
+        background_indices = np.where(self.ground_truth_image == 0)[0]
+                
+        self.ground_truth_image = np.delete(self.ground_truth_image, background_indices)
+        self.hyperspectral_image = np.delete(self.hyperspectral_image, background_indices, axis=0)
+
+        self.hyperspectral_image = self.hyperspectral_image.astype(np.float32)
+        self.ground_truth_image = self.ground_truth_image.astype(np.float32)
+
+        self.hyperspectral_image /= self.hyperspectral_image.max()
+
+        self.hyperspectral_image = torch.tensor(self.hyperspectral_image)
+        self.ground_truth_image = torch.tensor(self.ground_truth_image)
+
+    def  __len__(self):
+        return len(self.hyperspectral_image)
+        
+    def __getitem__(self, index: int) -> Tuple[Sequence, int]:
+
+        pixel_values = self.hyperspectral_image[index]
+        pixel_values = pixel_values.reshape(1, len(pixel_values))
+        label = self.ground_truth_image.clone().detach()[index]
+
+        # if self.stage == Stage.TRAIN:
+        #     label = self.onehot_encoding(int(label.item()))
+        
+        return pixel_values, label
+
+
+# import matplotlib.pyplot as plt
+# from torch.utils.data import DataLoader
+
+
+# gt_path = 'dataset/indian_pine/220x145x145/ground_truth_image.tif'
+# himg_path = 'dataset/indian_pine/220x145x145/hyperspectral_image.tif'
+
+# ground_truth_image = tifffile.imread(gt_path)
+# plt.imshow(ground_truth_image)
+# plt.show()
+
+# print(np.unique(ground_truth_image))
+
+# dataset = AVIRISDataset(
+#     hyperspectral_data='dataset/indian_pine/220x145x145/hyperspectral_image.tif',
+#     ground_truth_data='dataset/indian_pine/220x145x145/ground_truth_image.tif'
+# )
+
+# dataloader = DataLoader(dataset=dataset, batch_size=8)
+
+# for i, (X, y) in enumerate(dataloader):
+
+#     print(X)
+
+#     if i ==2:
+#         break
