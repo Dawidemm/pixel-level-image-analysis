@@ -62,27 +62,32 @@
     model trained using quantum annealer is better or at least comparable with
     models trained using alternative algorithms, according to the preselected,
     common metrics. While direct energy use comparison does not make sense at
-    the current stage of quantum computing technology development, we believe
-    that our work proves that quantum annealing should be considered as a tool
-    for training at least some machine learning models. 
+    the current stage of quantum computing technology development, we prove
+    that quantum annealing should be considered as a tool for training at least
+    some machine learning models. 
     
     \keywords{RBM, QML, Hyperspectral imaging, image segmentation}
 \end{abstract}
 
-\section{Introduction}\label{introduction} The rapid growth of artificial
-intelligence, especially in the field of generative models~\cite{Goodfellow2014}
-and transformer architecture in 2017~\cite{Vaswani2023} has lead to a major
-proliferation of large deep learning models. It is becoming a major concern that
-economic opportunities that are believed to be existing coming from the
-explosion of large models, lead to major energy consumption related to training
-and using these models. In order to mitigate this problem it is important to
-search for alternative methods of models training. In this work we employ an old
-idea and implement it on a new hardware device --- namely a quantum annealer.
-The old idea is the Restricted Boltzmann Machine (RBM), initially introduced in
-1986 under the name Harmonium~\cite{Smolensky1986}. RBM is a generative model
-that has the ability to learn a probabilistic distribution over its set of
-inputs. RBM is a widely used machine learning technique for
-both unsupervised~\cite{Decelle2023} and supervised tasks \cite{Dixit2021RBM_DWave}.
+\section{Introduction}\label{introduction} 
+
+The rapid growth of artificial intelligence, especially in the field of
+generative models~\cite{Goodfellow2014} and transformer architecture in
+2017~\cite{Vaswani2023} has led to a major proliferation of large deep learning
+models. However, life-cycle of large machine learning (ML) models is known to
+be problematically energy consuming \cite{GreenAI}. In order to mitigate this
+problem it is important to search for alternative methods of models training.
+In this work we use a quantum annealer to train a Restricted Boltzmann Machine
+(RBM). The latter is a generative model that has the ability to learn a
+probabilistic distribution over its set of inputs. RBM is a widely used machine
+learning technique for both unsupervised~\cite{Decelle2023} and supervised
+tasks \cite{Dixit2021RBM_DWave}. Our motivation for such approach is two-fold.
+First, such training has already been shown to work \cite{QBM, QBM4EO}. 
+Secondly, quantum annealers have already been considered for reducing energy
+consumption for specific problems \cite{kasi2022costpowerfeasibilityanalysis}.
+If the RBM training using quantum annealers proves successful, it would be
+worth investigating under what circumstances are quantum annealers more
+energy efficient than classic RBM training approaches.
 
 Among others, RBMs have been used in computer vision, as a part of the
 image processing systems. For instance, the authors of QBM4EO devised a
@@ -92,7 +97,7 @@ hence we were able to ascertain the model capabilities to process similar data.
 However, instead of multi-label classification, we looked into a different
 computer vision task, namely image segmentation.
 
-Segmentation is a core task in computer vision. It's goal is to partition an
+Segmentation is a core task in computer vision. Its goal is to partition an
 image into regions representing different objects or materials. Segmentation
 makes it possible to analyze image's structure accurately, and it has
 applications in many fields, such as medicine~\cite{Wang2022} or satellite
@@ -102,7 +107,7 @@ capture information in broader electromagnetic wavelength spectrum
 \cite{Mengu2023}, not just in the visible range. Such data allow for a deeper
 analysis of the imaged object properties~\cite{Sifnaios2024}. 
 
-What we strove to investigate was how accurately a model similar to the one
+We investigated how accurately a model similar to the one
 proposed by~\cite{QBM4EO} can handle pixel-level multispectral image
 segmentation task. Since the~\cite{QBM4EO} model was trained using quantum
 annealers (QA), the problem is essentially a quantum machine learning (QML) one.
@@ -117,10 +122,10 @@ their ability to use less energy~\cite{Jaschke_Montangero_2023}.
 
 This paper is organized as follows. We begin with the problem formulation, where
 we formally introduce the idea of multi- and hyperspectral images and image
-segmentation. Moreover, we discuss previously proposed solutions to the problem
-therein. In the next section, we overview quantum machine learning, focusing
+segmentation (section \ref{sec:problem}). Moreover, we discuss previously proposed solutions to the problem
+therein. In the next section (\ref{sec:qml}), we overview quantum machine learning, focusing
 especially on the building blocks of the model we propose. Here, we also
-describe how quantum annealers can be used to train specific ML models. Then, we
+describe how quantum annealers can be used to train specific ML models. Then, in section \ref{sec:exp}, we
 start with describing the experiment. We review the dataset we use and introduce
 our model. We then discuss our experiments in great detail and conclude this
 section with results analysis. We finish this paper with conclusions, insights
@@ -133,12 +138,9 @@ and directions for future research.
 % + multispectral images
 Image segmentation is an important area of research and application in the field
 of computer vision. It is a process of dividing an image into homogeneous
-regions~\cite{Pal1993}. One can find its uses in many fields, such as
-medicine~\cite{Ma2024}, remote sensing~\cite{Kemker2018}, and vision systems in
-autonomous vehicles \cite{Cakir2022}.
-
-Formally, image segmentation can be defined as follows
-\cite{Pal1993}. If $F$ is the set of all pixels and $P: F \to
+regions~\cite{Pal1993}. 
+%One can find its uses in many fields, such as medicine~\cite{Ma2024}, remote sensing~\cite{Kemker2018}, and vision systems in autonomous vehicles \cite{Cakir2022}.
+Formally, image segmentation can be defined as follows. If $F$ is the set of all pixels and $P: F \to
 \{\text{true},\text{false}\}$ is a homogeneity predicate defined on groups of connected pixels, then segmentation is a partitioning of the set $F$ into a set of connected subsets or regions $(S_{1},S_{2},\ldots,S_{n})$ such that:
 \begin{equation}
 	\label{segmentation_eq}
@@ -173,10 +175,12 @@ known to have limitations~\cite{GARCIADIAS2020227}. It's therefore reasonable to
 explore different options.
 
 The decision of which algorithm to select can be further guided by the
-approach one wishes to implement. The image can be analyzed using either
-pixel-level or patch approach. The latter usually involves using deep
-convolutional neural networks~\cite{Ajit2020, Morchhale2016}. However, research on hyperspectral imaging at the pixel-level has
-grown in recent years, leading to an increasing number of scientific
+approach one wishes to implement. Most of the state-of-the-art approaches rely
+on deep learning methods, which are costly to train \cite{GreenAI}. The image
+can be analyzed using either pixel-level or patch approach. The latter usually
+involves using deep convolutional neural networks~\cite{Ajit2020,
+Morchhale2016}. However, research on hyperspectral imaging at the pixel-level
+has grown in recent years, leading to an increasing number of scientific
 publications in this field~\cite{Morchhale2016, González-Santiago2022, Yan2023,
 Sifnaios2024, Chen2024}. We therefore decided to pursue the latter direction.
 
@@ -190,7 +194,7 @@ enable machines to learn, resulting in a wide range of applications
 explores machines' capability to learn patterns from the data is called
 machine learning (ML).
 
-The focus of this work in on unsupervised learning It is a fundamental approach
+The focus of this work is on unsupervised learning. It is a fundamental approach
 in machine learning that allows models to learn patterns in data without
 explicit labels~\cite{Naeem2023}. The goal of learning in this context is to
 uncover the underlying structure of the dataset. Classic problems in which
@@ -208,7 +212,7 @@ data~\cite{Goodfellow2016}.
 In the context of this work, unsupervised learning will be used for all the
 tasks we mentioned. The model we propose, detailed in section~\ref{sec:exp},
 employs both dimensionality reduction and clustering. We also use standard
-clustering algorithms as a baseline for out model quality assessment.
+clustering algorithms as a baseline for our model quality assessment.
 
 % LBAE
 \subsection{Latent Bernoulli Autoencoder}\label{lbae_section}
@@ -357,7 +361,7 @@ k-means~\cite{Kumar2018}.
 \section{Experiments and results}
 \label{sec:exp}
 
-We used HyperBlood dataset~\cite{Romaszewski2021} our the experiments. It
+We used HyperBlood dataset~\cite{Romaszewski2021} in our the experiments. It
 consists of fourteen hyperspectral images showing a mock-up crime scene with
 bloodstains and other visually similar substances. The images, collected over
 three weeks, vary in background composition and lighting conditions. Each image
@@ -729,7 +733,13 @@ necessary for RBM processing. Secondly, we use RBM to perform clustering on the
 encoded spectral pixels.
 
 The proposed architecture and experiments confirmed the effectiveness of applying quantum annealing techniques and RBM models training. One can clearly
-see that since we achieved better segmentation results, in terms of observed metrics, than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field.
+see that since we achieved better segmentation results, in terms of observed metrics, than the baseline segmentation obtained using standard algorithm --- $k$-means. The results suggest the potential for further research on using quantum annealing in the image processing field. It's also vital to analyze
+cost and power feasibility of quantum annealers as RBM training tools.
+
+However, other quantum data
+processing techniques should also be explored in this field. Particularly
+interesting are quantum kernel methods, performance of which is yet to be
+tested on real gate-based quantum devices. 
 
 \section*{Acknowledgments}\label{acknowledgments}
 \addcontentsline{toc}{chapter}{Acknowledgments}
