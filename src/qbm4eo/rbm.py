@@ -147,9 +147,12 @@ class RBMTrainer:
                     val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
                     self.val_losses.append((batch_idx, val_loss))
 
-                if batch_idx+1 in [100*(i+1) for i in range(10)]:
-                    rbm.save(os.path.join(experiment_path, f'rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz'))
-                    print(f'\nSaved model: rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz')
+                # if batch_idx+1 in [100*(i+1) for i in range(10)]:
+                #     rbm.save(os.path.join(experiment_path, f'rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz'))
+                #     print(f'\nSaved model: rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx+1)}.npz')
+
+                rbm.save(os.path.join(experiment_path, f'rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx)}.npz'))
+                print(f'\nSaved model: rbm_nh={rbm.num_hidden}_seed={rbm.random_seed}_epoch={(batch_idx)}.npz')
 
         val_loss = self.validation_step(rbm, self.encoder, val_data_loader)
         self.val_losses.append((batch_idx+1, val_loss))
@@ -206,62 +209,34 @@ class AnnealingRBMTrainer(RBMTrainer):
         # that in dimod this operation has to be done in place.
         bqm.scale(self.qubo_scale)
         # Take a sample of the same size as batch, extract only visible and hidden variables
-        # print(f'batch shape: {batch.shape}, len batch: {len(batch)}')
-        timer3 = time.time()
-        sample = [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
-        timer4 = time.time()
+        if "num_reads" in self.sampler.parameters:
+            timer3 = time.time()
+            sample = self.sampler.sample(
+                bqm, num_reads=len(batch), **self.sampler_kwargs
+            ).record["sample"]
+            timer4 = time.time()
+
+        else:
+            timer3 = time.time()
+            sample = dimod.concatenate(
+                [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+            ).record["sample"]
+            timer4 = time.time()
+        
         self.sample_time.append(timer4-timer3)
-        # print(f'len sample befor concat: {len(sample)}')
-        sample = dimod.concatenate(sample)
-        sample = sample.record["sample"]
-        # print(f'shape sample after concat: {sample.shape}')
-        # print(sample.shape)
         # Split, remembering that first variables correspond to hidden layer
         sample_v = sample[:, :rbm.num_visible]
         sample_h = sample[:, rbm.num_visible:]
+
+        sample_v = sample_v[:len(batch)]
+        sample_h = sample_h[:len(batch)]
         # Update weights
         rbm.weights += (
             self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
         )
-        # And biases
-        # print(batch.shape)
-        # print(sample_v.shape)
+
         rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
         rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
-
-    # def training_step(self, rbm, batch):
-    #     # Conditional probabilities given visible batch input
-    #     hidden = rbm.h_probabilities_given_v(batch)
-    #     # Construct QUBO from this RBM
-    #     bqm = qubo_from_rbm_coefficients(rbm.weights, rbm.v_bias, rbm.h_bias)
-    #     # Scaling to compensate the temperature difference. Strangely, it seems
-    #     # that in dimod this operation has to be done in place.
-    #     bqm.scale(self.qubo_scale)
-    #     # Take a sample of the same size as batch, extract only visible and hidden variables
-    #     if "num_reads" in self.sampler.parameters:
-    #         timer3 = time.time()
-    #         sample = self.sampler.sample(
-    #             bqm, num_reads=len(batch), **self.sampler_kwargs
-    #         ).record["sample"]
-    #         timer4 = time.time()
-    #     else:
-    #         timer3 = time.time()
-    #         sample = dimod.concatenate(
-    #             [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
-    #         ).record["sample"]
-    #         timer4 = time.time()
-        
-    #     self.sample_time.append(timer4-timer3)
-    #     # Split, remembering that first variables correspond to hidden layer
-    #     sample_v = sample[:, :rbm.num_visible]
-    #     sample_h = sample[:, rbm.num_visible:]
-    #     # Update weights
-    #     rbm.weights += (
-    #         self.learning_rate * (batch.T @ hidden - sample_v.T @ sample_h) / len(batch)
-    #     )
-    #     # And biases
-    #     rbm.v_bias += self.learning_rate * (batch - sample_v).sum(axis=0)
-    #     rbm.h_bias += self.learning_rate * (hidden - sample_h).sum(axis=0)
 
 
 class CD1Trainer(RBMTrainer):

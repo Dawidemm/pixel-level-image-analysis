@@ -29,6 +29,10 @@ previous_exp
 compute_distance_matrix.py
 model/
 slurm/
+job1.txt
+jobs.txt
+output.txt
+veloxq_test.py
 # Article txt
 txt/RBM4MSIS-blx.bib
 txt/RBM4MSIS.aux

@@ -5,11 +5,16 @@ import lightning as pl
 from torch.utils.data import DataLoader
 from dimod import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
+from veloxq_sdk import VeloxQSolver, VeloxQParameters
+from veloxq_sdk.config import load_config
 
 from src.qbm4eo.rbm import CD1Trainer, AnnealingRBMTrainer
 from src.utils import utils
 
 from typing import Union
+
+
+load_config("veloxq_api_config.py")
 
 
 def encoded_dataloader(data_loader, encoder):
@@ -122,38 +127,42 @@ class Pipeline:
                 rbm_trainer = AnnealingRBMTrainer(
                     rbm_epochs,
                     encoder=encoder,
-                    sampler=EmbeddingComposite(
-                        DWaveSampler(
-                            profile="europe", 
-                            compress_qpu_problem_date=False,
-                            solver=dict(topology__type='pegasus')
-                            )
-                        ), 
+                    sampler=VeloxQSolver(),
+                    # sampler=EmbeddingComposite(
+                    #     DWaveSampler(
+                    #         profile="europe", 
+                    #         compress_qpu_problem_date=False,
+                    #         solver=dict(topology__type='pegasus')
+                    #         )
+                    #     ), 
                     # sampler=SimulatedAnnealingSampler(),
                     learning_rate=rbm_learning_rate
                 )
-                rbm_trainer.fit(
-                    rbm=self.rbm,
-                    train_data_loader=train_data_loader,
-                    val_data_loader=validation_data_loader,
-                    experiment_path=experiment_path
-                )
-                if learnig_curve:
-                    utils.plot_losses(
-                        train_loss_values=rbm_trainer.train_losses,
-                        validation_loss_values=rbm_trainer.val_losses,
-                        model='rbm',
-                        experiment_number=experiment_number
+                try:
+                    rbm_trainer.fit(
+                        rbm=self.rbm,
+                        train_data_loader=train_data_loader,
+                        val_data_loader=validation_data_loader,
+                        experiment_path=experiment_path
                     )
-                np.savez(
-                    os.path.join(experiment_path, 'time_stats.npz'), 
-                    train_step_time=rbm_trainer.train_step_time, 
-                    sample_time=rbm_trainer.sample_time
-                )
-                np.savez(
-                    os.path.join(experiment_path, 'losses.npz'), 
-                    train_losses=rbm_trainer.train_losses, 
-                    val_losses=rbm_trainer.val_losses
-                )
+                # if learnig_curve:
+                #     utils.plot_losses(
+                #         train_loss_values=rbm_trainer.train_losses,
+                #         validation_loss_values=rbm_trainer.val_losses,
+                #         model='rbm',
+                #         experiment_number=experiment_number
+                #     )
+                except Exception as e:
+                    np.savez(
+                        os.path.join(experiment_path, 'time_stats.npz'), 
+                        train_step_time=rbm_trainer.train_step_time, 
+                        sample_time=rbm_trainer.sample_time
+                    )
+                    np.savez(
+                        os.path.join(experiment_path, 'losses.npz'), 
+                        train_losses=rbm_trainer.train_losses, 
+                        val_losses=rbm_trainer.val_losses
+                    )
+                    print(e)
             else:
                 raise ValueError(f'Argument "rbm_trainer" should be set as one from ["cd1", "annealing"] values.')
