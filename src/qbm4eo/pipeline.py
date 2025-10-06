@@ -17,6 +17,8 @@ from typing import Union
 load_config("veloxq_api_config.py")
 
 
+params = VeloxQParameters(num_rep=256, num_steps=5000)
+
 def encoded_dataloader(data_loader, encoder):
     while True:
         for batch_idx, (data, target) in enumerate(data_loader):
