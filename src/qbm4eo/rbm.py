@@ -219,10 +219,11 @@ class AnnealingRBMTrainer(RBMTrainer):
         else:
             timer3 = time.time()
             sample = dimod.concatenate(
-                [self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+                #[self.sampler.sample(bqm, **self.sampler_kwargs) for _ in range(len(batch))]
+                [self.sampler.sample(bqm)] * len(batch)
             ).record["sample"]
             timer4 = time.time()
-        
+            
         self.sample_time.append(timer4-timer3)
         # Split, remembering that first variables correspond to hidden layer
         sample_v = sample[:, :rbm.num_visible]
